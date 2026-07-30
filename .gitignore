@@ -4,7 +4,7 @@ dist
 *.local
 .DS_Store
 .figma
-data/
+/data/
 server/dist/
 *.db
 *.db-wal
