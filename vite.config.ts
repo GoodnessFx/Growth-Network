@@ -2,8 +2,26 @@ import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
+import { readFileSync, existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
-import siteConfiguration from './.figma/make/site.json'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+let siteConfiguration: FigmaSiteConfiguration = {
+  title: 'Growth Network',
+  description: 'Business Growth Operating System',
+  language: 'en',
+  robots: { index: true },
+}
+
+const siteConfigPath = path.resolve(__dirname, '.figma/make/site.json')
+if (existsSync(siteConfigPath)) {
+  try {
+    siteConfiguration = JSON.parse(readFileSync(siteConfigPath, 'utf-8'))
+  } catch {
+    // fall back to defaults
+  }
+}
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
