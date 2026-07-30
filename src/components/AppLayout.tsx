@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  ExternalLink,
   Building2,
   Layers,
 } from 'lucide-react'
@@ -216,6 +217,27 @@ export default function AppLayout({
 
         {/* Bottom actions */}
         <div style={{ borderTop: '1px solid var(--border)', padding: '8px 0' }}>
+          <a
+            href="https://github.com/GoodnessFx/Growth-Network"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '100%',
+              padding: collapsed ? '10px 14px' : '10px 20px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--muted-foreground)',
+              fontSize: 13,
+              textDecoration: 'none',
+            }}
+          >
+            <ExternalLink size={16} />
+            {!collapsed && 'GitHub'}
+          </a>
           <button
             style={{
               display: 'flex',
