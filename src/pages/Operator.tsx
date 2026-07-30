@@ -88,7 +88,7 @@ function PulseBar({ value, total, status }: { value: number; total: number; stat
 
 function Avatar({ initials, size = 36 }: { initials: string; size?: number }) {
   const colors: Record<string, string> = {
-    KA: '#F2E20C', AA: '#1EFFA8', DM: '#F5A623', AO: '#7B8FFF',
+    KA: '#C2A77D', AA: '#1B7A4A', DM: '#F5A623', AO: '#7B8FFF',
     GN: '#FF8FD4', AD: '#FF3B3B', SN: '#2AB4FF', YM: '#A8FF78',
   }
   return (
@@ -97,7 +97,7 @@ function Avatar({ initials, size = 36 }: { initials: string; size?: number }) {
         width: size,
         height: size,
         borderRadius: '50%',
-        background: colors[initials] ?? '#F2E20C',
+        background: colors[initials] ?? '#C2A77D',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

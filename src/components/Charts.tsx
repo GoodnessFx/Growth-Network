@@ -61,21 +61,21 @@ export function RevenueChart({ data, height = 200 }: RevenueChartProps) {
       <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
         <defs>
           <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#F2E20C" stopOpacity={0.2} />
-            <stop offset="95%" stopColor="#F2E20C" stopOpacity={0} />
+            <stop offset="5%" stopColor="#1B7A4A" stopOpacity={0.2} />
+            <stop offset="95%" stopColor="#1B7A4A" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
         <XAxis dataKey="month" tick={{ fill: TEXT_COLOR, fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fill: TEXT_COLOR, fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={(v) => formatCurrency(v)} />
         <Tooltip content={<CustomTooltip />} />
-        <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#F2E20C" strokeWidth={2} fill="url(#revenueGrad)" dot={false} activeDot={{ r: 4, fill: '#F2E20C' }} />
+        <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#1B7A4A" strokeWidth={2} fill="url(#revenueGrad)" dot={false} activeDot={{ r: 4, fill: '#1B7A4A' }} />
       </AreaChart>
     </ResponsiveContainer>
   )
 }
 
-export function MiniSparkline({ data, color = '#F2E20C', height = 48 }: { data: { month: string; revenue: number }[]; color?: string; height?: number }) {
+export function MiniSparkline({ data, color = '#1B7A4A', height = 48 }: { data: { month: string; revenue: number }[]; color?: string; height?: number }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
@@ -91,7 +91,7 @@ interface SocialChartProps {
 }
 
 export function SocialChart({ data, height = 200 }: SocialChartProps) {
-  const COLORS = ['#F2E20C', '#1EFFA8', '#F5A623', '#7B8FFF', '#FF3B3B', '#FF8FD4', '#A8FF78']
+  const COLORS = ['#1B7A4A', '#1EFFA8', '#F5A623', '#7B8FFF', '#FF3B3B', '#FF8FD4', '#A8FF78']
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }} barSize={28}>
@@ -127,7 +127,7 @@ export function ComparisonChart({ businesses, height = 260 }: ComparisonChartPro
         <XAxis type="number" tick={{ fill: TEXT_COLOR, fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={(v) => formatCurrency(v)} />
         <YAxis type="category" dataKey="name" tick={{ fill: '#111827', fontSize: 11, fontFamily: 'Outfit' }} axisLine={false} tickLine={false} width={120} />
         <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="revenue" name="Revenue" fill="#F2E20C" radius={[0, 2, 2, 0]} />
+        <Bar dataKey="revenue" name="Revenue" fill="#1B7A4A" radius={[0, 2, 2, 0]} />
       </BarChart>
     </ResponsiveContainer>
   )
@@ -143,7 +143,7 @@ interface AdFunnelProps {
 export function AdFunnel({ spend, clicks, conversions, height = 220 }: AdFunnelProps) {
   const data = [
     { name: 'Ad Spend', value: spend, fill: '#F5A623' },
-    { name: 'Clicks', value: clicks, fill: '#F2E20C' },
+    { name: 'Clicks', value: clicks, fill: '#1B7A4A' },
     { name: 'Conversions', value: conversions, fill: '#1EFFA8' },
   ]
   return (
@@ -172,7 +172,7 @@ interface MultiLineProps {
 }
 
 export function MultiLineChart({ data, keys, colors, height = 220 }: MultiLineProps) {
-  const defaultColors = ['#F2E20C', '#1EFFA8', '#F5A623', '#7B8FFF', '#FF3B3B']
+  const defaultColors = ['#1B7A4A', '#1EFFA8', '#F5A623', '#7B8FFF', '#FF3B3B']
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>

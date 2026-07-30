@@ -184,7 +184,7 @@ function FeatureCard({
           justifyContent: 'center',
         }}
       >
-        <Icon size={22} color={accent ? '#111827' : 'var(--primary)'} strokeWidth={2} />
+        <Icon size={22} color={accent ? '#FFFFFF' : 'var(--primary)'} strokeWidth={2} />
       </div>
       <div>
         <h3
@@ -192,7 +192,7 @@ function FeatureCard({
           style={{
             fontSize: 22,
             fontWeight: 800,
-            color: accent ? '#111827' : 'var(--foreground)',
+            color: accent ? '#FFFFFF' : 'var(--foreground)',
             margin: 0,
             letterSpacing: 0.3,
           }}
@@ -202,7 +202,7 @@ function FeatureCard({
         <p
           style={{
             fontSize: 14,
-            color: accent ? 'rgba(17,24,39,0.7)' : 'var(--muted-foreground)',
+            color: accent ? 'rgba(255,255,255,0.75)' : 'var(--muted-foreground)',
             margin: '10px 0 0',
             lineHeight: 1.65,
           }}
@@ -255,7 +255,7 @@ function PricingCard({
             top: -12,
             left: 32,
             background: 'var(--primary)',
-            color: '#111827',
+            color: '#FFFFFF',
             fontSize: 10,
             fontFamily: 'JetBrains Mono',
             fontWeight: 700,
@@ -360,32 +360,54 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
     <div style={{ background: 'var(--background)', minHeight: '100vh', color: 'var(--foreground)' }}>
       <Navbar onLogin={onLogin} onDashboard={onDashboard} />
 
-      {/* Hero */}
+      {/* Hero — full-bleed background image */}
       <section
         style={{
-          paddingTop: NAV_HEIGHT + 80,
-          paddingBottom: 80,
-          paddingLeft: 32,
-          paddingRight: 32,
-          maxWidth: 1200,
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 64,
+          position: 'relative',
+          minHeight: '90vh',
+          display: 'flex',
           alignItems: 'center',
+          overflow: 'hidden',
         }}
       >
-        <div>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'url(https://images.unsplash.com/photo-1649502913092-fb7f0e8fc632?w=1600&h=900&fit=crop&auto=format)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'brightness(0.35) saturate(0.8)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(135deg, rgba(27,122,74,0.25) 0%, rgba(0,0,0,0.6) 100%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            maxWidth: 900,
+            margin: '0 auto',
+            padding: `${NAV_HEIGHT + 80}px 32px 120px`,
+            textAlign: 'center',
+          }}
+        >
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: 'var(--secondary)',
-              border: '1px solid var(--border)',
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.15)',
               borderRadius: 20,
               padding: '5px 14px 5px 8px',
-              marginBottom: 28,
+              marginBottom: 32,
             }}
           >
             <span
@@ -402,7 +424,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
             >
               NEW
             </span>
-            <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
               Cross-business analytics now live
             </span>
           </div>
@@ -410,41 +432,41 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
           <h1
             className="font-display"
             style={{
-              fontSize: 74,
+              fontSize: 96,
               fontWeight: 900,
-              lineHeight: 0.95,
-              margin: '0 0 24px',
-              letterSpacing: -1,
-              color: 'var(--foreground)',
+              lineHeight: 0.92,
+              margin: '0 0 28px',
+              letterSpacing: -2,
+              color: '#FFFFFF',
             }}
           >
             ONE SCREEN.
             <br />
-            <span style={{ color: 'var(--primary)' }}>EVERY</span>
+            <span style={{ color: '#C2A77D' }}>EVERY</span>
             <br />
             BUSINESS.
           </h1>
 
           <p
             style={{
-              fontSize: 17,
-              lineHeight: 1.65,
-              color: 'var(--muted-foreground)',
-              margin: '0 0 36px',
-              maxWidth: 420,
+              fontSize: 19,
+              lineHeight: 1.7,
+              color: 'rgba(255,255,255,0.75)',
+              margin: '0 auto 40px',
+              maxWidth: 580,
             }}
           >
             GrowthNet is the command center for operators and agencies managing African SMEs. CRM, social, pipeline, finance, and analytics — unified.
           </p>
 
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={onDashboard}
               style={{
-                background: 'var(--primary)',
+                background: '#1B7A4A',
                 border: 'none',
-                color: '#111827',
-                padding: '14px 28px',
+                color: '#FFFFFF',
+                padding: '16px 32px',
                 borderRadius: 3,
                 fontSize: 15,
                 fontWeight: 900,
@@ -462,10 +484,11 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
             <button
               onClick={onLogin}
               style={{
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                color: 'var(--foreground)',
-                padding: '14px 28px',
+                background: 'rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#FFFFFF',
+                padding: '16px 32px',
                 borderRadius: 3,
                 fontSize: 14,
                 cursor: 'pointer',
@@ -480,8 +503,9 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
             style={{
               display: 'flex',
               gap: 20,
-              marginTop: 32,
+              marginTop: 40,
               alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <div style={{ display: 'flex' }}>
@@ -492,16 +516,16 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
                     width: 30,
                     height: 30,
                     borderRadius: '50%',
-                    background: ['#F2E20C', '#1EFFA8', '#F5A623', '#7B8FFF', '#FF8FD4'][i],
+                    background: ['#C2A77D', '#1B7A4A', '#F5A623', '#7B8FFF', '#FF8FD4'][i],
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: 10,
                     fontWeight: 700,
-                    color: '#111827',
+                    color: '#FFFFFF',
                     fontFamily: 'Barlow Condensed',
                     marginLeft: i > 0 ? -8 : 0,
-                    border: '2px solid var(--background)',
+                    border: '2px solid rgba(255,255,255,0.3)',
                   }}
                 >
                   {av}
@@ -511,104 +535,40 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
             <div>
               <div style={{ display: 'flex', gap: 2 }}>
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} size={12} fill="#F2E20C" color="#F2E20C" />
+                  <Star key={s} size={12} fill="#C2A77D" color="#C2A77D" />
                 ))}
               </div>
-              <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: '2px 0 0' }}>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: '2px 0 0' }}>
                 Trusted by 1,240+ businesses across Africa
               </p>
             </div>
           </div>
         </div>
 
-        {/* Hero image */}
-        <div style={{ position: 'relative' }}>
-          <div
-            style={{
-              borderRadius: 4,
-              overflow: 'hidden',
-              border: '1px solid var(--border)',
-              background: 'var(--card)',
-              aspectRatio: '4/3',
-            }}
-          >
-            <img
-              src="https://images.unsplash.com/photo-1649502913092-fb7f0e8fc632?w=800&h=600&fit=crop&auto=format"
-              alt="Lagos city business district"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
-            />
-            {/* Overlay mini dashboard */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: 20,
-                left: 20,
-                right: 20,
-                background: 'rgba(255,255,255,0.95)',
-                border: '1px solid var(--border)',
-                borderRadius: 3,
-                padding: '14px 18px',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginBottom: 8 }}>
-                PORTFOLIO HEALTH — LIVE
-              </div>
-              <div style={{ display: 'flex', gap: 16 }}>
-                {[
-                  { label: 'Growing', count: 5, color: 'var(--accent)' },
-                  { label: 'Flat', count: 2, color: 'var(--warning)' },
-                  { label: 'Declining', count: 1, color: 'var(--danger)' },
-                ].map((s) => (
-                  <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
-                    <span style={{ fontSize: 12, color: 'var(--foreground)' }}>
-                      <strong style={{ fontFamily: 'JetBrains Mono' }}>{s.count}</strong>{' '}
-                      <span style={{ color: 'var(--muted-foreground)' }}>{s.label}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-              {/* Pulse bars */}
-              <div style={{ display: 'flex', gap: 3, marginTop: 10 }}>
-                {[62, 25, 13].map((pct, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      height: 3,
-                      flex: pct,
-                      borderRadius: 2,
-                      background: ['var(--accent)', 'var(--warning)', 'var(--danger)'][i],
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
+        {/* Floating metric chip */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 40,
+            right: 40,
+            background: 'rgba(255,255,255,0.12)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 3,
+            padding: '14px 20px',
+            zIndex: 2,
+          }}
+        >
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontFamily: 'JetBrains Mono' }}>REVENUE MTD</div>
+          <div className="font-display" style={{ fontSize: 28, fontWeight: 900, color: '#FFFFFF' }}>
+            ₦16.3M
           </div>
-
-          {/* Floating metric chips */}
-          <div
-            style={{
-              position: 'absolute',
-              top: -16,
-              right: -16,
-              background: 'var(--card)',
-              border: '1px solid var(--primary)',
-              borderRadius: 3,
-              padding: '10px 14px',
-            }}
-          >
-            <div style={{ fontSize: 10, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>REVENUE MTD</div>
-            <div className="font-display" style={{ fontSize: 22, fontWeight: 900, color: 'var(--primary)' }}>
-              ₦16.3M
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--accent)' }}>↑ 28% vs last month</div>
-          </div>
+          <div style={{ fontSize: 12, color: '#1B7A4A', fontWeight: 600 }}>↑ 28% vs last month</div>
         </div>
       </section>
 
       {/* Stats */}
-      <div style={{ maxWidth: 1200, margin: '0 auto 0', padding: '0 32px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
         <StatBar />
       </div>
 
@@ -751,7 +711,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
             >
               <div style={{ display: 'flex', gap: 2 }}>
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} size={13} fill="#F2E20C" color="#F2E20C" />
+                  <Star key={s} size={13} fill="#C2A77D" color="#C2A77D" />
                 ))}
               </div>
               <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--foreground)', margin: 0, fontStyle: 'italic' }}>
@@ -928,11 +888,11 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
       >
         <h2
           className="font-display"
-          style={{ fontSize: 64, fontWeight: 900, color: '#111827', margin: '0 0 16px', letterSpacing: -1, lineHeight: 1 }}
+          style={{ fontSize: 64, fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px', letterSpacing: -1, lineHeight: 1 }}
         >
           YOUR BUSINESSES ARE WAITING.
         </h2>
-        <p style={{ fontSize: 16, color: 'rgba(17,24,39,0.7)', margin: '0 0 32px' }}>
+        <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.75)', margin: '0 0 32px' }}>
           Start your free 14-day trial. No credit card required.
         </p>
         <button
@@ -940,7 +900,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
           style={{
             background: '#111827',
             border: 'none',
-            color: 'var(--primary)',
+            color: '#FFFFFF',
             padding: '16px 40px',
             borderRadius: 3,
             fontSize: 16,

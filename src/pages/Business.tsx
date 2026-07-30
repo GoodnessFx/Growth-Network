@@ -438,7 +438,7 @@ function CRMTab() {
 const KANBAN_STAGES = [
   { id: 'lead', label: 'New Lead', color: '#6B7E99', cards: [{ title: 'Royale Hair Salon', value: 180_000, contact: 'Tola Ade', daysInStage: 2 }] },
   { id: 'qualified', label: 'Qualified', color: '#F5A623', cards: [{ title: 'Bright Minds Academy', value: 420_000, contact: 'Ngozi Eze', daysInStage: 5 }] },
-  { id: 'proposal', label: 'Proposal', color: '#F2E20C', cards: [{ title: 'SwiftShip Ltd', value: 840_000, contact: 'Emeka Obi', daysInStage: 3 }] },
+  { id: 'proposal', label: 'Proposal', color: '#C2A77D', cards: [{ title: 'SwiftShip Ltd', value: 840_000, contact: 'Emeka Obi', daysInStage: 3 }] },
   { id: 'negotiation', label: 'Negotiating', color: '#7B8FFF', cards: [{ title: 'Zara Wholesale', value: 490_000, contact: 'Fatima Bello', daysInStage: 8 }] },
   { id: 'closed', label: 'Closed Won', color: '#1EFFA8', cards: [{ title: 'BuildRight Construction', value: 220_000, contact: 'Kofi Mensah', daysInStage: 1 }] },
 ]
