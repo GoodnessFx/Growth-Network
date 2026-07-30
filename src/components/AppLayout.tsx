@@ -14,8 +14,11 @@ import {
   ExternalLink,
   Building2,
   Layers,
+  Menu,
+  X,
 } from 'lucide-react'
 import { alerts } from '../data/mockData'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 type Page = 'landing' | 'login' | 'operator' | 'business' | 'analytics'
 type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts'
@@ -47,21 +50,33 @@ export default function AppLayout({
   businessName,
 }: AppLayoutProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const isMobile = useIsMobile()
   const unreadAlerts = alerts.filter((a) => !a.read).length
+
+  const sidebarWidth = collapsed && !isMobile ? 56 : isMobile ? 240 : 220
+  const showSidebar = !isMobile || mobileOpen
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--background)' }}>
+      {/* Mobile overlay */}
+      {isMobile && mobileOpen && (
+        <div className="mobile-sidebar-overlay" onClick={() => setMobileOpen(false)} />
+      )}
+
       {/* Sidebar */}
       <aside
+        className={isMobile ? 'mobile-sidebar' : ''}
         style={{
-          width: collapsed ? 56 : 220,
-          minWidth: collapsed ? 56 : 220,
+          width: showSidebar ? sidebarWidth : 0,
+          minWidth: showSidebar ? sidebarWidth : 0,
           background: 'var(--card)',
           borderRight: '1px solid var(--border)',
           transition: 'width 0.2s ease, min-width 0.2s ease',
           display: 'flex',
           flexDirection: 'column',
-          zIndex: 20,
+          zIndex: 50,
+          overflow: 'hidden',
         }}
       >
         {/* Logo */}
@@ -273,24 +288,26 @@ export default function AppLayout({
             <LogOut size={16} />
             {!collapsed && 'Sign out'}
           </button>
-          <button
-            onClick={() => setCollapsed((c) => !c)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              width: '100%',
-              padding: collapsed ? '10px 14px' : '10px 20px',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--muted-foreground)',
-              fontSize: 13,
-            }}
-          >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-            {!collapsed && 'Collapse'}
-          </button>
+          {!isMobile && (
+            <button
+              onClick={() => setCollapsed((c) => !c)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                width: '100%',
+                padding: collapsed ? '10px 14px' : '10px 20px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--muted-foreground)',
+                fontSize: 13,
+              }}
+            >
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+              {!collapsed && 'Collapse'}
+            </button>
+          )}
         </div>
       </aside>
 
@@ -309,7 +326,15 @@ export default function AppLayout({
             flexShrink: 0,
           }}
         >
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12 }}>
+            {isMobile && (
+              <button
+                onClick={() => setMobileOpen((o) => !o)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--foreground)', padding: 0, display: 'flex' }}
+              >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            )}
             {page === 'business' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Building2 size={16} color="var(--muted-foreground)" />

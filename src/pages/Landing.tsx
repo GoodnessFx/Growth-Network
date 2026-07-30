@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { TrendingUp, CheckCircle2, ChevronRight, ArrowRight, BarChart3, Users, Globe, Zap, Star, Menu, X, LayoutGrid } from 'lucide-react'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 interface LandingProps {
   onLogin: () => void
@@ -11,6 +12,7 @@ const NAV_HEIGHT = 64
 
 function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const isMobile = useIsMobile(640)
   return (
     <nav
       style={{
@@ -24,9 +26,9 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 32px',
+        padding: '0 16px',
         zIndex: 100,
-        gap: 32,
+        gap: 16,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
@@ -39,19 +41,20 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flexShrink: 0,
           }}
         >
           <TrendingUp size={16} color="#111827" strokeWidth={2.5} />
         </div>
         <span
           className="font-display"
-          style={{ fontSize: 20, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)' }}
+          style={{ fontSize: 20, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)', whiteSpace: 'nowrap' }}
         >
           GROWTH<span style={{ color: 'var(--primary)' }}>NET</span>
         </span>
       </div>
 
-      <div className="hidden-mobile" style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
+      <div className="hide-mobile" style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
         {['Product', 'Industries', 'Pricing', 'About'].map((item) => (
           <a
             key={item}
@@ -63,40 +66,116 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <button
-          onClick={onLogin}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--border)',
-            color: 'var(--foreground)',
-            padding: '8px 18px',
-            borderRadius: 3,
-            fontSize: 13,
-            cursor: 'pointer',
-            fontWeight: 500,
-          }}
-        >
-          Sign in
-        </button>
-        <button
-          onClick={onDashboard}
-          style={{
-            background: 'var(--primary)',
-            border: 'none',
-            color: 'var(--primary-foreground)',
-            padding: '8px 18px',
-            borderRadius: 3,
-            fontSize: 13,
-            cursor: 'pointer',
-            fontWeight: 700,
-            fontFamily: 'Barlow Condensed',
-            letterSpacing: 0.5,
-          }}
-        >
-          OPEN DASHBOARD →
-        </button>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        {isMobile ? (
+          <button
+            onClick={() => setMobileOpen((o) => !o)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--foreground)', padding: 4 }}
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={onLogin}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+                padding: '8px 18px',
+                borderRadius: 3,
+                fontSize: 13,
+                cursor: 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              Sign in
+            </button>
+            <button
+              onClick={onDashboard}
+              style={{
+                background: 'var(--primary)',
+                border: 'none',
+                color: 'var(--primary-foreground)',
+                padding: '8px 18px',
+                borderRadius: 3,
+                fontSize: 13,
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontFamily: 'Barlow Condensed',
+                letterSpacing: 0.5,
+              }}
+            >
+              OPEN DASHBOARD →
+            </button>
+          </>
+        )}
       </div>
+
+      {/* Mobile menu panel */}
+      {isMobile && mobileOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: NAV_HEIGHT,
+            left: 0,
+            right: 0,
+            background: '#FFFFFF',
+            borderBottom: '1px solid var(--border)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+            padding: '16px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          {['Product', 'Industries', 'Pricing', 'About'].map((item) => (
+            <a
+              key={item}
+              href="#"
+              style={{ color: 'var(--foreground)', fontSize: 15, textDecoration: 'none', fontWeight: 500, padding: '4px 0' }}
+            >
+              {item}
+            </a>
+          ))}
+          <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+            <button
+              onClick={onLogin}
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+                padding: '10px 18px',
+                borderRadius: 3,
+                fontSize: 13,
+                cursor: 'pointer',
+                fontWeight: 500,
+              }}
+            >
+              Sign in
+            </button>
+            <button
+              onClick={onDashboard}
+              style={{
+                flex: 1,
+                background: 'var(--primary)',
+                border: 'none',
+                color: '#FFFFFF',
+                padding: '10px 18px',
+                borderRadius: 3,
+                fontSize: 13,
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontFamily: 'Barlow Condensed',
+                letterSpacing: 0.5,
+              }}
+            >
+              OPEN DASHBOARD →
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
@@ -110,6 +189,7 @@ function StatBar() {
   ]
   return (
     <div
+      className="stat-grid"
       style={{
         borderTop: '1px solid var(--border)',
         borderBottom: '1px solid var(--border)',
@@ -122,12 +202,13 @@ function StatBar() {
         <div
           key={s.label}
           style={{
-            padding: '28px 32px',
+            padding: '28px 16px',
             borderRight: i < stats.length - 1 ? '1px solid var(--border)' : 'none',
+            borderBottom: 'none',
           }}
         >
           <div
-            className="font-display"
+            className="font-display stat-value"
             style={{ fontSize: 42, fontWeight: 900, color: 'var(--primary)', letterSpacing: -1, lineHeight: 1 }}
           >
             {s.value}
@@ -393,7 +474,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
             zIndex: 1,
             maxWidth: 900,
             margin: '0 auto',
-            padding: `${NAV_HEIGHT + 80}px 32px 120px`,
+            padding: `${NAV_HEIGHT + 60}px 16px 100px`,
             textAlign: 'center',
           }}
         >
@@ -430,7 +511,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
           </div>
 
           <h1
-            className="font-display"
+            className="font-display hero-title"
             style={{
               fontSize: 96,
               fontWeight: 900,
@@ -547,6 +628,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
 
         {/* Floating metric chip */}
         <div
+          className="hide-mobile"
           style={{
             position: 'absolute',
             bottom: 40,
@@ -589,7 +671,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
           </div>
           <h2
             className="font-display"
-            style={{ fontSize: 52, fontWeight: 900, margin: 0, letterSpacing: -0.5, lineHeight: 1.05 }}
+            style={{ fontSize: 32, fontWeight: 900, margin: 0, letterSpacing: -0.5, lineHeight: 1.05 }}
           >
             EVERYTHING YOUR PORTFOLIO NEEDS.
             <br />
@@ -691,11 +773,11 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
         </div>
         <h2
           className="font-display"
-          style={{ fontSize: 44, fontWeight: 900, margin: '0 0 48px', letterSpacing: -0.5 }}
+          style={{ fontSize: 28, fontWeight: 900, margin: '0 0 24px', letterSpacing: -0.5 }}
         >
           REAL OPERATORS. REAL RESULTS.
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+        <div className="testimonial-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
           {testimonials.map((t) => (
             <div
               key={t.name}
@@ -770,14 +852,14 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
           </div>
           <h2
             className="font-display"
-            style={{ fontSize: 44, fontWeight: 900, margin: '0 0 8px', letterSpacing: -0.5 }}
+            style={{ fontSize: 28, fontWeight: 900, margin: '0 0 8px', letterSpacing: -0.5 }}
           >
             STRAIGHTFORWARD. NO SURPRISES.
           </h2>
           <p style={{ fontSize: 14, color: 'var(--muted-foreground)', margin: '0 0 48px' }}>
             Pay in NGN, GHS, KES, ZAR, or USD. Cancel any time.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+        <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
             <PricingCard
               name="Solo"
               price="12,000"
@@ -841,7 +923,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
       <section style={{ maxWidth: 800, margin: '0 auto', padding: '80px 32px' }}>
         <h2
           className="font-display"
-          style={{ fontSize: 44, fontWeight: 900, margin: '0 0 48px', letterSpacing: -0.5 }}
+          style={{ fontSize: 28, fontWeight: 900, margin: '0 0 24px', letterSpacing: -0.5 }}
         >
           FAQ
         </h2>
@@ -886,12 +968,12 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
           textAlign: 'center',
         }}
       >
-        <h2
-          className="font-display"
-          style={{ fontSize: 64, fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px', letterSpacing: -1, lineHeight: 1 }}
-        >
-          YOUR BUSINESSES ARE WAITING.
-        </h2>
+          <h2
+            className="font-display"
+            style={{ fontSize: 36, fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px', letterSpacing: -1, lineHeight: 1 }}
+          >
+            YOUR BUSINESSES ARE WAITING.
+          </h2>
         <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.75)', margin: '0 0 32px' }}>
           Start your free 14-day trial. No credit card required.
         </p>

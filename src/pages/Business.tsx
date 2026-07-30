@@ -98,9 +98,9 @@ function MetricCard({
 
 function OverviewTab({ business }: { business: Business }) {
   return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Key metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
+      <div className="summary-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
         <MetricCard
           label="Revenue (MTD)"
           value={formatCurrency(business.revenue)}
@@ -132,7 +132,7 @@ function OverviewTab({ business }: { business: Business }) {
       </div>
 
       {/* Revenue chart + tasks */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 2 }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 2 }}>
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, padding: 20 }}>
           <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
             Revenue Over Time
@@ -197,7 +197,7 @@ function OverviewTab({ business }: { business: Business }) {
         <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
           Upcoming Meetings
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {[
             { title: 'Monthly strategy review', with: 'Emeka Obi', date: 'Aug 1, 2026', time: '10:00 AM' },
             { title: 'Campaign performance debrief', with: 'CoLab Team', date: 'Aug 4, 2026', time: '2:00 PM' },
@@ -264,7 +264,7 @@ function CRMTab() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 2 }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 2 }}>
         {/* Client list */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
           {clients.map((client) => (
@@ -346,7 +346,7 @@ function CRMTab() {
             </div>
 
             {/* Contact info */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+            <div className="summary-strip" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
               {[
                 { icon: Mail, label: 'Email', value: selected.email },
                 { icon: Phone, label: 'Phone', value: selected.phone },
@@ -563,13 +563,13 @@ const PLATFORM_COLORS: Record<string, string> = {
 
 function SocialTab({ business }: { business: Business }) {
   return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Per-platform stats */}
       <div>
         <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
           Platform Performance
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 2 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 2 }}>
           {business.socialData.map((s) => (
             <div
               key={s.platform}
@@ -724,9 +724,9 @@ const INV_STYLES: Record<string, { color: string; bg: string }> = {
 
 function FinanceTab({ business }: { business: Business }) {
   return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Finance summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+      <div className="summary-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
         <MetricCard label="Revenue (MTD)" value={formatCurrency(business.revenue)} change={business.revenueChange} accent="var(--primary)" />
         <MetricCard label="Outstanding" value={formatCurrency(264_000)} accent="var(--warning)" />
         <MetricCard label="Overdue" value={formatCurrency(120_000)} accent="var(--danger)" />
@@ -820,12 +820,12 @@ export default function BusinessView({ business, onBack }: BusinessProps) {
       {/* Business header */}
       <div
         style={{
-          padding: '16px 24px',
+          padding: '12px 16px',
           borderBottom: '1px solid var(--border)',
           background: 'var(--card)',
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
+          gap: 12,
           flexShrink: 0,
         }}
       >
@@ -841,39 +841,41 @@ export default function BusinessView({ business, onBack }: BusinessProps) {
             gap: 6,
             fontSize: 13,
             padding: 0,
+            flexShrink: 0,
           }}
         >
           <ArrowLeft size={15} />
         </button>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="font-display" style={{ fontSize: 22, fontWeight: 900, color: 'var(--foreground)', lineHeight: 1 }}>
+          <div className="font-display" style={{ fontSize: 18, fontWeight: 900, color: 'var(--foreground)', lineHeight: 1 }}>
             {business.name}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginTop: 2 }}>
+          <div className="hide-mobile" style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginTop: 2 }}>
             {business.industry} · {business.city}, {business.country} · Owner: {business.owner}
           </div>
         </div>
 
         {/* Status + key metric */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'JetBrains Mono', color: 'var(--primary)' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+          <div className="hide-xs" style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'JetBrains Mono', color: 'var(--primary)' }}>
               {formatCurrency(business.revenue)}
             </div>
             <div style={{ fontSize: 10, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>Revenue MTD</div>
           </div>
           <div
             style={{
-              fontSize: 11,
+              fontSize: 10,
               fontFamily: 'JetBrains Mono',
               color: business.status === 'growing' ? 'var(--accent)' : business.status === 'flat' ? 'var(--warning)' : 'var(--danger)',
               background: business.status === 'growing' ? 'rgba(5,150,105,0.1)' : business.status === 'flat' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
-              padding: '5px 12px',
+              padding: '4px 10px',
               borderRadius: 2,
               textTransform: 'uppercase',
               letterSpacing: 1,
               fontWeight: 700,
+              whiteSpace: 'nowrap',
             }}
           >
             {business.status}
@@ -888,6 +890,7 @@ export default function BusinessView({ business, onBack }: BusinessProps) {
           borderBottom: '1px solid var(--border)',
           background: 'var(--card)',
           flexShrink: 0,
+          overflowX: 'auto',
         }}
       >
         {BIZ_TABS.map((t) => (
@@ -897,8 +900,8 @@ export default function BusinessView({ business, onBack }: BusinessProps) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 7,
-              padding: '12px 20px',
+              gap: 6,
+              padding: '10px 14px',
               background: 'transparent',
               border: 'none',
               borderBottom: tab === t.id ? '2px solid var(--primary)' : '2px solid transparent',
@@ -907,10 +910,11 @@ export default function BusinessView({ business, onBack }: BusinessProps) {
               fontSize: 13,
               fontWeight: tab === t.id ? 600 : 400,
               marginBottom: -1,
+              whiteSpace: 'nowrap',
             }}
           >
             <t.icon size={14} />
-            {t.label}
+            <span className="hide-xs">{t.label}</span>
           </button>
         ))}
       </div>

@@ -408,6 +408,7 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
 
       {/* Portfolio summary strip */}
       <div
+        className="summary-strip"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
@@ -443,8 +444,8 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
       </div>
 
       {/* Filters + add button */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 20, alignItems: "center", flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+      <div className="filter-row" style={{ display: "flex", gap: 10, marginBottom: 20, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ position: "relative", flex: 1, minWidth: 160 }}>
           <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)" }} />
           <input
             value={search}
@@ -609,7 +610,7 @@ function CompareView() {
     <div style={{ padding: 24 }}>
       <SectionHeader label="Cross-Business Comparison" />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, marginBottom: 2 }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, marginBottom: 2 }}>
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, padding: 24 }}>
           <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', marginBottom: 16, letterSpacing: 1, textTransform: 'uppercase' }}>
             Revenue Ranking
@@ -720,13 +721,14 @@ const PLATFORM_COLORS: Record<string, string> = {
 function InboxView() {
   const [selectedId, setSelectedId] = useState<number | null>(1)
   const selected = inboxMessages.find((m) => m.id === selectedId)
+  const isMobile = (window.innerWidth || 0) < 768
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: isMobile ? 12 : 24 }}>
       <SectionHeader label="Unified Inbox" />
-      <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 2, height: 520 }}>
+      <div className={isMobile ? 'stack-mobile' : ''} style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 2, height: isMobile ? 'auto' : 520 }}>
         {/* Message list */}
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflowY: 'auto' }}>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflowY: isMobile ? 'visible' : 'auto' }}>
           {inboxMessages.map((msg) => (
             <div
               key={msg.id}
@@ -856,7 +858,7 @@ function CampaignsView() {
       <SectionHeader label="Campaign Manager" />
 
       {/* Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, marginBottom: 24 }}>
+      <div className="summary-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, marginBottom: 24 }}>
         {[
           { label: 'Total Ad Spend (MTD)', value: formatCurrency(totalSpend), color: 'var(--warning)' },
           { label: 'Total Conversions', value: totalConversions.toLocaleString(), color: 'var(--accent)' },
@@ -869,7 +871,7 @@ function CampaignsView() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 2, marginBottom: 2 }}>
+      <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 2, marginBottom: 2 }}>
         {/* Campaign table */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
           <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 80px', gap: 12 }}>
