@@ -17,9 +17,6 @@ importers:
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
-      better-sqlite3:
-        specifier: ^13.0.2
-        version: 13.0.2
       cors:
         specifier: ^2.8.6
         version: 2.8.6
@@ -111,6 +108,10 @@ importers:
       vite:
         specifier: ^8.0.0
         version: 8.0.3(@types/node@22.19.17)(jiti@2.6.1)(tsx@4.23.1)
+    optionalDependencies:
+      better-sqlite3:
+        specifier: ^13.0.2
+        version: 13.0.2
 
 packages:
 
@@ -2956,6 +2957,7 @@ snapshots:
   better-sqlite3@13.0.2:
     dependencies:
       node-addon-api: 8.9.0
+    optional: true
 
   bluebird@3.7.2:
     optional: true
@@ -3641,7 +3643,8 @@ snapshots:
 
   netmask@2.1.1: {}
 
-  node-addon-api@8.9.0: {}
+  node-addon-api@8.9.0:
+    optional: true
 
   node-fetch@2.7.0:
     dependencies:
