@@ -15,16 +15,30 @@ import {
   CheckCircle2,
   LayoutList,
   LayoutGrid,
+  Plus,
+  X,
+  Building2,
+  Globe,
+  Hash,
+  Users,
+  DollarSign,
 } from 'lucide-react'
 import {
-  businesses,
   campaigns,
   alerts,
   pipelineStages,
-  formatCurrency,
   type Business,
   type HealthStatus,
 } from '../data/mockData'
+import {
+  getBusinesses,
+  addBusiness,
+  removeBusiness,
+  updateBusiness,
+  getNextId,
+  generateMonthlyData,
+  formatCurrency,
+} from '../data/store'
 import { MiniSparkline, ComparisonChart, RevenueChart, AdFunnel } from '../components/Charts'
 
 type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts'
@@ -131,7 +145,7 @@ function SectionHeader({ label, action }: { label: string; action?: React.ReactN
 
 function BusinessCard({ business, onClick }: { business: Business; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
-  const maxRevenue = Math.max(...businesses.map((b) => b.revenue))
+  const maxRevenue = Math.max(...getBusinesses().map((b) => b.revenue))
 
   return (
     <div
@@ -220,188 +234,367 @@ function BusinessCard({ business, onClick }: { business: Business; onClick: () =
   )
 }
 
-function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) => void }) {
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | HealthStatus>('all')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+function AddBusinessModal({ onClose }: { onClose: () => void }) {
+  const [name, setName] = useState("")
+  const [owner, setOwner] = useState("")
+  const [industry, setIndustry] = useState("")
+  const [city, setCity] = useState("")
+  const [country, setCountry] = useState("Nigeria")
+  const [revenue, setRevenue] = useState("")
 
-  const filtered = businesses.filter((b) => {
+  const handleSubmit = () => {
+    if (!name.trim()) return
+    const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
+    const baseRevenue = parseInt(revenue) || 500_000
+    addBusiness({
+      id: getNextId(),
+      name: name.trim(),
+      owner: owner.trim() || "You",
+      industry: industry.trim() || "General",
+      city: city.trim() || "Lagos",
+      country,
+      status: "growing",
+      revenue: baseRevenue,
+      revenueChange: 0,
+      clients: 0,
+      clientsChange: 0,
+      pipeline: 0,
+      lastActivity: "Just added",
+      avatar: initials,
+      socialFollowers: 0,
+      socialGrowth: 0,
+      activeCampaigns: 0,
+      openTasks: 0,
+      monthlyData: generateMonthlyData(baseRevenue),
+      socialData: [],
+    })
+    onClose()
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "10px 12px",
+    background: "var(--card)",
+    border: "1px solid var(--border)",
+    borderRadius: 3,
+    fontSize: 13,
+    color: "var(--foreground)",
+    outline: "none",
+    fontFamily: "Outfit",
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20,
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        style={{
+          background: "var(--background)",
+          border: "1px solid var(--border)",
+          borderRadius: 3,
+          padding: 32,
+          width: "100%", maxWidth: 480,
+          position: "relative",
+        }}
+      >
+        <button
+          onClick={onClose}
+          style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", cursor: "pointer", color: "var(--muted-foreground)" }}
+        >
+          <X size={18} />
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+          <div style={{ width: 36, height: 36, background: "var(--primary)", borderRadius: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Plus size={18} color="#FFFFFF" />
+          </div>
+          <div>
+            <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)" }}>Add Business</div>
+            <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Enter your business details below</div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Business Name *</div>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. BuySmart Nigeria" style={inputStyle} />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Owner Name</div>
+            <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="e.g. John Doe" style={inputStyle} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Industry</div>
+              <input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. E-commerce" style={inputStyle} />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>City</div>
+              <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lagos" style={inputStyle} />
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Country</div>
+              <select value={country} onChange={(e) => setCountry(e.target.value)} style={inputStyle}>
+                <option>Nigeria</option>
+                <option>Ghana</option>
+                <option>Kenya</option>
+                <option>South Africa</option>
+                <option>Uganda</option>
+                <option>Tanzania</option>
+                <option>Rwanda</option>
+                <option>Ethiopia</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Monthly Revenue (₦)</div>
+              <input value={revenue} onChange={(e) => setRevenue(e.target.value.replace(/[^0-9]/g, ""))} placeholder="e.g. 500000" style={inputStyle} />
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
+          <button onClick={onClose} style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--foreground)", padding: "10px 20px", borderRadius: 3, fontSize: 13, cursor: "pointer" }}>
+            Cancel
+          </button>
+          <button onClick={handleSubmit} style={{ background: "var(--primary)", border: "none", color: "#FFFFFF", padding: "10px 24px", borderRadius: 3, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Barlow Condensed", letterSpacing: 0.5 }}>
+            ADD BUSINESS
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) => void }) {
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus>("all")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [version, setVersion] = useState(0)
+
+  const allBiz = getBusinesses()
+  const filtered = allBiz.filter((b) => {
     const matchSearch = b.name.toLowerCase().includes(search.toLowerCase()) || b.city.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = statusFilter === 'all' || b.status === statusFilter
+    const matchStatus = statusFilter === "all" || b.status === statusFilter
     return matchSearch && matchStatus
   })
 
-  const totalRevenue = businesses.reduce((s, b) => s + b.revenue, 0)
-  const growingCount = businesses.filter((b) => b.status === 'growing').length
-  const flatCount = businesses.filter((b) => b.status === 'flat').length
-  const decliningCount = businesses.filter((b) => b.status === 'declining').length
+  const totalRevenue = allBiz.reduce((s, b) => s + b.revenue, 0)
+  const growingCount = allBiz.filter((b) => b.status === "growing").length
+  const flatCount = allBiz.filter((b) => b.status === "flat").length
+  const decliningCount = allBiz.filter((b) => b.status === "declining").length
+
+  const handleAddBusiness = () => {
+    setShowAddModal(true)
+  }
+
+  const handleModalClose = () => {
+    setShowAddModal(false)
+    setVersion((v) => v + 1)
+  }
 
   return (
     <div style={{ padding: 24 }}>
+      {showAddModal && <AddBusinessModal onClose={handleModalClose} />}
+
       {/* Portfolio summary strip */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
           gap: 2,
           marginBottom: 24,
-          border: '1px solid var(--border)',
+          border: "1px solid var(--border)",
           borderRadius: 3,
-          overflow: 'hidden',
+          overflow: "hidden",
         }}
       >
         {[
-          { label: 'Total Portfolio Revenue', value: formatCurrency(totalRevenue), color: 'var(--primary)' },
-          { label: 'Growing', value: `${growingCount} businesses`, color: 'var(--accent)' },
-          { label: 'Flat', value: `${flatCount} businesses`, color: 'var(--warning)' },
-          { label: 'Needs Attention', value: `${decliningCount} declining`, color: 'var(--danger)' },
+          { label: "Total Portfolio Revenue", value: formatCurrency(totalRevenue), color: "var(--primary)" },
+          { label: "Growing", value: `${growingCount} businesses`, color: "var(--accent)" },
+          { label: "Flat", value: `${flatCount} businesses`, color: "var(--warning)" },
+          { label: "Needs Attention", value: `${decliningCount} declining`, color: "var(--danger)" },
         ].map((s, i) => (
           <div
             key={s.label}
             style={{
-              padding: '18px 20px',
-              background: 'var(--card)',
-              borderRight: i < 3 ? '1px solid var(--border)' : 'none',
+              padding: "18px 20px",
+              background: "var(--card)",
+              borderRight: i < 3 ? "1px solid var(--border)" : "none",
             }}
           >
             <div className="font-display" style={{ fontSize: 28, fontWeight: 900, color: s.color, lineHeight: 1 }}>
               {s.value}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginTop: 4 }}>
+            <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "JetBrains Mono", marginTop: 4 }}>
               {s.label}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
+      {/* Filters + add button */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 20, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+          <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)" }} />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search businesses..."
             style={{
-              width: '100%',
+              width: "100%",
               paddingLeft: 36,
               paddingRight: 14,
               paddingTop: 10,
               paddingBottom: 10,
-              background: 'var(--card)',
-              border: '1px solid var(--border)',
+              background: "var(--card)",
+              border: "1px solid var(--border)",
               borderRadius: 3,
               fontSize: 13,
-              color: 'var(--foreground)',
-              outline: 'none',
-              fontFamily: 'Outfit',
+              color: "var(--foreground)",
+              outline: "none",
+              fontFamily: "Outfit",
             }}
           />
         </div>
 
-        {(['all', 'growing', 'flat', 'declining'] as const).map((s) => (
+        {(["all", "growing", "flat", "declining"] as const).map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
             style={{
-              background: statusFilter === s ? 'var(--secondary)' : 'transparent',
-              border: `1px solid ${statusFilter === s ? 'var(--primary)40' : 'var(--border)'}`,
+              background: statusFilter === s ? "var(--secondary)" : "transparent",
+              border: `1px solid ${statusFilter === s ? "var(--primary)40" : "var(--border)"}`,
               borderRadius: 3,
-              padding: '8px 14px',
+              padding: "8px 14px",
               fontSize: 12,
-              color: statusFilter === s ? 'var(--foreground)' : 'var(--muted-foreground)',
-              cursor: 'pointer',
-              fontFamily: 'JetBrains Mono',
-              textTransform: 'capitalize',
+              color: statusFilter === s ? "var(--foreground)" : "var(--muted-foreground)",
+              cursor: "pointer",
+              fontFamily: "JetBrains Mono",
+              textTransform: "capitalize",
             }}
           >
-            {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+            {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
           </button>
         ))}
 
-        <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ display: "flex", border: "1px solid var(--border)", borderRadius: 3, overflow: "hidden" }}>
           <button
-            onClick={() => setViewMode('grid')}
-            style={{ background: viewMode === 'grid' ? 'var(--secondary)' : 'transparent', border: 'none', padding: '8px 10px', cursor: 'pointer', color: 'var(--muted-foreground)' }}
+            onClick={() => setViewMode("grid")}
+            style={{ background: viewMode === "grid" ? "var(--secondary)" : "transparent", border: "none", padding: "8px 10px", cursor: "pointer", color: "var(--muted-foreground)" }}
           >
             <LayoutGrid size={15} />
           </button>
           <button
-            onClick={() => setViewMode('list')}
-            style={{ background: viewMode === 'list' ? 'var(--secondary)' : 'transparent', border: 'none', padding: '8px 10px', cursor: 'pointer', color: 'var(--muted-foreground)' }}
+            onClick={() => setViewMode("list")}
+            style={{ background: viewMode === "list" ? "var(--secondary)" : "transparent", border: "none", padding: "8px 10px", cursor: "pointer", color: "var(--muted-foreground)" }}
           >
             <LayoutList size={15} />
           </button>
         </div>
+
+        <button
+          onClick={handleAddBusiness}
+          style={{
+            background: "var(--primary)",
+            border: "none",
+            color: "#FFFFFF",
+            padding: "10px 18px",
+            borderRadius: 3,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "Barlow Condensed",
+            letterSpacing: 0.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <Plus size={14} /> NEW BUSINESS
+        </button>
       </div>
 
       {/* Empty state */}
       {filtered.length === 0 && (
         <div
           style={{
-            border: '1px dashed var(--border)',
+            border: "1px dashed var(--border)",
             borderRadius: 3,
-            padding: '60px 40px',
-            textAlign: 'center',
+            padding: "60px 40px",
+            textAlign: "center",
           }}
         >
-          <div className="font-display" style={{ fontSize: 24, fontWeight: 700, color: 'var(--muted-foreground)', marginBottom: 8 }}>
-            No businesses match your filter.
+          <div className="font-display" style={{ fontSize: 24, fontWeight: 700, color: "var(--muted-foreground)", marginBottom: 8 }}>
+            {allBiz.length === 0 ? "You haven't added any businesses yet." : "No businesses match your filter."}
           </div>
-          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0 }}>
-            Try clearing the search or changing the status filter.
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)", margin: 0 }}>
+            {allBiz.length === 0
+              ? 'Click "NEW BUSINESS" above to add your first business.'
+              : "Try clearing the search or changing the status filter."}
           </p>
         </div>
       )}
 
       {/* Grid / List */}
-      {viewMode === 'grid' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2 }}>
-          {filtered.map((b) => (
-            <BusinessCard key={b.id} business={b} onClick={() => onSelectBusiness(b)} />
-          ))}
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {filtered.map((b) => (
-            <div
-              key={b.id}
-              onClick={() => onSelectBusiness(b)}
-              style={{
-                background: 'var(--card)',
-                border: '1px solid var(--border)',
-                borderRadius: 3,
-                padding: '14px 20px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-              }}
-            >
-              <Avatar initials={b.avatar} size={32} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)' }}>{b.name}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>
-                  {b.city} · {b.industry}
+      <div key={version}>
+        {viewMode === "grid" ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 2 }}>
+            {filtered.map((b) => (
+              <BusinessCard key={b.id} business={b} onClick={() => onSelectBusiness(b)} />
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {filtered.map((b) => (
+              <div
+                key={b.id}
+                onClick={() => onSelectBusiness(b)}
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 3,
+                  padding: "14px 20px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                }}
+              >
+                <Avatar initials={b.avatar} size={32} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{b.name}</div>
+                  <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "JetBrains Mono" }}>
+                    {b.city} · {b.industry}
+                  </div>
                 </div>
-              </div>
-              <StatusBadge status={b.status} />
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--foreground)', fontFamily: 'JetBrains Mono' }}>
-                  {formatCurrency(b.revenue)}
+                <StatusBadge status={b.status} />
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", fontFamily: "JetBrains Mono" }}>
+                    {formatCurrency(b.revenue)}
+                  </div>
+                  <div style={{ fontSize: 11, color: b.revenueChange >= 0 ? "var(--accent)" : "var(--danger)", fontFamily: "JetBrains Mono" }}>
+                    {b.revenueChange > 0 ? "+" : ""}{b.revenueChange}%
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: b.revenueChange >= 0 ? 'var(--accent)' : 'var(--danger)', fontFamily: 'JetBrains Mono' }}>
-                  {b.revenueChange > 0 ? '+' : ''}{b.revenueChange}%
+                <div style={{ width: 60, height: 28 }}>
+                  <MiniSparkline data={b.monthlyData} color={STATUS_CONFIG[b.status].color} height={28} />
                 </div>
+                <ChevronRight size={16} color="var(--muted-foreground)" />
               </div>
-              <div style={{ width: 60, height: 28 }}>
-                <MiniSparkline data={b.monthlyData} color={STATUS_CONFIG[b.status].color} height={28} />
-              </div>
-              <ChevronRight size={16} color="var(--muted-foreground)" />
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -409,7 +602,7 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
 // ─── Compare ──────────────────────────────────────────────────────────────────
 
 function CompareView() {
-  const sorted = [...businesses].sort((a, b) => b.revenue - a.revenue)
+  const sorted = [...getBusinesses()].sort((a, b) => b.revenue - a.revenue)
   const chartData = sorted.map((b) => ({ name: b.name, revenue: b.revenue, clients: b.clients }))
 
   return (
