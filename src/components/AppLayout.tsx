@@ -1,0 +1,346 @@
+import { useState } from 'react'
+import {
+  LayoutGrid,
+  TrendingUp,
+  Users,
+  Inbox,
+  Megaphone,
+  GitBranch,
+  Bell,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  Building2,
+  Layers,
+} from 'lucide-react'
+import { alerts } from '../data/mockData'
+
+type Page = 'landing' | 'login' | 'operator' | 'business' | 'analytics'
+type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts'
+
+interface AppLayoutProps {
+  page: Page
+  operatorTab: OperatorTab
+  setOperatorTab: (t: OperatorTab) => void
+  setPage: (p: Page) => void
+  children: React.ReactNode
+  businessName?: string
+}
+
+const navItems: { id: OperatorTab; label: string; icon: React.ElementType }[] = [
+  { id: 'portfolio', label: 'Portfolio', icon: LayoutGrid },
+  { id: 'compare', label: 'Compare', icon: TrendingUp },
+  { id: 'inbox', label: 'Inbox', icon: Inbox },
+  { id: 'campaigns', label: 'Campaigns', icon: Megaphone },
+  { id: 'pipeline', label: 'Pipeline', icon: GitBranch },
+  { id: 'alerts', label: 'Alerts', icon: Bell },
+]
+
+export default function AppLayout({
+  page,
+  operatorTab,
+  setOperatorTab,
+  setPage,
+  children,
+  businessName,
+}: AppLayoutProps) {
+  const [collapsed, setCollapsed] = useState(false)
+  const unreadAlerts = alerts.filter((a) => !a.read).length
+
+  return (
+    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--background)' }}>
+      {/* Sidebar */}
+      <aside
+        style={{
+          width: collapsed ? 56 : 220,
+          minWidth: collapsed ? 56 : 220,
+          background: 'var(--card)',
+          borderRight: '1px solid var(--border)',
+          transition: 'width 0.2s ease, min-width 0.2s ease',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 20,
+        }}
+      >
+        {/* Logo */}
+        <div
+          style={{
+            padding: collapsed ? '18px 12px' : '18px 20px',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            minHeight: 60,
+          }}
+        >
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              background: 'var(--primary)',
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <TrendingUp size={15} color="#111827" strokeWidth={2.5} />
+          </div>
+          {!collapsed && (
+            <span
+              className="font-display"
+              style={{ fontSize: 18, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)', whiteSpace: 'nowrap' }}
+            >
+              GROWTH<span style={{ color: 'var(--primary)' }}>NET</span>
+            </span>
+          )}
+        </div>
+
+        {/* Mode indicator */}
+        {!collapsed && (
+          <div style={{ padding: '10px 20px 8px' }}>
+            <div
+              style={{
+                fontSize: 9,
+                fontFamily: 'JetBrains Mono',
+                color: 'var(--muted-foreground)',
+                letterSpacing: 2,
+                textTransform: 'uppercase',
+              }}
+            >
+              {page === 'business' ? 'BUSINESS VIEW' : 'OPERATOR MODE'}
+            </div>
+            {page === 'business' && businessName && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: 'var(--accent)',
+                  marginTop: 2,
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {businessName}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
+          {page === 'business' ? (
+            <>
+              <button
+                onClick={() => setPage('operator')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  padding: collapsed ? '10px 14px' : '10px 20px',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--muted-foreground)',
+                  fontSize: 13,
+                }}
+              >
+                <Layers size={16} />
+                {!collapsed && 'All Businesses'}
+              </button>
+            </>
+          ) : (
+            navItems.map((item) => {
+              const active = operatorTab === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setOperatorTab(item.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    width: '100%',
+                    padding: collapsed ? '10px 14px' : '10px 20px',
+                    background: active ? 'var(--secondary)' : 'transparent',
+                    borderLeft: active ? '3px solid var(--primary)' : '3px solid transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
+                    fontSize: 13,
+                    fontWeight: active ? 600 : 400,
+                    textAlign: 'left',
+                    position: 'relative',
+                    transition: 'background 0.15s',
+                  }}
+                >
+                  <item.icon size={16} strokeWidth={active ? 2.5 : 1.8} />
+                  {!collapsed && <span>{item.label}</span>}
+                  {!collapsed && item.id === 'alerts' && unreadAlerts > 0 && (
+                    <span
+                      style={{
+                        marginLeft: 'auto',
+                        background: 'var(--danger)',
+                        color: '#fff',
+                        fontSize: 10,
+                        fontFamily: 'JetBrains Mono',
+                        borderRadius: 10,
+                        padding: '1px 6px',
+                      }}
+                    >
+                      {unreadAlerts}
+                    </span>
+                  )}
+                  {collapsed && item.id === 'alerts' && unreadAlerts > 0 && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        width: 7,
+                        height: 7,
+                        background: 'var(--danger)',
+                        borderRadius: '50%',
+                      }}
+                    />
+                  )}
+                </button>
+              )
+            })
+          )}
+        </nav>
+
+        {/* Bottom actions */}
+        <div style={{ borderTop: '1px solid var(--border)', padding: '8px 0' }}>
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '100%',
+              padding: collapsed ? '10px 14px' : '10px 20px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--muted-foreground)',
+              fontSize: 13,
+            }}
+          >
+            <Settings size={16} />
+            {!collapsed && 'Settings'}
+          </button>
+          <button
+            onClick={() => setPage('landing')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '100%',
+              padding: collapsed ? '10px 14px' : '10px 20px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--muted-foreground)',
+              fontSize: 13,
+            }}
+          >
+            <LogOut size={16} />
+            {!collapsed && 'Sign out'}
+          </button>
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '100%',
+              padding: collapsed ? '10px 14px' : '10px 20px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--muted-foreground)',
+              fontSize: 13,
+            }}
+          >
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            {!collapsed && 'Collapse'}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Topbar */}
+        <header
+          style={{
+            height: 60,
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 24px',
+            gap: 16,
+            background: 'var(--card)',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            {page === 'business' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Building2 size={16} color="var(--muted-foreground)" />
+                <span style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>
+                  {businessName ?? 'Business'}
+                </span>
+              </div>
+            ) : (
+              <span
+                className="font-display"
+                style={{ fontSize: 20, fontWeight: 700, letterSpacing: 0.5, color: 'var(--foreground)' }}
+              >
+                {navItems.find((n) => n.id === operatorTab)?.label ?? 'Dashboard'}
+              </span>
+            )}
+          </div>
+
+          {/* User chip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontFamily: 'JetBrains Mono',
+                color: 'var(--muted-foreground)',
+                textAlign: 'right',
+              }}
+            >
+              <div>Sipho Ndlovu</div>
+              <div style={{ color: 'var(--accent)', fontSize: 10 }}>Operator</div>
+            </div>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: 'var(--primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 13,
+                fontWeight: 700,
+                color: 'var(--primary-foreground)',
+                fontFamily: 'Barlow Condensed',
+              }}
+            >
+              SN
+            </div>
+          </div>
+        </header>
+
+        {/* Scrollable page content */}
+        <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>{children}</main>
+      </div>
+    </div>
+  )
+}
