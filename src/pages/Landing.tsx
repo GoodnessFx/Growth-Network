@@ -690,7 +690,7 @@ export default function Landing({ onLogin, onDashboard }: LandingProps) {
               SEE THE DASHBOARD <ArrowRight size={16} />
             </button>
             <button
-              onClick={onDashboard}
+              onClick={onLogin}
               style={{
                 background: 'rgba(255,255,255,0.08)',
                 backdropFilter: 'blur(8px)',

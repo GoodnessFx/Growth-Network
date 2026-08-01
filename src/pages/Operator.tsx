@@ -40,12 +40,16 @@ import AnalyticsView from '../components/AnalyticsView'
 import ResultsView from '../components/ResultsView'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { type ApiBusiness, fetchBusinesses, createBusiness, updateBusinessVisibility } from '../lib/api'
+import { useAuth } from '../lib/AuthContext'
 
 type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics' | 'results'
 
 interface OperatorProps {
   tab: OperatorTab
   onSelectBusiness: (b: Business) => void
+  onRequireAuth?: () => void
+  autoOpenAddBusiness?: boolean
+  onAddBusinessHandled?: () => void
 }
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
@@ -422,7 +426,18 @@ function PublicVisibilityPanel({ businesses, onRefresh }: { businesses: ApiBusin
   )
 }
 
-function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) => void }) {
+function PortfolioView({
+  onSelectBusiness,
+  onRequireAuth,
+  autoOpenAddBusiness,
+  onAddBusinessHandled,
+}: {
+  onSelectBusiness: (b: Business) => void
+  onRequireAuth?: () => void
+  autoOpenAddBusiness?: boolean
+  onAddBusinessHandled?: () => void
+}) {
+  const { user } = useAuth()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus>("all")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -440,6 +455,13 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
     refreshDbBusinesses()
   }, [])
 
+  useEffect(() => {
+    if (autoOpenAddBusiness && user) {
+      setShowAddModal(true)
+      onAddBusinessHandled?.()
+    }
+  }, [autoOpenAddBusiness, user, onAddBusinessHandled])
+
   const allBiz = getBusinesses()
   const filtered = allBiz.filter((b) => {
     const matchSearch = b.name.toLowerCase().includes(search.toLowerCase()) || b.city.toLowerCase().includes(search.toLowerCase())
@@ -453,6 +475,10 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
   const decliningCount = allBiz.filter((b) => b.status === "declining").length
 
   const handleAddBusiness = () => {
+    if (!user) {
+      onRequireAuth?.()
+      return
+    }
     setShowAddModal(true)
   }
 
@@ -466,7 +492,52 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
       {showAddModal && <AddBusinessModal onClose={handleModalClose} onCreated={refreshDbBusinesses} />}
 
       {/* Public showcase visibility — owner-only, backed by the API */}
-      <PublicVisibilityPanel businesses={dbBusinesses} onRefresh={refreshDbBusinesses} />
+      {user && <PublicVisibilityPanel businesses={dbBusinesses} onRefresh={refreshDbBusinesses} />}
+
+      {/* Guest read-only notice */}
+      {!user && (
+        <div
+          style={{
+            border: '1px dashed var(--border)',
+            borderRadius: 3,
+            background: 'var(--card)',
+            padding: '16px 20px',
+            marginBottom: 24,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Owner tools — read-only
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--foreground)', marginTop: 4 }}>
+              You&apos;re viewing this showcase as a guest. Sign in as the owner to add businesses and manage visibility.
+            </div>
+          </div>
+          <button
+            onClick={onRequireAuth}
+            style={{
+              background: 'var(--primary)',
+              border: 'none',
+              color: '#FFFFFF',
+              padding: '10px 18px',
+              borderRadius: 3,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'Barlow Condensed',
+              letterSpacing: 0.5,
+              minHeight: 44,
+            }}
+          >
+            SIGN IN AS OWNER
+          </button>
+        </div>
+      )}
 
       {/* Portfolio summary strip */}
       <div
@@ -1199,8 +1270,17 @@ function AlertsView() {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
-export default function Operator({ tab, onSelectBusiness }: OperatorProps) {
-  if (tab === 'portfolio') return <PortfolioView onSelectBusiness={onSelectBusiness} />
+export default function Operator({ tab, onSelectBusiness, onRequireAuth, autoOpenAddBusiness, onAddBusinessHandled }: OperatorProps) {
+  if (tab === 'portfolio') {
+    return (
+      <PortfolioView
+        onSelectBusiness={onSelectBusiness}
+        onRequireAuth={onRequireAuth}
+        autoOpenAddBusiness={autoOpenAddBusiness}
+        onAddBusinessHandled={onAddBusinessHandled}
+      />
+    )
+  }
   if (tab === 'compare') return <CompareView />
   if (tab === 'inbox') return <InboxView />
   if (tab === 'campaigns') return <CampaignsView />

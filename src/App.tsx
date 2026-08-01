@@ -25,6 +25,7 @@ function AppInner() {
   const [page, setPage] = useState<Page>('landing')
   const [operatorTab, setOperatorTab] = useState<OperatorTab>('portfolio')
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
+  const [pendingAddBusiness, setPendingAddBusiness] = useState(false)
   const [publicBusinessId, setPublicBusinessId] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/public\/([^/]+)/)
     return match ? decodeURIComponent(match[1]) : null
@@ -43,16 +44,13 @@ function AppInner() {
   }
 
   const navigate = (p: Page) => {
-    if ((p === 'operator' || p === 'business') && !user) {
-      setPage('login')
-      return
-    }
     setPage(p)
   }
 
   const handleLogout = () => {
     logout()
     setSelectedBusiness(null)
+    setPendingAddBusiness(false)
     setPage('landing')
   }
 
@@ -66,7 +64,14 @@ function AppInner() {
     setSelectedBusiness(null)
   }
 
-  const guardedPage: Page = page === 'operator' || page === 'business' ? (user ? page : 'login') : page
+  const handleRequireAuth = () => {
+    setPendingAddBusiness(true)
+    setPage('login')
+  }
+
+  const handleAddBusinessHandled = () => {
+    setPendingAddBusiness(false)
+  }
 
   if (loading) {
     return (
@@ -98,7 +103,7 @@ function AppInner() {
     )
   }
 
-  if (guardedPage === 'landing') {
+  if (page === 'landing') {
     return (
       <Landing
         onLogin={() => navigate('login')}
@@ -107,22 +112,25 @@ function AppInner() {
     )
   }
 
-  if (guardedPage === 'login') {
+  if (page === 'login') {
     return (
       <Auth
         onSuccess={() => setPage('operator')}
-        onBack={() => setPage('landing')}
+        onBack={() => {
+          setPendingAddBusiness(false)
+          setPage('landing')
+        }}
       />
     )
   }
 
   return (
     <AppLayout
-      page={guardedPage}
+      page={page}
       operatorTab={operatorTab}
       setOperatorTab={(tab) => {
         setOperatorTab(tab as OperatorTab)
-        if (guardedPage === 'business') {
+        if (page === 'business') {
           setPage('operator')
           setSelectedBusiness(null)
         }
@@ -131,10 +139,16 @@ function AppInner() {
       onLogout={handleLogout}
       businessName={selectedBusiness?.name}
     >
-      {guardedPage === 'operator' && (
-        <Operator tab={operatorTab} onSelectBusiness={handleSelectBusiness} />
+      {page === 'operator' && (
+        <Operator
+          tab={operatorTab}
+          onSelectBusiness={handleSelectBusiness}
+          onRequireAuth={handleRequireAuth}
+          autoOpenAddBusiness={pendingAddBusiness}
+          onAddBusinessHandled={handleAddBusinessHandled}
+        />
       )}
-      {guardedPage === 'business' && selectedBusiness && (
+      {page === 'business' && selectedBusiness && (
         <BusinessView business={selectedBusiness} onBack={handleBackFromBusiness} />
       )}
     </AppLayout>

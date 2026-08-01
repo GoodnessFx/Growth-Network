@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  LogIn,
   ExternalLink,
   Building2,
   Layers,
@@ -293,7 +294,7 @@ export default function AppLayout({
             {!collapsed && 'Settings'}
           </button>
           <button
-            onClick={onLogout}
+            onClick={user ? onLogout : () => setPage('login')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -308,8 +309,8 @@ export default function AppLayout({
               fontSize: 13,
             }}
           >
-            <LogOut size={16} />
-            {!collapsed && 'Sign out'}
+            {user ? <LogOut size={16} /> : <LogIn size={16} />}
+            {!collapsed && (user ? 'Sign out' : 'Sign in')}
           </button>
           {!isMobile && (
             <button
@@ -387,30 +388,49 @@ export default function AppLayout({
             )}
           </div>
 
-          {/* User chip */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div className="hide-xs" style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textAlign: 'right' }}>
-              <div>{displayName}</div>
-              <div style={{ color: 'var(--accent)', fontSize: 10 }}>Owner</div>
+          {/* User chip / sign-in */}
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="hide-xs" style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textAlign: 'right' }}>
+                <div>{displayName}</div>
+                <div style={{ color: 'var(--accent)', fontSize: 10 }}>Owner</div>
+              </div>
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
+                  background: 'var(--primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: 'var(--primary-foreground)',
+                  fontFamily: 'Barlow Condensed',
+                }}
+              >
+                {initials}
+              </div>
             </div>
-            <div
+          ) : (
+            <button
+              onClick={() => setPage('login')}
               style={{
-                width: 34,
-                height: 34,
-                borderRadius: '50%',
-                background: 'var(--primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+                padding: '8px 18px',
+                minHeight: 44,
+                borderRadius: 3,
                 fontSize: 13,
-                fontWeight: 700,
-                color: 'var(--primary-foreground)',
-                fontFamily: 'Barlow Condensed',
+                cursor: 'pointer',
+                fontWeight: 500,
               }}
             >
-              {initials}
-            </div>
-          </div>
+              Sign in
+            </button>
+          )}
         </header>
 
         {/* Scrollable page content */}

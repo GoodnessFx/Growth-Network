@@ -347,7 +347,7 @@ export default function Auth({ onSuccess, onBack }: AuthProps) {
           <ArrowLeft size={16} /> Back to home
         </button>
 
-        <AuthCard title="Welcome back." subtitle="Owner sign-in. Growth Network is read-only for the public — the platform owner manages everything here.">
+        <AuthCard title="Welcome back." subtitle="Owner sign-in. The showcase is open for everyone to browse — only the owner can add and manage businesses.">
           <InputField label="Email" type="email" placeholder="you@agency.com" value={email} onChange={setEmail} />
           <InputField label="Password" type="password" value={password} onChange={setPassword} />
           {error && <ErrorBanner message={error} />}
