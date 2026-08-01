@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from './lib/AuthContext'
 import { type Business } from './data/mockData'
 
 type Page = 'landing' | 'login' | 'operator' | 'business'
-type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections'
+type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics'
 
 function AppInner() {
   const { user, loading, logout } = useAuth()

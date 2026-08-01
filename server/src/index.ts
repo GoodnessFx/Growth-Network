@@ -9,6 +9,7 @@ import { whatsapp } from "./routes/whatsapp.js"
 import { social } from "./routes/social.js"
 import { ads } from "./routes/ads.js"
 import { tracking } from "./routes/tracking.js"
+import { analytics } from "./routes/analytics.js"
 import { automations } from "./routes/automations.js"
 import { exportTrade } from "./routes/export-trade.js"
 import { audit } from "./routes/audit.js"
@@ -35,6 +36,9 @@ app.use("/api/ads/*", authMiddleware)
 app.route("/api/ads", ads)
 
 app.route("/api/tracking", tracking)
+
+app.use("/api/analytics/*", authMiddleware, tenantMiddleware)
+app.route("/api/analytics", analytics)
 
 app.use("/api/automations/*", authMiddleware)
 app.route("/api/automations", automations)

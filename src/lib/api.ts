@@ -138,3 +138,33 @@ export function deleteConnection(id: string): Promise<{ success: boolean }> {
 export function verifyConnection(id: string): Promise<{ ok: boolean; detail: string }> {
   return apiFetch<{ ok: boolean; detail: string }>(`/social/connections/${id}/verify`, { method: "POST" })
 }
+
+export interface AnalyticsOverview {
+  overview: {
+    live: number
+    todayPageviews: number
+    todayVisitors: number
+    sessions: number
+    clicks: number
+    formSubmits: number
+    conversionRate: number
+    lastHourEvents: number
+  }
+  hourlyTrend: { hour: string; events: number; visitors: number }[]
+  topPages: { page: string; count: number }[]
+  referrers: { referrer: string; count: number }[]
+  devices: { device: string; count: number }[]
+  recent: { id: string; eventType: string; pageUrl: string; timestamp: string }[]
+  generatedAt: string
+}
+
+export function fetchAnalytics(businessId: string): Promise<AnalyticsOverview> {
+  return apiFetch<AnalyticsOverview>(`/analytics/overview?businessId=${encodeURIComponent(businessId)}`)
+}
+
+export function simulateTraffic(businessId: string, count: number): Promise<{ events: number; visitors: number; simulated: boolean }> {
+  return apiFetch<{ events: number; visitors: number; simulated: boolean }>("/analytics/simulate", {
+    method: "POST",
+    body: JSON.stringify({ businessId, count }),
+  })
+}
