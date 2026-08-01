@@ -10,6 +10,7 @@ import {
 } from "../services/ads.js"
 import { resolveCredentials } from "../services/connections.js"
 import { recordAudit } from "../middleware/audit.js"
+import { demoEnabled, demoAdCampaigns } from "../services/demo.js"
 
 const ads = new Hono()
 
@@ -46,6 +47,10 @@ ads.get("/campaigns/:platform", async (c) => {
     if (platform === conn.meta) {
       const { accessToken, accountId } = resolveCredentials(db, businessId, "meta", process.env)
       if (!accessToken || !accountId) {
+        if (demoEnabled()) {
+          const demo = demoAdCampaigns(platform, businessId)
+          return c.json({ campaigns: demo, synced: demo.length, demo: true })
+        }
         c.status(400)
         return c.json({ error: "No Meta Ads account connected for this business. Add a connection first." })
       }
@@ -76,6 +81,10 @@ ads.get("/campaigns/:platform", async (c) => {
     if (platform === conn.google) {
       const { accessToken, accountId, refreshToken } = resolveCredentials(db, businessId, "google", process.env)
       if (!accessToken || !accountId || !refreshToken) {
+        if (demoEnabled()) {
+          const demo = demoAdCampaigns(platform, businessId)
+          return c.json({ campaigns: demo, synced: demo.length, demo: true })
+        }
         c.status(400)
         return c.json({ error: "No Google Ads account connected for this business. Add a connection first." })
       }
@@ -86,6 +95,10 @@ ads.get("/campaigns/:platform", async (c) => {
     if (platform === conn.tiktok) {
       const { accessToken, accountId } = resolveCredentials(db, businessId, "tiktok", process.env)
       if (!accessToken || !accountId) {
+        if (demoEnabled()) {
+          const demo = demoAdCampaigns(platform, businessId)
+          return c.json({ campaigns: demo, synced: demo.length, demo: true })
+        }
         c.status(400)
         return c.json({ error: "No TikTok Ads account connected for this business. Add a connection first." })
       }
@@ -96,6 +109,10 @@ ads.get("/campaigns/:platform", async (c) => {
     if (platform === conn.linkedin) {
       const { accessToken } = resolveCredentials(db, businessId, "linkedin", process.env)
       if (!accessToken) {
+        if (demoEnabled()) {
+          const demo = demoAdCampaigns(platform, businessId)
+          return c.json({ campaigns: demo, synced: demo.length, demo: true })
+        }
         c.status(400)
         return c.json({ error: "No LinkedIn Ads account connected for this business. Add a connection first." })
       }
@@ -106,6 +123,10 @@ ads.get("/campaigns/:platform", async (c) => {
     if (platform === conn.snapchat) {
       const { accessToken, accountId } = resolveCredentials(db, businessId, "snapchat", process.env)
       if (!accessToken || !accountId) {
+        if (demoEnabled()) {
+          const demo = demoAdCampaigns(platform, businessId)
+          return c.json({ campaigns: demo, synced: demo.length, demo: true })
+        }
         c.status(400)
         return c.json({ error: "No Snapchat Ads account connected for this business. Add a connection first." })
       }

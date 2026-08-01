@@ -63,6 +63,7 @@ Copy `.env.example` to `.env` and fill in what you need. The file is fully comme
 | Threads | Meta app with the Threads product | [developers.facebook.com](https://developers.facebook.com) |
 | Website tracking | None — paste the generated snippet | Generated in Connections → "Website tracking snippet" |
 | CORS / tracking origins | `ALLOWED_ORIGINS`, `TRACKING_ALLOWED_ORIGINS` (comma-separated) + `TRACKING_SECRET` | Set in `.env`; see `.env.example` |
+| Demo data | `ENABLE_DEMO_DATA=1` (default) | On by default; set `0` to require real connections |
 
 ### OAuth Model
 
@@ -71,6 +72,15 @@ Each platform is connected **per business**, not per account. The server stores 
 - **Production flow:** each platform has a registered OAuth app; the server would exchange the authorization code at `/api/oauth/callback/:platform` and persist the token server-side for the logged-in business.
 - **Local/first-run flow (what the UI uses today):** paste a long-lived token (and account ID where relevant) into the Connections view, or set the `*_ACCESS_TOKEN` fallback variables in `.env`. The server uses the per-business row when present and falls back to the env var for single-tenant setups.
 - Tokens are verified per platform with the "Verify" button, which calls the platform API with the stored credential.
+
+### Demo Data
+
+Until a platform is actually connected (or its env fallback is set), every credential-gated feature returns **labeled demo data** so the whole dashboard is explorable without any accounts:
+
+- Ads, SEO, social publishing, per-post metrics, WhatsApp messaging, and connection verification fall back to believable sample numbers/campaigns/post-ids when no working credential exists — or when the live call fails (expired/limited token).
+- Every fallback response is flagged `demo: true`; the UI shows a "demo" badge next to affected cards so you always know when you're looking at sample numbers.
+- The moment a working connection is added, real data replaces the demo values automatically.
+- Set `ENABLE_DEMO_DATA=0` in `.env` to turn this off and get the original "connect a platform" errors instead.
 
 ## Project Structure
 

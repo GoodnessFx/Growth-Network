@@ -1,6 +1,7 @@
 import axios from "axios"
 import type { Database } from "better-sqlite3"
 import { resolveCredentials } from "./connections.js"
+import { demoEnabled, demoAdCampaigns } from "./demo.js"
 
 export interface AdMetrics {
   impressions: number
@@ -40,10 +41,17 @@ export async function getAdsOverview(
     AD_PLATFORMS.map(async ({ platform, label }) => {
       const { accessToken, accountId, refreshToken } = resolveCredentials(db, businessId, platform, process.env)
       const base = { platform, label }
-      if (!accessToken) return { ...base, connected: false }
-      if (!accountId && platform !== "linkedin") {
-        return { ...base, connected: false, error: "Connected but no account ID stored — reconnect and add the account/page ID" }
+      const demo = () => ({ ...base, connected: true, demo: true, campaigns: demoAdCampaigns(platform, businessId) })
+
+      // No stored token, or a token without the account/page id required to
+      // actually query the platform → show demo data until real creds exist.
+      if (!accessToken || (!accountId && platform !== "linkedin")) {
+        if (demoEnabled()) return demo()
+        return !accessToken
+          ? { ...base, connected: false }
+          : { ...base, connected: false, error: "Connected but no account ID stored — reconnect and add the account/page ID" }
       }
+
       try {
         let campaigns: Array<{ id: string; name: string; status: string; metrics: AdMetrics }>
         switch (platform) {
@@ -67,6 +75,9 @@ export async function getAdsOverview(
         }
         return { ...base, connected: true, campaigns }
       } catch (err: unknown) {
+        // Live sync failed (bad/expired token, network). Fall back to demo
+        // data so the dashboard keeps working; real data returns on success.
+        if (demoEnabled()) return demo()
         return { ...base, connected: true, campaigns: [], error: err instanceof Error ? err.message : String(err) }
       }
     }),

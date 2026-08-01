@@ -241,6 +241,7 @@ export interface AdPlatformOverview {
   platform: string
   label: string
   connected: boolean
+  demo?: boolean
   campaigns?: AdCampaign[]
   error?: string
 }
@@ -267,10 +268,11 @@ export interface SeoPerformance {
   queries: SeoQueryRow[]
   dateFrom: string
   dateTo: string
+  demo?: boolean
 }
 
-export function fetchSeo(businessId: string): Promise<{ connected: boolean; seo?: SeoPerformance; error?: string }> {
-  return apiFetch<{ connected: boolean; seo?: SeoPerformance; error?: string }>(
+export function fetchSeo(businessId: string): Promise<{ connected: boolean; demo?: boolean; seo?: SeoPerformance; error?: string }> {
+  return apiFetch<{ connected: boolean; demo?: boolean; seo?: SeoPerformance; error?: string }>(
     `/social/seo?businessId=${encodeURIComponent(businessId)}`,
   )
 }

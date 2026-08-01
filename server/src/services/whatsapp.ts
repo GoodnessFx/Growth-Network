@@ -1,13 +1,14 @@
 import axios from "axios"
+import { demoEnabled, demoWhatsAppId } from "./demo.js"
 
 const WHATSAPP_API_BASE = "https://graph.facebook.com/v21.0"
 
-function getConfig() {
+function getConfig(): { phoneNumberId: string; accessToken: string } | null {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN
 
   if (!phoneNumberId || !accessToken) {
-    throw new Error("WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN must be set in .env")
+    return null
   }
 
   return { phoneNumberId, accessToken }
@@ -17,11 +18,19 @@ export interface WhatsAppSendResult {
   success: boolean
   messageId?: string
   error?: string
+  demo?: boolean
 }
 
 export async function sendTextMessage(to: string, text: string): Promise<WhatsAppSendResult> {
+  const config = getConfig()
+  if (!config) {
+    if (demoEnabled()) {
+      return { success: true, messageId: demoWhatsAppId(), demo: true }
+    }
+    return { success: false, error: "WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN must be set in .env" }
+  }
   try {
-    const { phoneNumberId, accessToken } = getConfig()
+    const { phoneNumberId, accessToken } = config
     const { data } = await axios.post(
       `${WHATSAPP_API_BASE}/${phoneNumberId}/messages`,
       {
@@ -35,6 +44,9 @@ export async function sendTextMessage(to: string, text: string): Promise<WhatsAp
 
     return { success: true, messageId: data.messages?.[0]?.id }
   } catch (err: unknown) {
+    if (demoEnabled()) {
+      return { success: true, messageId: demoWhatsAppId(), demo: true }
+    }
     const message = err instanceof Error ? err.message : String(err)
     return { success: false, error: message }
   }
@@ -45,8 +57,15 @@ export async function sendTemplateMessage(
   templateName: string,
   parameters: string[] = [],
 ): Promise<WhatsAppSendResult> {
+  const config = getConfig()
+  if (!config) {
+    if (demoEnabled()) {
+      return { success: true, messageId: demoWhatsAppId(), demo: true }
+    }
+    return { success: false, error: "WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN must be set in .env" }
+  }
   try {
-    const { phoneNumberId, accessToken } = getConfig()
+    const { phoneNumberId, accessToken } = config
     const components = parameters.length > 0
       ? [{ type: "body", parameters: parameters.map((p) => ({ type: "text", text: p })) }]
       : undefined
@@ -64,6 +83,9 @@ export async function sendTemplateMessage(
 
     return { success: true, messageId: data.messages?.[0]?.id }
   } catch (err: unknown) {
+    if (demoEnabled()) {
+      return { success: true, messageId: demoWhatsAppId(), demo: true }
+    }
     const message = err instanceof Error ? err.message : String(err)
     return { success: false, error: message }
   }

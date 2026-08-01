@@ -26,13 +26,17 @@ whatsapp.post("/webhook", async (c) => {
 
   const db = getDb()
   for (const msg of messages) {
+    const businessId = selectBusinessId(msg.from)
+    // whatsapp_messages.business_id is a required FK to businesses(id); only
+    // store inbound messages we can attribute to a known contact.
+    if (!businessId) continue
+
     const id = uuid()
     db.prepare(
       "INSERT INTO whatsapp_messages (id, business_id, contact_phone, direction, message_type, content, status, created_at) VALUES (?, ?, ?, 'inbound', 'text', ?, 'received', datetime('now'))",
-    ).run(id, "unknown", msg.from, msg.text)
+    ).run(id, businessId, msg.from, msg.text)
 
-    selectBusinessId(msg.from)
-    evaluateTriggers(msg.from, "whatsapp_inbound", { from: msg.from, text: msg.text })
+    evaluateTriggers(businessId, "whatsapp_inbound", { from: msg.from, text: msg.text })
   }
 
   return c.json({ success: true })
@@ -41,6 +45,10 @@ whatsapp.post("/webhook", async (c) => {
 whatsapp.post("/send", async (c) => {
   const { businessId, to, text, templateName, templateParams } = await c.req.json()
 
+  if (!businessId) {
+    c.status(400)
+    return c.json({ error: "businessId is required" })
+  }
   if (!to || (!text && !templateName)) {
     c.status(400)
     return c.json({ error: "to and (text or templateName) are required" })
@@ -64,7 +72,7 @@ whatsapp.post("/send", async (c) => {
     "INSERT INTO whatsapp_messages (id, business_id, contact_id, contact_phone, direction, message_type, content, template_name, status, whatsapp_message_id, created_at) VALUES (?, ?, ?, ?, 'outbound', ?, ?, ?, 'sent', ?, datetime('now'))",
   ).run(
     id,
-    businessId || null,
+    businessId,
     null,
     to,
     templateName ? "template" : "text",

@@ -132,8 +132,18 @@ function AdPlatformBlock({ platform, compact }: { platform: AdPlatformOverview |
     <div style={{ border: '1px solid var(--border)', borderRadius: 3, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)' }}>{platform.label}</span>
-        <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: 'var(--accent)', background: 'rgba(5,150,105,0.1)', padding: '2px 6px', borderRadius: 2, textTransform: 'uppercase' }}>
-          live
+        <span
+          style={{
+            fontSize: 10,
+            fontFamily: 'JetBrains Mono',
+            color: platform.demo ? 'var(--warning)' : 'var(--accent)',
+            background: platform.demo ? 'rgba(245,158,11,0.12)' : 'rgba(5,150,105,0.1)',
+            padding: '2px 6px',
+            borderRadius: 2,
+            textTransform: 'uppercase',
+          }}
+        >
+          {platform.demo ? 'demo' : 'live'}
         </span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -650,6 +660,11 @@ export default function AnalyticsView() {
                         {seo.dateFrom?.slice(0, 10) ?? ''} → {seo.dateTo?.slice(0, 10) ?? ''}
                       </span>
                     </div>
+                    {seo.demo && (
+                      <div style={{ fontSize: 11, color: 'var(--warning)', fontFamily: 'JetBrains Mono', marginBottom: 10 }}>
+                        Demo data — connect Google Search Console for live numbers.
+                      </div>
+                    )}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }} className="stack-mobile">
                       <SeoStat label="Impressions" value={seo.impressions.toLocaleString()} />
                       <SeoStat label="Clicks" value={seo.clicks.toLocaleString()} />

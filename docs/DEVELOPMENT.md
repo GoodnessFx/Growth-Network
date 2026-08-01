@@ -65,6 +65,20 @@ client IDs/secrets for the production OAuth flow, plus long-lived token fallback
   `GOOGLE_SEARCH_CONSOLE_ACCESS_TOKEN`, `GOOGLE_SEARCH_CONSOLE_SITE_URL`,
   `GOOGLE_BUSINESS_PROFILE_ACCESS_TOKEN`, `GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID`,
   `WHATSAPP_ACCESS_TOKEN`
+- `ENABLE_DEMO_DATA` — demo-data fallbacks for credential-gated features (ads, SEO, social publish/metrics, WhatsApp, connection verify). Default `1` (on). Set `0`/`false` to require real connections and surface "not connected" errors instead.
+
+## Demo data fallback
+
+`server/src/services/demo.ts` is the single source of truth for mock fallbacks. While `ENABLE_DEMO_DATA` is on (default) and no **working** credential exists, the affected endpoints return believable sample data flagged `demo: true`:
+
+- Ads overview (`GET /api/analytics/ads`) and per-platform syncs (`GET /api/ads/campaigns/:platform?sync=true`) → deterministic per-business campaigns
+- SEO (`GET /api/social/seo`) → deterministic Search Console performance
+- Publish (`POST /api/social/publish`) → simulated published post with a `demo_*` post id; real publish failures also fall back to demo
+- Post metrics (`GET /api/social/metrics/:platform/:postId`) → deterministic engagement
+- Connection verify (`POST /api/social/connections/:id/verify`) → `{ ok: true, demo: true }` when the probe fails
+- WhatsApp send (`POST /api/whatsapp/send`) → `wa_demo_*` message id (also on live API failure)
+
+Fallbacks only activate when a live call is impossible or fails; a working connection replaces demo values automatically. The UI labels demo results (e.g. AnalyticsView's "demo"/"live" badge).
 
 ## API reference
 
