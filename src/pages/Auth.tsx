@@ -169,6 +169,7 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
 
   return (
     <div
+      className="auth-grid"
       style={{
         minHeight: '100vh',
         background: 'var(--background)',
@@ -178,6 +179,7 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
     >
       {/* Left panel — decorative */}
       <div
+        className="hide-mobile"
         style={{
           background: 'var(--card)',
           borderRight: '1px solid var(--border)',
@@ -272,6 +274,7 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
 
       {/* Right panel — form */}
       <div
+        className="auth-form-panel"
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -281,6 +284,30 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
           gap: 20,
         }}
       >
+        {/* Mobile logo */}
+        <div className="show-mobile" style={{ display: 'none', alignItems: 'center', gap: 10, width: '100%', marginBottom: 8 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              background: 'var(--primary)',
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <TrendingUp size={17} color="#111827" strokeWidth={2.5} />
+          </div>
+          <span
+            className="font-display"
+            style={{ fontSize: 22, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)' }}
+          >
+            GROWTH<span style={{ color: 'var(--primary)' }}>NET</span>
+          </span>
+        </div>
+
         <button
           onClick={onBack}
           style={{
@@ -294,6 +321,8 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
             gap: 6,
             fontSize: 13,
             marginBottom: 8,
+            minHeight: 44,
+            padding: 0,
           }}
         >
           <ArrowLeft size={16} /> Back to home
@@ -306,7 +335,17 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -10 }}>
               <button
                 onClick={() => setMode('forgot')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 12 }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--accent)',
+                  fontSize: 12,
+                  padding: 0,
+                  minHeight: 44,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
               >
                 Forgot password?
               </button>
@@ -328,7 +367,7 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
 
         {mode === 'register' && (
           <AuthCard title="Create account." subtitle="Start your 14-day free trial. No credit card required.">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="field-grid">
               <InputField label="First name" value={firstName} onChange={setFirstName} placeholder="Sipho" />
               <InputField label="Last name" value={lastName} onChange={setLastName} placeholder="Ndlovu" />
             </div>
@@ -374,7 +413,19 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
             </PrimaryButton>
             <button
               onClick={() => setMode('login')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-foreground)', fontSize: 13, textAlign: 'center' }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--muted-foreground)',
+                fontSize: 13,
+                textAlign: 'center',
+                padding: 0,
+                minHeight: 44,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               Back to sign in
             </button>
@@ -413,7 +464,19 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
               VERIFY EMAIL
             </PrimaryButton>
             <button
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-foreground)', fontSize: 13, textAlign: 'center' }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--muted-foreground)',
+                fontSize: 13,
+                textAlign: 'center',
+                padding: 0,
+                minHeight: 44,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               Resend code
             </button>

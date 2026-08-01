@@ -12,7 +12,7 @@ const NAV_HEIGHT = 64
 
 function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const isMobile = useIsMobile(640)
+  const isMobile = useIsMobile(768)
   return (
     <nav
       style={{
@@ -70,7 +70,18 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
         {isMobile ? (
           <button
             onClick={() => setMobileOpen((o) => !o)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--foreground)', padding: 4 }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--foreground)',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: 44,
+              minHeight: 44,
+            }}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -83,6 +94,7 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
                 border: '1px solid var(--border)',
                 color: 'var(--foreground)',
                 padding: '8px 18px',
+                minHeight: 44,
                 borderRadius: 3,
                 fontSize: 13,
                 cursor: 'pointer',
@@ -98,6 +110,7 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
                 border: 'none',
                 color: 'var(--primary-foreground)',
                 padding: '8px 18px',
+                minHeight: 44,
                 borderRadius: 3,
                 fontSize: 13,
                 cursor: 'pointer',
@@ -133,7 +146,16 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
             <a
               key={item}
               href="#"
-              style={{ color: 'var(--foreground)', fontSize: 15, textDecoration: 'none', fontWeight: 500, padding: '4px 0' }}
+              style={{
+                color: 'var(--foreground)',
+                fontSize: 15,
+                textDecoration: 'none',
+                fontWeight: 500,
+                padding: '4px 0',
+                display: 'flex',
+                alignItems: 'center',
+                minHeight: 44,
+              }}
             >
               {item}
             </a>
@@ -147,6 +169,7 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
                 border: '1px solid var(--border)',
                 color: 'var(--foreground)',
                 padding: '10px 18px',
+                minHeight: 44,
                 borderRadius: 3,
                 fontSize: 13,
                 cursor: 'pointer',
@@ -163,6 +186,7 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
                 border: 'none',
                 color: '#FFFFFF',
                 padding: '10px 18px',
+                minHeight: 44,
                 borderRadius: 3,
                 fontSize: 13,
                 cursor: 'pointer',

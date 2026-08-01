@@ -158,6 +158,7 @@ export default function AppLayout({
                   gap: 10,
                   width: '100%',
                   padding: collapsed ? '10px 14px' : '10px 20px',
+                  minHeight: 44,
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
@@ -169,8 +170,7 @@ export default function AppLayout({
                 {!collapsed && 'All Businesses'}
               </button>
             </>
-          ) : (
-            navItems.map((item) => {
+          ) : (            navItems.map((item) => {
               const active = operatorTab === item.id
               return (
                 <button
@@ -181,8 +181,9 @@ export default function AppLayout({
                     alignItems: 'center',
                     gap: 10,
                     width: '100%',
-                    padding: collapsed ? '10px 14px' : '10px 20px',
-                    background: active ? 'var(--secondary)' : 'transparent',
+                  padding: collapsed ? '10px 14px' : '10px 20px',
+                  minHeight: 44,
+                  background: active ? 'var(--secondary)' : 'transparent',
                     borderLeft: active ? '3px solid var(--primary)' : '3px solid transparent',
                     border: 'none',
                     cursor: 'pointer',
@@ -242,6 +243,7 @@ export default function AppLayout({
               gap: 10,
               width: '100%',
               padding: collapsed ? '10px 14px' : '10px 20px',
+              minHeight: 44,
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -260,6 +262,7 @@ export default function AppLayout({
               gap: 10,
               width: '100%',
               padding: collapsed ? '10px 14px' : '10px 20px',
+              minHeight: 44,
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -278,6 +281,7 @@ export default function AppLayout({
               gap: 10,
               width: '100%',
               padding: collapsed ? '10px 14px' : '10px 20px',
+              minHeight: 44,
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -315,6 +319,7 @@ export default function AppLayout({
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Topbar */}
         <header
+          className="app-topbar"
           style={{
             height: 60,
             borderBottom: '1px solid var(--border)',
@@ -330,7 +335,18 @@ export default function AppLayout({
             {isMobile && (
               <button
                 onClick={() => setMobileOpen((o) => !o)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--foreground)', padding: 0, display: 'flex' }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--foreground)',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: 44,
+                  minHeight: 44,
+                }}
               >
                 {mobileOpen ? <X size={20} /> : <Menu size={20} />}
               </button>

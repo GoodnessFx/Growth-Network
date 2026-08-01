@@ -40,6 +40,7 @@ import {
   formatCurrency,
 } from '../data/store'
 import { MiniSparkline, ComparisonChart, RevenueChart, AdFunnel } from '../components/Charts'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts'
 
@@ -294,6 +295,7 @@ function AddBusinessModal({ onClose }: { onClose: () => void }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
+        className="modal-content"
         style={{
           background: "var(--background)",
           border: "1px solid var(--border)",
@@ -329,7 +331,7 @@ function AddBusinessModal({ onClose }: { onClose: () => void }) {
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Owner Name</div>
             <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="e.g. John Doe" style={inputStyle} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="field-grid">
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Industry</div>
               <input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. E-commerce" style={inputStyle} />
@@ -339,7 +341,7 @@ function AddBusinessModal({ onClose }: { onClose: () => void }) {
               <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lagos" style={inputStyle} />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="field-grid">
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Country</div>
               <select value={country} onChange={(e) => setCountry(e.target.value)} style={inputStyle}>
@@ -403,7 +405,7 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
   }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-pad" style={{ padding: 24 }}>
       {showAddModal && <AddBusinessModal onClose={handleModalClose} />}
 
       {/* Portfolio summary strip */}
@@ -477,6 +479,7 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
               border: `1px solid ${statusFilter === s ? "var(--primary)40" : "var(--border)"}`,
               borderRadius: 3,
               padding: "8px 14px",
+              minHeight: 44,
               fontSize: 12,
               color: statusFilter === s ? "var(--foreground)" : "var(--muted-foreground)",
               cursor: "pointer",
@@ -491,13 +494,13 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
         <div style={{ display: "flex", border: "1px solid var(--border)", borderRadius: 3, overflow: "hidden" }}>
           <button
             onClick={() => setViewMode("grid")}
-            style={{ background: viewMode === "grid" ? "var(--secondary)" : "transparent", border: "none", padding: "8px 10px", cursor: "pointer", color: "var(--muted-foreground)" }}
+            style={{ background: viewMode === "grid" ? "var(--secondary)" : "transparent", border: "none", padding: "8px 10px", minWidth: 44, minHeight: 44, cursor: "pointer", color: "var(--muted-foreground)" }}
           >
             <LayoutGrid size={15} />
           </button>
           <button
             onClick={() => setViewMode("list")}
-            style={{ background: viewMode === "list" ? "var(--secondary)" : "transparent", border: "none", padding: "8px 10px", cursor: "pointer", color: "var(--muted-foreground)" }}
+            style={{ background: viewMode === "list" ? "var(--secondary)" : "transparent", border: "none", padding: "8px 10px", minWidth: 44, minHeight: 44, cursor: "pointer", color: "var(--muted-foreground)" }}
           >
             <LayoutList size={15} />
           </button>
@@ -607,7 +610,7 @@ function CompareView() {
   const chartData = sorted.map((b) => ({ name: b.name, revenue: b.revenue, clients: b.clients }))
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-pad" style={{ padding: 24 }}>
       <SectionHeader label="Cross-Business Comparison" />
 
       <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, marginBottom: 2 }}>
@@ -658,7 +661,8 @@ function CompareView() {
 
       {/* Growth rate table */}
       <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr', gap: 12 }}>
+        <div className="table-scroll">
+        <div className="table-grid" style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr', gap: 12 }}>
           {['Business', 'Revenue', 'Growth', 'Clients', 'Social', 'Status'].map((h) => (
             <div key={h} style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>{h}</div>
           ))}
@@ -666,6 +670,7 @@ function CompareView() {
         {sorted.map((b) => (
           <div
             key={b.id}
+            className="table-grid"
             style={{
               padding: '14px 20px',
               borderBottom: '1px solid var(--border)',
@@ -693,6 +698,7 @@ function CompareView() {
             <StatusBadge status={b.status} />
           </div>
         ))}
+        </div>
       </div>
     </div>
   )
@@ -721,7 +727,7 @@ const PLATFORM_COLORS: Record<string, string> = {
 function InboxView() {
   const [selectedId, setSelectedId] = useState<number | null>(1)
   const selected = inboxMessages.find((m) => m.id === selectedId)
-  const isMobile = (window.innerWidth || 0) < 768
+  const isMobile = useIsMobile()
 
   return (
     <div style={{ padding: isMobile ? 12 : 24 }}>
@@ -854,7 +860,7 @@ function CampaignsView() {
   const avgROAS = (campaigns.reduce((s, c) => s + c.roas, 0) / campaigns.length).toFixed(1)
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-pad" style={{ padding: 24 }}>
       <SectionHeader label="Campaign Manager" />
 
       {/* Summary */}
@@ -874,7 +880,8 @@ function CampaignsView() {
       <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 2, marginBottom: 2 }}>
         {/* Campaign table */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 80px', gap: 12 }}>
+          <div className="table-scroll">
+          <div className="table-grid-narrow" style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 80px', gap: 12 }}>
             {['Campaign', 'Platform', 'Spend', 'Conversions', 'ROAS', 'Status'].map((h) => (
               <div key={h} style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>{h}</div>
             ))}
@@ -882,6 +889,7 @@ function CampaignsView() {
           {campaigns.map((c) => (
             <div
               key={c.id}
+              className="table-grid-narrow"
               style={{
                 padding: '14px 20px',
                 borderBottom: '1px solid var(--border)',
@@ -929,6 +937,7 @@ function CampaignsView() {
               </div>
             </div>
           ))}
+          </div>
         </div>
 
         {/* Ad funnel */}
@@ -952,7 +961,7 @@ function CampaignsView() {
 
 function PipelineView() {
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-pad" style={{ padding: 24 }}>
       <SectionHeader label="Client Onboarding Pipeline" />
       <div style={{ display: 'flex', gap: 2, overflowX: 'auto', paddingBottom: 8 }}>
         {pipelineStages.map((stage) => (
@@ -1026,6 +1035,7 @@ function PipelineView() {
                   border: '1px dashed var(--border)',
                   borderRadius: 3,
                   padding: '10px',
+                  minHeight: 44,
                   cursor: 'pointer',
                   fontSize: 12,
                   color: 'var(--muted-foreground)',
@@ -1060,7 +1070,7 @@ function AlertsView() {
   }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-pad" style={{ padding: 24 }}>
       <SectionHeader
         label="Portfolio Alerts"
         action={
@@ -1103,7 +1113,18 @@ function AlertsView() {
               {!alert.read && (
                 <button
                   onClick={() => markRead(alert.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-foreground)', flexShrink: 0 }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--muted-foreground)',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: 44,
+                    minHeight: 44,
+                  }}
                 >
                   <Check size={15} />
                 </button>

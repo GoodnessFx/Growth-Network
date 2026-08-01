@@ -238,7 +238,7 @@ function CRMTab() {
   const STATUS_COLORS = { active: 'var(--accent)', prospect: 'var(--warning)', churned: 'var(--muted-foreground)' }
 
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-pad" style={{ padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <span className="font-display" style={{ fontSize: 22, fontWeight: 800, color: 'var(--foreground)' }}>
           Client CRM
@@ -249,6 +249,7 @@ function CRMTab() {
             border: 'none',
             borderRadius: 3,
             padding: '8px 16px',
+            minHeight: 44,
             fontSize: 12,
             fontWeight: 700,
             color: '#111827',
@@ -445,7 +446,7 @@ const KANBAN_STAGES = [
 
 function PipelineTab() {
   return (
-    <div style={{ padding: 24 }}>
+    <div className="page-pad" style={{ padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <span className="font-display" style={{ fontSize: 22, fontWeight: 800, color: 'var(--foreground)' }}>
           Sales Pipeline
@@ -456,6 +457,7 @@ function PipelineTab() {
             border: 'none',
             borderRadius: 3,
             padding: '8px 16px',
+            minHeight: 44,
             fontSize: 12,
             fontWeight: 700,
             color: '#111827',
@@ -520,6 +522,7 @@ function PipelineTab() {
                   border: '1px dashed var(--border)',
                   borderRadius: 3,
                   padding: 8,
+                  minHeight: 44,
                   cursor: 'pointer',
                   fontSize: 12,
                   color: 'var(--muted-foreground)',
@@ -627,6 +630,7 @@ function SocialTab({ business }: { business: Business }) {
               border: 'none',
               borderRadius: 3,
               padding: '6px 14px',
+              minHeight: 44,
               fontSize: 11,
               fontWeight: 700,
               color: '#111827',
@@ -752,6 +756,7 @@ function FinanceTab({ business }: { business: Business }) {
               border: 'none',
               borderRadius: 3,
               padding: '6px 14px',
+              minHeight: 44,
               fontSize: 11,
               fontWeight: 700,
               color: '#111827',
@@ -766,7 +771,8 @@ function FinanceTab({ business }: { business: Business }) {
             <Plus size={12} /> NEW INVOICE
           </button>
         </div>
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr 80px', gap: 12 }}>
+        <div className="table-scroll">
+        <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr 80px', gap: 12, minWidth: 640 }}>
           {['Invoice', 'Client', 'Amount', 'Issued', 'Due', 'Status'].map((h) => (
             <div key={h} style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>{h}</div>
           ))}
@@ -781,6 +787,7 @@ function FinanceTab({ business }: { business: Business }) {
               gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr 80px',
               gap: 12,
               alignItems: 'center',
+              minWidth: 640,
             }}
           >
             <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)' }}>{inv.id}</div>
@@ -805,6 +812,7 @@ function FinanceTab({ business }: { business: Business }) {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </div>
   )
@@ -838,10 +846,13 @@ export default function BusinessView({ business, onBack }: BusinessProps) {
             color: 'var(--muted-foreground)',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: 6,
             fontSize: 13,
             padding: 0,
             flexShrink: 0,
+            minWidth: 44,
+            minHeight: 44,
           }}
         >
           <ArrowLeft size={15} />
@@ -902,6 +913,7 @@ export default function BusinessView({ business, onBack }: BusinessProps) {
               alignItems: 'center',
               gap: 6,
               padding: '10px 14px',
+              minHeight: 44,
               background: 'transparent',
               border: 'none',
               borderBottom: tab === t.id ? '2px solid var(--primary)' : '2px solid transparent',
