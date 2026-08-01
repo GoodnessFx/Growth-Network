@@ -23,6 +23,16 @@
   --radius-lg: calc(var(--radius) + 2px);
 }
 
+/* ── Type scale ────────────────────────────────────────────────────────────────
+   One scale for the whole app:
+   Display (font-display / Barlow Condensed 900):
+     Landing hero 96px · Landing section titles 32px · CTA banner 36px
+     App page/section titles 22px · Metric values 32px · Stat strip values 28px
+   Body (Outfit): 14px default · Caption 12px · Small 11px
+   Mono (JetBrains Mono): labels/eyebrows 10-12px, uppercase, letter-spacing 1-3px
+   Buttons: Barlow Condensed, uppercase, letter-spacing 0.5-1.5px
+   ───────────────────────────────────────────────────────────────────────────── */
+
 :root {
   --background: #FFFFFF;
   --foreground: #111827;
@@ -43,6 +53,25 @@
   --success: #1B7A4A;
   --warning: #C2A77D;
   --danger: #B91C1C;
+}
+
+/* Shared section-eyebrow treatment (mono label above a title) */
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+/* Shared landing section title */
+.section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1.05;
 }
 
 * {

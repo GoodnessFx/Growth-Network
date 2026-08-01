@@ -681,22 +681,8 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
       {/* Features */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 32px' }}>
         <div style={{ marginBottom: 48 }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontFamily: 'JetBrains Mono',
-              letterSpacing: 3,
-              color: 'var(--accent)',
-              textTransform: 'uppercase',
-              marginBottom: 12,
-            }}
-          >
-            PRODUCT
-          </div>
-          <h2
-            className="font-display"
-            style={{ fontSize: 32, fontWeight: 900, margin: 0, letterSpacing: -0.5, lineHeight: 1.05 }}
-          >
+          <div className="eyebrow">PRODUCT</div>
+          <h2 className="section-title" style={{ margin: 0 }}>
             EVERYTHING YOUR PORTFOLIO NEEDS.
             <br />
             <span style={{ color: 'var(--muted-foreground)', fontWeight: 600 }}>NOTHING IT DOESN&apos;T.</span>
@@ -748,18 +734,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
         }}
       >
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontFamily: 'JetBrains Mono',
-              letterSpacing: 3,
-              color: 'var(--muted-foreground)',
-              textTransform: 'uppercase',
-              marginBottom: 24,
-            }}
-          >
-            INDUSTRIES SERVED
-          </div>
+          <div className="eyebrow">INDUSTRIES SERVED</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {industries.map((ind) => (
               <span
@@ -783,22 +758,8 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
 
       {/* Testimonials */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 32px' }}>
-        <div
-          style={{
-            fontSize: 11,
-            fontFamily: 'JetBrains Mono',
-            letterSpacing: 3,
-            color: 'var(--accent)',
-            textTransform: 'uppercase',
-            marginBottom: 12,
-          }}
-        >
-          FROM THE FIELD
-        </div>
-        <h2
-          className="font-display"
-          style={{ fontSize: 28, fontWeight: 900, margin: '0 0 24px', letterSpacing: -0.5 }}
-        >
+        <div className="eyebrow">FROM THE FIELD</div>
+        <h2 className="section-title" style={{ margin: '0 0 24px' }}>
           REAL OPERATORS. REAL RESULTS.
         </h2>
         <div className="testimonial-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
@@ -862,22 +823,8 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
         }}
       >
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontFamily: 'JetBrains Mono',
-              letterSpacing: 3,
-              color: 'var(--muted-foreground)',
-              textTransform: 'uppercase',
-              marginBottom: 12,
-            }}
-          >
-            PRICING
-          </div>
-          <h2
-            className="font-display"
-            style={{ fontSize: 28, fontWeight: 900, margin: '0 0 8px', letterSpacing: -0.5 }}
-          >
+          <div className="eyebrow">PRICING</div>
+          <h2 className="section-title" style={{ margin: '0 0 8px' }}>
             STRAIGHTFORWARD. NO SURPRISES.
           </h2>
           <p style={{ fontSize: 14, color: 'var(--muted-foreground)', margin: '0 0 48px' }}>
@@ -945,10 +892,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
 
       {/* FAQ */}
       <section style={{ maxWidth: 800, margin: '0 auto', padding: '80px 32px' }}>
-        <h2
-          className="font-display"
-          style={{ fontSize: 28, fontWeight: 900, margin: '0 0 24px', letterSpacing: -0.5 }}
-        >
+        <h2 className="section-title" style={{ margin: '0 0 24px' }}>
           FAQ
         </h2>
         {[
