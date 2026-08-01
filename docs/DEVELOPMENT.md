@@ -58,6 +58,15 @@ Read at backend startup (see each service for exact names):
 - `POST /login` — `{ email, password }` → `{ token, user }`
 - `GET /me` — protected, returns current user
 
+Session handling: the JWT is stored in `localStorage` (`src/lib/AuthContext.tsx`) and sent as
+`Authorization: Bearer <token>` on every request via `src/lib/api.ts`. An httpOnly cookie was
+considered but not used: the backend has no CSRF middleware, the cookie path would add
+SameSite/CSRF wiring for a single-origin Vite proxy with no third-party clients, and the token
+already lives behind a 7-day expiry. The token is cleared from `localStorage` on logout, and
+`GET /auth/me` restores the session on page reload. Password reset is deliberately not exposed in
+the UI until a real email-token backend exists — the old "forgot password" screen was a dead end
+and was removed.
+
 ### Businesses (`/api/businesses`) — auth + tenant
 - `GET /` — list businesses for the tenant
 - `GET /:id` — single business (owner-checked)

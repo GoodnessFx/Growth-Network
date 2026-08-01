@@ -3,7 +3,7 @@ import { TrendingUp, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
 import { ApiError, createBusiness } from '../lib/api'
 
-type AuthMode = 'login' | 'register' | 'forgot'
+type AuthMode = 'login' | 'register'
 
 interface AuthProps {
   initialMode?: AuthMode
@@ -175,7 +175,6 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
   const [businessName, setBusinessName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [forgotSent, setForgotSent] = useState(false)
 
   const handleLogin = async () => {
     setError('')
@@ -217,11 +216,6 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleForgot = () => {
-    setError('')
-    setForgotSent(true)
   }
 
   return (
@@ -390,24 +384,6 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
             <InputField label="Email" type="email" placeholder="you@agency.com" value={email} onChange={setEmail} />
             <InputField label="Password" type="password" value={password} onChange={setPassword} />
             {error && <ErrorBanner message={error} />}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -10 }}>
-              <button
-                onClick={() => setMode('forgot')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'var(--accent)',
-                  fontSize: 12,
-                  padding: 0,
-                  minHeight: 44,
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                Forgot password?
-              </button>
-            </div>
             <PrimaryButton onClick={handleLogin} loading={loading}>
               SIGN IN
             </PrimaryButton>
@@ -467,54 +443,6 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
                 Sign in
               </button>
             </p>
-          </AuthCard>
-        )}
-
-        {mode === 'forgot' && (
-          <AuthCard title="Reset password." subtitle="Enter your email and we'll send a reset link.">
-            <InputField label="Email" type="email" placeholder="you@agency.com" value={email} onChange={setEmail} />
-            {error && <ErrorBanner message={error} />}
-            {forgotSent ? (
-              <div
-                style={{
-                  background: 'rgba(27,122,74,0.08)',
-                  border: '1px solid rgba(27,122,74,0.3)',
-                  borderRadius: 3,
-                  padding: '12px 14px',
-                  fontSize: 13,
-                  color: 'var(--primary)',
-                  lineHeight: 1.5,
-                }}
-              >
-                If an account exists for <strong>{email || 'this email'}</strong>, a reset link will be sent to it.
-                <br />
-                <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
-                  Email delivery is pending backend integration.
-                </span>
-              </div>
-            ) : (
-              <PrimaryButton onClick={handleForgot} loading={loading}>
-                SEND RESET LINK
-              </PrimaryButton>
-            )}
-            <button
-              onClick={() => setMode('login')}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--muted-foreground)',
-                fontSize: 13,
-                textAlign: 'center',
-                padding: 0,
-                minHeight: 44,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              Back to sign in
-            </button>
           </AuthCard>
         )}
       </div>
