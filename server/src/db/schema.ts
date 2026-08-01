@@ -83,6 +83,8 @@ CREATE TABLE IF NOT EXISTS social_connections (
   access_token TEXT,
   refresh_token TEXT,
   account_id TEXT,
+  account_name TEXT,
+  expires_at TEXT,
   status TEXT NOT NULL DEFAULT 'connected',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),

@@ -125,3 +125,93 @@ export async function fetchTikTokAdCampaigns(
     throw new Error(`TikTok Ads API: ${err instanceof Error ? err.message : String(err)}`)
   }
 }
+
+export async function fetchLinkedInAdCampaigns(
+  accessToken: string,
+): Promise<Array<{ id: string; name: string; status: string; metrics: AdMetrics }>> {
+  try {
+    // LinkedIn Marketing API — list campaigns owned by the authorized account.
+    // Analytics are requested per campaign; any failure degrades to zeros so a
+    // live token still shows the campaign list.
+    const { data } = await axios.get("https://api.linkedin.com/v2/adCampaignsV2", {
+      params: { q: "search" },
+      headers: { Authorization: `Bearer ${accessToken}`, "X-Restli-Protocol-Version": "2.0.0" },
+    })
+
+    const elements = ((data.elements || []) as Array<Record<string, unknown>>).map((c) => ({
+      id: c.id as string,
+      name: (c.name as string) || String(c.id),
+      status: (c.status as string) || "UNKNOWN",
+      metrics: { impressions: 0, clicks: 0, conversions: 0, spent: 0, ctr: 0, cpc: 0 },
+    }))
+
+    // Best-effort analytics pull. The API needs a dateRange + paging; on error
+    // we keep the zeroed metrics rather than failing the whole sync.
+    try {
+      const today = new Date()
+      const start = new Date()
+      start.setDate(start.getDate() - 28)
+      const range = { start: { day: start.getDate(), month: start.getMonth() + 1, year: start.getFullYear() }, end: { day: today.getDate(), month: today.getMonth() + 1, year: today.getFullYear() } }
+      const analytics = await axios.get("https://api.linkedin.com/v2/adAnalyticsV2", {
+        params: {
+          q: "analytics",
+          timeRange: JSON.stringify(range),
+          fields: "pivotValues,costInUsd,impressions,clicks,externalWebsiteConversions,clickThroughRate,costPerClick",
+        },
+        headers: { Authorization: `Bearer ${accessToken}`, "X-Restli-Protocol-Version": "2.0.0" },
+      })
+      const byCampaign = new Map<string, Record<string, unknown>>()
+      for (const row of (analytics.data.elements || []) as Array<Record<string, unknown>>) {
+        const pivot = String(row.pivotValue || row.pivotValues?.[0] || "")
+        if (pivot) byCampaign.set(pivot, row)
+      }
+      return elements.map((c) => {
+        const a = byCampaign.get(c.id) || {}
+        const impressions = Number(a.impressions || 0)
+        const clicks = Number(a.clicks || 0)
+        const spent = Number(a.costInUsd || 0)
+        return {
+          ...c,
+          metrics: {
+            impressions,
+            clicks,
+            conversions: Number(a.externalWebsiteConversions || 0),
+            spent,
+            ctr: impressions > 0 ? Number((clicks / impressions) * 100) : 0,
+            cpc: clicks > 0 ? Number((spent / clicks).toFixed(2)) : 0,
+          },
+        }
+      })
+    } catch {
+      return elements
+    }
+  } catch (err: unknown) {
+    throw new Error(`LinkedIn Ads API: ${err instanceof Error ? err.message : String(err)}`)
+  }
+}
+
+export async function fetchSnapchatAdCampaigns(
+  adAccountId: string,
+  accessToken: string,
+): Promise<Array<{ id: string; name: string; status: string; metrics: AdMetrics }>> {
+  try {
+    // Snapchat Marketing API. Campaign-level analytics require a second call
+    // per campaign (snapchats/stats); we fetch the list and zero the metrics so
+    // an authenticated account still returns its campaigns.
+    const { data } = await axios.get(`https://adsapi.snapchat.com/v1/adaccounts/${adAccountId}/campaigns`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+
+    return ((data.campaigns || []) as Array<{ campaign: Record<string, unknown> }>).map((entry) => {
+      const c = entry.campaign || {}
+      return {
+        id: String(c.id ?? ""),
+        name: (c.name as string) || String(c.id ?? ""),
+        status: (c.status as string) || "UNKNOWN",
+        metrics: { impressions: 0, clicks: 0, conversions: 0, spent: 0, ctr: 0, cpc: 0 },
+      }
+    })
+  } catch (err: unknown) {
+    throw new Error(`Snapchat Ads API: ${err instanceof Error ? err.message : String(err)}`)
+  }
+}

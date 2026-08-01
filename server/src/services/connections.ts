@@ -8,6 +8,8 @@ export interface ConnectionRow {
   access_token: string | null
   refresh_token: string | null
   account_id: string | null
+  account_name: string | null
+  expires_at: string | null
   status: string
   created_at: string
   updated_at: string
@@ -33,16 +35,26 @@ export function getConnectionById(db: Database, id: string): ConnectionRow | nul
 
 export function upsertConnection(
   db: Database,
-  input: { businessId: string; platform: string; accessToken?: string; refreshToken?: string; accountId?: string },
+  input: {
+    businessId: string
+    platform: string
+    accessToken?: string
+    refreshToken?: string
+    accountId?: string
+    accountName?: string
+    expiresAt?: string
+  },
 ): ConnectionRow {
   const existing = getConnection(db, input.businessId, input.platform)
   if (existing) {
     db.prepare(
-      "UPDATE social_connections SET access_token = COALESCE(?, access_token), refresh_token = COALESCE(?, refresh_token), account_id = COALESCE(?, account_id), status = 'connected', updated_at = datetime('now') WHERE id = ?",
+      "UPDATE social_connections SET access_token = COALESCE(?, access_token), refresh_token = COALESCE(?, refresh_token), account_id = COALESCE(?, account_id), account_name = COALESCE(?, account_name), expires_at = COALESCE(?, expires_at), status = 'connected', updated_at = datetime('now') WHERE id = ?",
     ).run(
       input.accessToken || null,
       input.refreshToken || null,
       input.accountId || null,
+      input.accountName || null,
+      input.expiresAt || null,
       existing.id,
     )
     return getConnectionById(db, existing.id) as ConnectionRow
@@ -50,7 +62,7 @@ export function upsertConnection(
 
   const id = uuid()
   db.prepare(
-    "INSERT INTO social_connections (id, business_id, platform, access_token, refresh_token, account_id, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'connected', datetime('now'), datetime('now'))",
+    "INSERT INTO social_connections (id, business_id, platform, access_token, refresh_token, account_id, account_name, expires_at, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'connected', datetime('now'), datetime('now'))",
   ).run(
     id,
     input.businessId,
@@ -58,6 +70,8 @@ export function upsertConnection(
     input.accessToken || null,
     input.refreshToken || null,
     input.accountId || null,
+    input.accountName || null,
+    input.expiresAt || null,
   )
   return getConnectionById(db, id) as ConnectionRow
 }
@@ -89,10 +103,15 @@ export function resolveCredentials(
     instagram: { token: "META_ACCESS_TOKEN" },
     tiktok: { token: "TIKTOK_ACCESS_TOKEN", account: "TIKTOK_ADVERTISER_ID" },
     x: { token: "X_BEARER_TOKEN" },
-    youtube: { token: "YOUTUBE_API_KEY" },
+    youtube: { token: "YOUTUBE_ACCESS_TOKEN" },
     linkedin: { token: "LINKEDIN_ACCESS_TOKEN" },
+    snapchat: { token: "SNAPCHAT_ACCESS_TOKEN", account: "SNAPCHAT_ADVERTISER_ID" },
+    pinterest: { token: "PINTEREST_ACCESS_TOKEN", account: "PINTEREST_BOARD_ID" },
+    threads: { token: "THREADS_ACCESS_TOKEN", account: "THREADS_USER_ID" },
     meta: { token: "META_ACCESS_TOKEN", account: "META_AD_ACCOUNT_ID" },
     google: { token: "GOOGLE_ADS_REFRESH_TOKEN", account: "GOOGLE_ADS_MANAGER_CUSTOMER_ID", refresh: "GOOGLE_ADS_DEVELOPER_TOKEN" },
+    "google-search-console": { token: "GOOGLE_SEARCH_CONSOLE_ACCESS_TOKEN", account: "GOOGLE_SEARCH_CONSOLE_SITE_URL" },
+    "google-business-profile": { token: "GOOGLE_BUSINESS_PROFILE_ACCESS_TOKEN", account: "GOOGLE_BUSINESS_PROFILE_ACCOUNT_ID" },
     whatsapp: { token: "WHATSAPP_ACCESS_TOKEN" },
   }
 

@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { getDb } from "../db/index.js"
 import { v4 as uuid } from "uuid"
 import { getClient } from "../services/social.js"
+import { fetchSearchPerformance } from "../services/searchConsole.js"
 import {
   getConnections,
   getConnection,
@@ -14,7 +15,22 @@ import { recordAudit } from "../middleware/audit.js"
 
 const social = new Hono()
 
-const PLATFORMS = ["facebook", "instagram", "tiktok", "x", "youtube", "linkedin", "whatsapp", "meta", "google"]
+const PLATFORMS = [
+  "facebook",
+  "instagram",
+  "tiktok",
+  "x",
+  "youtube",
+  "linkedin",
+  "snapchat",
+  "pinterest",
+  "threads",
+  "whatsapp",
+  "meta",
+  "google",
+  "google-search-console",
+  "google-business-profile",
+]
 
 function tenantBusinessIds(c: import("hono").Context): string[] | null {
   const user = c.get("user") as { role: string } | undefined
@@ -48,7 +64,7 @@ social.get("/connections", (c) => {
 })
 
 social.post("/connections", async (c) => {
-  const { businessId, platform, accessToken, refreshToken, accountId } = await c.req.json()
+  const { businessId, platform, accessToken, refreshToken, accountId, accountName, expiresAt } = await c.req.json()
 
   if (!businessId || !platform) {
     c.status(400)
@@ -64,7 +80,7 @@ social.post("/connections", async (c) => {
   }
 
   const db = getDb()
-  const conn = upsertConnection(db, { businessId, platform, accessToken, refreshToken, accountId })
+  const conn = upsertConnection(db, { businessId, platform, accessToken, refreshToken, accountId, accountName, expiresAt })
   recordAudit(c, "connect", "social_connections", conn.id, { platform, businessId })
   return c.json({ connection: conn })
 })
@@ -108,6 +124,36 @@ social.post("/connections/:id/verify", async (c) => {
   // are attached.
   const result = await client.publish("__growthnet_connectivity_probe__", [])
   return c.json({ ok: result.success, detail: result.error || `Connected as ${existing.account_id || existing.platform}` })
+})
+
+// ─── SEO (Google Search Console) ──────────────────────────────────────────────
+
+social.get("/seo", async (c) => {
+  const businessId = c.req.query("businessId")
+  if (!businessId) {
+    c.status(400)
+    return c.json({ error: "businessId is required" })
+  }
+  if (!isOwned(c, businessId)) {
+    c.status(403)
+    return c.json({ error: "You do not have access to this business" })
+  }
+
+  const db = getDb()
+  const { accessToken, accountId } = resolveCredentials(db, businessId, "google-search-console", process.env)
+  if (!accessToken || !accountId) {
+    return c.json({ connected: false, error: "Connect a Google Search Console account to pull SEO performance." })
+  }
+
+  try {
+    const seo = await fetchSearchPerformance(accountId, accessToken)
+    return c.json({ connected: true, seo })
+  } catch (err: unknown) {
+    return c.json({
+      connected: true,
+      error: `Search Console API: ${err instanceof Error ? err.message : String(err)}`,
+    })
+  }
 })
 
 // ─── Publishing ───────────────────────────────────────────────────────────────

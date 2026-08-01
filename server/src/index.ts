@@ -33,7 +33,7 @@ app.route("/api/whatsapp", whatsapp)
 app.use("/api/social/*", authMiddleware, tenantMiddleware)
 app.route("/api/social", social)
 
-app.use("/api/ads/*", authMiddleware)
+app.use("/api/ads/*", authMiddleware, tenantMiddleware)
 app.route("/api/ads", ads)
 
 app.route("/api/tracking", tracking)
