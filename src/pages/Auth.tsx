@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { TrendingUp, Eye, EyeOff, ArrowLeft, Shield, Smartphone } from 'lucide-react'
+import { TrendingUp, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { useAuth } from '../lib/AuthContext'
+import { ApiError, createBusiness } from '../lib/api'
 
-type AuthMode = 'login' | 'register' | 'forgot' | 'verify' | '2fa'
+type AuthMode = 'login' | 'register' | 'forgot'
 
 interface AuthProps {
   initialMode?: AuthMode
@@ -145,26 +147,81 @@ function PrimaryButton({ onClick, children, loading }: { onClick: () => void; ch
   )
 }
 
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div
+      style={{
+        background: 'rgba(239,68,68,0.08)',
+        border: '1px solid rgba(239,68,68,0.3)',
+        borderRadius: 3,
+        padding: '10px 14px',
+        fontSize: 13,
+        color: 'var(--danger)',
+        lineHeight: 1.4,
+      }}
+    >
+      {message}
+    </div>
+  )
+}
+
 export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthProps) {
+  const { login, register } = useAuth()
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [businessName, setBusinessName] = useState('')
-  const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [forgotSent, setForgotSent] = useState(false)
 
-  const handleSubmit = () => {
+  const handleLogin = async () => {
+    setError('')
+    if (!email.trim() || !password) {
+      setError('Enter your email and password.')
+      return
+    }
     setLoading(true)
-    setTimeout(() => {
+    try {
+      await login(email.trim(), password)
+      onSuccess()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
+    } finally {
       setLoading(false)
-      if (mode === 'login') onSuccess()
-      else if (mode === 'register') setMode('verify')
-      else if (mode === 'verify') setMode('2fa')
-      else if (mode === '2fa') onSuccess()
-      else if (mode === 'forgot') setMode('login')
-    }, 1000)
+    }
+  }
+
+  const handleRegister = async () => {
+    setError('')
+    const name = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ')
+    if (!name || !email.trim()) {
+      setError('Enter your name and email.')
+      return
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.')
+      return
+    }
+    setLoading(true)
+    try {
+      await register(name, email.trim(), password)
+      if (businessName.trim()) {
+        await createBusiness({ name: businessName.trim(), type: 'general' }).catch(() => null)
+      }
+      onSuccess()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleForgot = () => {
+    setError('')
+    setForgotSent(true)
   }
 
   return (
@@ -332,6 +389,7 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
           <AuthCard title="Welcome back." subtitle="Sign in to your operator account.">
             <InputField label="Email" type="email" placeholder="you@agency.com" value={email} onChange={setEmail} />
             <InputField label="Password" type="password" value={password} onChange={setPassword} />
+            {error && <ErrorBanner message={error} />}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -10 }}>
               <button
                 onClick={() => setMode('forgot')}
@@ -350,13 +408,16 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
                 Forgot password?
               </button>
             </div>
-            <PrimaryButton onClick={handleSubmit} loading={loading}>
+            <PrimaryButton onClick={handleLogin} loading={loading}>
               SIGN IN
             </PrimaryButton>
             <p style={{ fontSize: 13, color: 'var(--muted-foreground)', textAlign: 'center', margin: 0 }}>
               No account?{' '}
               <button
-                onClick={() => setMode('register')}
+                onClick={() => {
+                  setMode('register')
+                  setError('')
+                }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontWeight: 600, fontSize: 13 }}
               >
                 Start free trial
@@ -385,7 +446,8 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
               onChange={setPassword}
               hint="Minimum 8 characters"
             />
-            <PrimaryButton onClick={handleSubmit} loading={loading}>
+            {error && <ErrorBanner message={error} />}
+            <PrimaryButton onClick={handleRegister} loading={loading}>
               CREATE ACCOUNT
             </PrimaryButton>
             <p style={{ fontSize: 12, color: 'var(--muted-foreground)', textAlign: 'center', margin: 0 }}>
@@ -396,7 +458,10 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
             <p style={{ fontSize: 13, color: 'var(--muted-foreground)', textAlign: 'center', margin: 0 }}>
               Have an account?{' '}
               <button
-                onClick={() => setMode('login')}
+                onClick={() => {
+                  setMode('login')
+                  setError('')
+                }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontWeight: 600, fontSize: 13 }}
               >
                 Sign in
@@ -408,9 +473,30 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
         {mode === 'forgot' && (
           <AuthCard title="Reset password." subtitle="Enter your email and we'll send a reset link.">
             <InputField label="Email" type="email" placeholder="you@agency.com" value={email} onChange={setEmail} />
-            <PrimaryButton onClick={handleSubmit} loading={loading}>
-              SEND RESET LINK
-            </PrimaryButton>
+            {error && <ErrorBanner message={error} />}
+            {forgotSent ? (
+              <div
+                style={{
+                  background: 'rgba(27,122,74,0.08)',
+                  border: '1px solid rgba(27,122,74,0.3)',
+                  borderRadius: 3,
+                  padding: '12px 14px',
+                  fontSize: 13,
+                  color: 'var(--primary)',
+                  lineHeight: 1.5,
+                }}
+              >
+                If an account exists for <strong>{email || 'this email'}</strong>, a reset link will be sent to it.
+                <br />
+                <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+                  Email delivery is pending backend integration.
+                </span>
+              </div>
+            ) : (
+              <PrimaryButton onClick={handleForgot} loading={loading}>
+                SEND RESET LINK
+              </PrimaryButton>
+            )}
             <button
               onClick={() => setMode('login')}
               style={{
@@ -429,90 +515,6 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
             >
               Back to sign in
             </button>
-          </AuthCard>
-        )}
-
-        {mode === 'verify' && (
-          <AuthCard
-            title="Check your email."
-            subtitle={`We sent a 6-digit code to ${email || 'your email'}. Enter it below to verify your account.`}
-          >
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div
-                style={{
-                  width: 60,
-                  height: 60,
-                  background: 'var(--secondary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 3,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Shield size={28} color="var(--accent)" />
-              </div>
-            </div>
-            <InputField
-              label="Verification code"
-              placeholder="123456"
-              value={otp}
-              onChange={setOtp}
-              hint="Check your spam folder if you don't see it."
-            />
-            <PrimaryButton onClick={handleSubmit} loading={loading}>
-              VERIFY EMAIL
-            </PrimaryButton>
-            <button
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--muted-foreground)',
-                fontSize: 13,
-                textAlign: 'center',
-                padding: 0,
-                minHeight: 44,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              Resend code
-            </button>
-          </AuthCard>
-        )}
-
-        {mode === '2fa' && (
-          <AuthCard
-            title="Two-factor auth."
-            subtitle="Enter the 6-digit code from your authenticator app."
-          >
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div
-                style={{
-                  width: 60,
-                  height: 60,
-                  background: 'var(--secondary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 3,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Smartphone size={28} color="var(--primary)" />
-              </div>
-            </div>
-            <InputField
-              label="Authenticator code"
-              placeholder="000000"
-              value={otp}
-              onChange={setOtp}
-            />
-            <PrimaryButton onClick={handleSubmit} loading={loading}>
-              CONFIRM
-            </PrimaryButton>
           </AuthCard>
         )}
       </div>

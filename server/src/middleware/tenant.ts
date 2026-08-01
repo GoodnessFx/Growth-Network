@@ -5,8 +5,7 @@ export async function tenantMiddleware(c: Context, next: Next): Promise<void> {
   const user = c.get("user") as { id: string; role: string } | undefined
   if (!user) {
     c.status(401)
-    c.json({ error: "Not authenticated" })
-    return
+    return c.json({ error: "Not authenticated" })
   }
 
   if (user.role === "admin") {

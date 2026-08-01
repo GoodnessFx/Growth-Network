@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { alerts } from '../data/mockData'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useAuth } from '../lib/AuthContext'
 
 type Page = 'landing' | 'login' | 'operator' | 'business' | 'analytics'
 type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts'
@@ -30,6 +31,7 @@ interface AppLayoutProps {
   setPage: (p: Page) => void
   children: React.ReactNode
   businessName?: string
+  onLogout: () => void
 }
 
 const navItems: { id: OperatorTab; label: string; icon: React.ElementType }[] = [
@@ -48,11 +50,22 @@ export default function AppLayout({
   setPage,
   children,
   businessName,
+  onLogout,
 }: AppLayoutProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const isMobile = useIsMobile()
+  const { user } = useAuth()
   const unreadAlerts = alerts.filter((a) => !a.read).length
+
+  const displayName = user?.name ?? 'Operator'
+  const initials =
+    user?.name
+      ?.split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]!.toUpperCase())
+      .join('') ?? 'OP'
 
   const sidebarWidth = collapsed && !isMobile ? 56 : isMobile ? 240 : 220
   const showSidebar = !isMobile || mobileOpen
@@ -274,7 +287,7 @@ export default function AppLayout({
             {!collapsed && 'Settings'}
           </button>
           <button
-            onClick={() => setPage('landing')}
+            onClick={onLogout}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -370,15 +383,8 @@ export default function AppLayout({
 
           {/* User chip */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                fontSize: 11,
-                fontFamily: 'JetBrains Mono',
-                color: 'var(--muted-foreground)',
-                textAlign: 'right',
-              }}
-            >
-              <div>Sipho Ndlovu</div>
+            <div className="hide-xs" style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textAlign: 'right' }}>
+              <div>{displayName}</div>
               <div style={{ color: 'var(--accent)', fontSize: 10 }}>Operator</div>
             </div>
             <div
@@ -396,7 +402,7 @@ export default function AppLayout({
                 fontFamily: 'Barlow Condensed',
               }}
             >
-              SN
+              {initials}
             </div>
           </div>
         </header>

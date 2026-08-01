@@ -2,7 +2,7 @@ import { Hono } from "hono"
 import { getDb } from "../db/index.js"
 import { v4 as uuid } from "uuid"
 import bcrypt from "bcryptjs"
-import { generateToken } from "../middleware/auth.js"
+import { generateToken, authMiddleware } from "../middleware/auth.js"
 
 const auth = new Hono()
 
@@ -71,7 +71,7 @@ auth.post("/login", async (c) => {
   })
 })
 
-auth.get("/me", (c) => {
+auth.get("/me", authMiddleware, (c) => {
   const user = c.get("user")
   return c.json({ user })
 })
