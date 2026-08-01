@@ -249,6 +249,19 @@ button, a {
   }
 }
 
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+  .poster {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body {
+    background: #0b0f0a !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -28,11 +28,18 @@ businesses.get("/", (c) => {
 })
 
 businesses.get("/:id", (c) => {
+  const user = c.get("user") as { id: string; role: string }
   const db = getDb()
-  const row = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id"))
+  const row = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id")) as
+    | { owner_id: string }
+    | undefined
   if (!row) {
     c.status(404)
     return c.json({ error: "Business not found" })
+  }
+  if (user.role !== "admin" && row.owner_id !== user.id) {
+    c.status(403)
+    return c.json({ error: "You do not have access to this business" })
   }
 
   c.set("currentBusinessId", c.req.param("id"))
@@ -75,6 +82,46 @@ businesses.put("/:id", async (c) => {
   recordAudit(c, "update", "business", c.req.param("id"), { name, type, status })
   const updated = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id"))
   return c.json({ business: updated })
+})
+
+businesses.post("/:id/snapshot", async (c) => {
+  const user = c.get("user") as { id: string; role: string }
+  const { metrics } = await c.req.json()
+
+  const db = getDb()
+  const existing = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id")) as
+    | { owner_id: string }
+    | undefined
+  if (!existing) {
+    c.status(404)
+    return c.json({ error: "Business not found" })
+  }
+  if (user.role !== "admin" && existing.owner_id !== user.id) {
+    c.status(403)
+    return c.json({ error: "You do not have access to this business" })
+  }
+
+  if (!metrics || typeof metrics.revenueBefore !== "number" || typeof metrics.revenueAfter !== "number") {
+    c.status(400)
+    return c.json({ error: "metrics.revenueBefore and metrics.revenueAfter are required (numbers)" })
+  }
+
+  db.prepare(
+    "INSERT INTO reports (id, business_id, type, period_start, period_end, metrics, generated_at) VALUES (?, ?, 'growth_snapshot', date('now', '-30 days'), date('now'), ?, datetime('now'))",
+  ).run(uuid(), c.req.param("id"), JSON.stringify(metrics))
+
+  const report = db
+    .prepare("SELECT * FROM reports WHERE business_id = ? ORDER BY generated_at DESC LIMIT 1")
+    .get(c.req.param("id")) as Record<string, unknown> | undefined
+
+  if (report && typeof report.metrics === "string") {
+    try {
+      report.metrics = JSON.parse(report.metrics)
+    } catch {}
+  }
+
+  recordAudit(c, "publish_snapshot", "reports", c.req.param("id"), { revenueAfter: metrics.revenueAfter })
+  return c.json({ report })
 })
 
 businesses.delete("/:id", (c) => {

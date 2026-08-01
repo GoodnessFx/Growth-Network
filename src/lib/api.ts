@@ -168,3 +168,35 @@ export function simulateTraffic(businessId: string, count: number): Promise<{ ev
     body: JSON.stringify({ businessId, count }),
   })
 }
+
+export interface SnapshotMetrics {
+  revenueBefore: number
+  revenueAfter: number
+  clientsBefore: number
+  clientsAfter: number
+  headline: string
+  channels: string[]
+}
+
+export interface ApiReport {
+  id: string
+  business_id: string
+  type: string
+  period_start: string
+  period_end: string
+  metrics: SnapshotMetrics
+  before_image: string | null
+  after_image: string | null
+  generated_at: string
+}
+
+export function fetchPublicResults(businessId: string): Promise<{ business: ApiBusiness; report: ApiReport | null }> {
+  return apiFetch<{ business: ApiBusiness; report: ApiReport | null }>(`/public/${encodeURIComponent(businessId)}`)
+}
+
+export function saveSnapshot(businessId: string, metrics: SnapshotMetrics): Promise<{ report: ApiReport }> {
+  return apiFetch<{ report: ApiReport }>(`/businesses/${encodeURIComponent(businessId)}/snapshot`, {
+    method: "POST",
+    body: JSON.stringify({ metrics }),
+  })
+}

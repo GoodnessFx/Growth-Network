@@ -3,18 +3,44 @@ import Landing from './pages/Landing'
 import Auth from './pages/Auth'
 import Operator from './pages/Operator'
 import BusinessView from './pages/Business'
+import PublicResults from './pages/PublicResults'
 import AppLayout from './components/AppLayout'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { type Business } from './data/mockData'
 
 type Page = 'landing' | 'login' | 'operator' | 'business'
-type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics'
+type OperatorTab =
+  | 'portfolio'
+  | 'compare'
+  | 'inbox'
+  | 'campaigns'
+  | 'pipeline'
+  | 'alerts'
+  | 'connections'
+  | 'analytics'
+  | 'results'
 
 function AppInner() {
   const { user, loading, logout } = useAuth()
   const [page, setPage] = useState<Page>('landing')
   const [operatorTab, setOperatorTab] = useState<OperatorTab>('portfolio')
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
+  const [publicBusinessId, setPublicBusinessId] = useState<string | null>(() => {
+    const match = window.location.pathname.match(/^\/public\/([^/]+)/)
+    return match ? decodeURIComponent(match[1]) : null
+  })
+
+  if (publicBusinessId) {
+    return (
+      <PublicResults
+        businessId={publicBusinessId}
+        onBack={() => {
+          window.history.replaceState({}, '', '/')
+          setPublicBusinessId(null)
+        }}
+      />
+    )
+  }
 
   const navigate = (p: Page) => {
     if ((p === 'operator' || p === 'business') && !user) {

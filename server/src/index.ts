@@ -12,6 +12,7 @@ import { tracking } from "./routes/tracking.js"
 import { analytics } from "./routes/analytics.js"
 import { automations } from "./routes/automations.js"
 import { exportTrade } from "./routes/export-trade.js"
+import { publicApi } from "./routes/public.js"
 import { audit } from "./routes/audit.js"
 import { processScheduledAutomations } from "./services/automations.js"
 
@@ -36,6 +37,8 @@ app.use("/api/ads/*", authMiddleware)
 app.route("/api/ads", ads)
 
 app.route("/api/tracking", tracking)
+
+app.route("/api/public", publicApi)
 
 app.use("/api/analytics/*", authMiddleware, tenantMiddleware)
 app.route("/api/analytics", analytics)

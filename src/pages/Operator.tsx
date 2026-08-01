@@ -42,9 +42,10 @@ import {
 import { MiniSparkline, ComparisonChart, RevenueChart, AdFunnel } from '../components/Charts'
 import ConnectionsView from '../components/ConnectionsView'
 import AnalyticsView from '../components/AnalyticsView'
+import ResultsView from '../components/ResultsView'
 import { useIsMobile } from '../hooks/useIsMobile'
 
-type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics'
+type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics' | 'results'
 
 interface OperatorProps {
   tab: OperatorTab
@@ -1150,4 +1151,5 @@ export default function Operator({ tab, onSelectBusiness }: OperatorProps) {
   if (tab === 'alerts') return <AlertsView />
   if (tab === 'connections') return <ConnectionsView />
   if (tab === 'analytics') return <AnalyticsView />
+  if (tab === 'results') return <ResultsView />
 }
