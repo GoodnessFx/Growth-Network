@@ -86,7 +86,7 @@ businesses.put("/:id", async (c) => {
 
 businesses.post("/:id/snapshot", async (c) => {
   const user = c.get("user") as { id: string; role: string }
-  const { metrics } = await c.req.json()
+  const { metrics, source } = await c.req.json()
 
   const db = getDb()
   const existing = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id")) as
@@ -106,9 +106,11 @@ businesses.post("/:id/snapshot", async (c) => {
     return c.json({ error: "metrics.revenueBefore and metrics.revenueAfter are required (numbers)" })
   }
 
+  const reportSource = source === "live" ? "live" : "self-reported"
+
   db.prepare(
-    "INSERT INTO reports (id, business_id, type, period_start, period_end, metrics, generated_at) VALUES (?, ?, 'growth_snapshot', date('now', '-30 days'), date('now'), ?, datetime('now'))",
-  ).run(uuid(), c.req.param("id"), JSON.stringify(metrics))
+    "INSERT INTO reports (id, business_id, type, period_start, period_end, metrics, source, generated_at) VALUES (?, ?, 'growth_snapshot', date('now', '-30 days'), date('now'), ?, ?, datetime('now'))",
+  ).run(uuid(), c.req.param("id"), JSON.stringify(metrics), reportSource)
 
   const report = db
     .prepare("SELECT * FROM reports WHERE business_id = ? ORDER BY generated_at DESC LIMIT 1")
@@ -120,8 +122,49 @@ businesses.post("/:id/snapshot", async (c) => {
     } catch {}
   }
 
-  recordAudit(c, "publish_snapshot", "reports", c.req.param("id"), { revenueAfter: metrics.revenueAfter })
+  recordAudit(c, "publish_snapshot", "reports", c.req.param("id"), { revenueAfter: metrics.revenueAfter, source: reportSource })
   return c.json({ report })
+})
+
+businesses.get("/:id/snapshot-draft", (c) => {
+  const user = c.get("user") as { id: string; role: string }
+  const db = getDb()
+  const existing = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id")) as
+    | { owner_id: string }
+    | undefined
+  if (!existing) {
+    c.status(404)
+    return c.json({ error: "Business not found" })
+  }
+  if (user.role !== "admin" && existing.owner_id !== user.id) {
+    c.status(403)
+    return c.json({ error: "You do not have access to this business" })
+  }
+
+  const draft: Record<string, number | null> = { revenueAfter: null, revenueBefore: null, clientsAfter: null, clientsBefore: null }
+  const dataSources: string[] = []
+
+  const won = db
+    .prepare("SELECT COALESCE(SUM(value), 0) AS total FROM deals WHERE business_id = ? AND stage = 'closed'")
+    .get(c.req.param("id")) as { total: number }
+  if (won.total > 0) {
+    draft.revenueAfter = won.total
+    dataSources.push("CRM — won deals")
+  }
+
+  const contacts = db.prepare("SELECT COUNT(*) AS n FROM contacts WHERE business_id = ?").get(c.req.param("id")) as { n: number }
+  const visitors = db
+    .prepare("SELECT COUNT(DISTINCT visitor_id) AS n FROM tracking_events WHERE business_id = ? AND timestamp >= datetime('now', '-30 days')")
+    .get(c.req.param("id")) as { n: number }
+  if (visitors.n > 0) {
+    draft.clientsAfter = visitors.n
+    dataSources.push("Analytics — 30-day site visitors")
+  } else if (contacts.n > 0) {
+    draft.clientsAfter = contacts.n
+    dataSources.push("CRM — contacts")
+  }
+
+  return c.json({ draft, dataSources, suggested: true })
 })
 
 businesses.delete("/:id", (c) => {

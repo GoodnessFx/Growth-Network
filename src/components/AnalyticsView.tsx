@@ -9,14 +9,22 @@ import {
   Zap,
   RefreshCw,
   Loader2,
+  Megaphone,
+  Search,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import {
   ApiError,
   ApiBusiness,
   AnalyticsOverview,
+  AdPlatformOverview,
+  SeoPerformance,
   fetchAnalytics,
   fetchBusinesses,
+  fetchAdsOverview,
+  fetchSeo,
   simulateTraffic,
 } from '../lib/api'
 
@@ -93,6 +101,70 @@ function MiniTooltip({ active, payload, label }: { active?: boolean; payload?: {
   )
 }
 
+function AdPlatformBlock({ platform, compact }: { platform: AdPlatformOverview | null; compact?: boolean }) {
+  if (!platform) {
+    return (
+      <div style={{ border: '1px dashed var(--border)', borderRadius: 3, padding: compact ? '14px 16px' : '14px 16px', fontSize: 12, color: 'var(--muted-foreground)' }}>
+        No data available.
+      </div>
+    )
+  }
+  if (!platform.connected) {
+    return (
+      <div style={{ border: '1px dashed var(--border)', borderRadius: 3, padding: compact ? '14px 16px' : '14px 16px', fontSize: 12, color: 'var(--muted-foreground)' }}>
+        {platform.label} not connected.
+      </div>
+    )
+  }
+  const campaigns = platform.campaigns ?? []
+  const total = campaigns.reduce(
+    (acc, c) => ({
+      impressions: acc.impressions + (c.metrics?.impressions ?? 0),
+      clicks: acc.clicks + (c.metrics?.clicks ?? 0),
+      spent: acc.spent + (c.metrics?.spent ?? 0),
+      conversions: acc.conversions + (c.metrics?.conversions ?? 0),
+    }),
+    { impressions: 0, clicks: 0, spent: 0, conversions: 0 },
+  )
+  const ctr = total.impressions > 0 ? ((total.clicks / total.impressions) * 100).toFixed(2) : '0.00'
+  const cpc = total.clicks > 0 ? total.spent / total.clicks : 0
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 3, padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)' }}>{platform.label}</span>
+        <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: 'var(--accent)', background: 'rgba(5,150,105,0.1)', padding: '2px 6px', borderRadius: 2, textTransform: 'uppercase' }}>
+          live
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <SeoStat label="Impressions" value={total.impressions.toLocaleString()} />
+        <SeoStat label="Clicks" value={total.clicks.toLocaleString()} />
+        <SeoStat label="Spend" value={`$${total.spent.toLocaleString(undefined, { maximumFractionDigits: 2 })}`} />
+        <SeoStat label="Conversions" value={total.conversions.toLocaleString()} />
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginTop: 8 }}>
+        CTR {ctr}% · CPC ${cpc.toFixed(2)} · {campaigns.length} campaign{campaigns.length === 1 ? '' : 's'}
+      </div>
+      {platform.error && (
+        <div style={{ marginTop: 8, fontSize: 11, color: 'var(--warning)', fontFamily: 'JetBrains Mono', lineHeight: 1.4 }}>
+          ⚠ {platform.error}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SeoStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ padding: '6px 0' }}>
+      <div style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', letterSpacing: 1, textTransform: 'uppercase' }}>{label}</div>
+      <div className="font-display" style={{ fontSize: 22, fontWeight: 900, color: 'var(--foreground)', lineHeight: 1.1, marginTop: 2 }}>
+        {value}
+      </div>
+    </div>
+  )
+}
+
 export default function AnalyticsView() {
   const [businesses, setBusinesses] = useState<ApiBusiness[]>([])
   const [selectedBusinessId, setSelectedBusinessId] = useState('')
@@ -103,6 +175,14 @@ export default function AnalyticsView() {
   const [lastSim, setLastSim] = useState('')
   const [lastUpdated, setLastUpdated] = useState('')
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const [ads, setAds] = useState<AdPlatformOverview[] | null>(null)
+  const [adsLoading, setAdsLoading] = useState(false)
+  const [adsError, setAdsError] = useState('')
+  const [seo, setSeo] = useState<SeoPerformance | null>(null)
+  const [seoConnected, setSeoConnected] = useState<boolean | null>(null)
+  const [seoError, setSeoError] = useState('')
+  const [seoLoading, setSeoLoading] = useState(false)
 
   const loadBusinesses = async () => {
     try {
@@ -146,6 +226,7 @@ export default function AnalyticsView() {
       return
     }
     refresh(selectedBusinessId)
+    loadAdsSeo(selectedBusinessId)
     pollRef.current = setInterval(() => refresh(selectedBusinessId), POLL_INTERVAL_MS)
     return () => {
       if (pollRef.current) {
@@ -155,6 +236,25 @@ export default function AnalyticsView() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBusinessId])
+
+  const loadAdsSeo = async (businessId: string) => {
+    setAdsLoading(true)
+    setSeoLoading(true)
+    setAdsError('')
+    setSeoError('')
+    try {
+      const [adsRes, seoRes] = await Promise.all([fetchAdsOverview(businessId), fetchSeo(businessId)])
+      setAds(adsRes.platforms)
+      setSeo(seoRes.seo ?? null)
+      setSeoConnected(seoRes.connected)
+      if (seoRes.error) setSeoError(seoRes.error)
+    } catch (err) {
+      setAdsError(err instanceof ApiError ? err.message : 'Failed to load ads / SEO data.')
+    } finally {
+      setAdsLoading(false)
+      setSeoLoading(false)
+    }
+  }
 
   const handleSimulate = async (count: number) => {
     if (!selectedBusinessId) return
@@ -458,6 +558,136 @@ export default function AnalyticsView() {
                   </div>
                 </>
               )}
+
+              {/* Ads & SEO monitoring */}
+              <div
+                style={{
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 3,
+                  padding: 20,
+                  marginTop: 2,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+                  <span className="font-display" style={{ fontSize: 16, fontWeight: 800, letterSpacing: 0.3, color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Megaphone size={16} style={{ color: 'var(--warning)' }} />
+                    Ads & SEO Monitoring
+                  </span>
+                  <button
+                    onClick={() => selectedBusinessId && loadAdsSeo(selectedBusinessId)}
+                    disabled={adsLoading || seoLoading}
+                    style={{
+                      background: 'var(--secondary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 3,
+                      padding: '9px 14px',
+                      minHeight: 40,
+                      cursor: adsLoading || seoLoading ? 'not-allowed' : 'pointer',
+                      color: 'var(--foreground)',
+                      fontSize: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    {(adsLoading || seoLoading) && <Loader2 size={13} className="spin" />}
+                    Refresh live data
+                  </button>
+                </div>
+
+                {adsError && (
+                  <div style={{ marginBottom: 14 }}>
+                    <ErrorBanner message={adsError} />
+                  </div>
+                )}
+
+                <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', marginBottom: 10, letterSpacing: 1, textTransform: 'uppercase' }}>
+                  Google Ads
+                </div>
+                {adsLoading ? (
+                  <div style={{ color: 'var(--muted-foreground)', fontSize: 12, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Loader2 size={13} className="spin" /> Fetching campaigns...
+                  </div>
+                ) : (
+                  <AdPlatformBlock platform={ads?.find((p) => p.platform === 'google') ?? null} />
+                )}
+
+                <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', margin: '16px 0 10px', letterSpacing: 1, textTransform: 'uppercase' }}>
+                  Other ad networks
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }} className="stack-mobile">
+                  {['meta', 'tiktok', 'linkedin', 'snapchat'].map((key) => (
+                    <div key={key}>
+                      {adsLoading ? (
+                        <div style={{ border: '1px solid var(--border)', borderRadius: 3, padding: '14px 16px', fontSize: 12, color: 'var(--muted-foreground)' }}>
+                          Loading…
+                        </div>
+                      ) : (
+                        <AdPlatformBlock platform={ads?.find((p) => p.platform === key) ?? null} compact />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', margin: '16px 0 10px', letterSpacing: 1, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Search size={13} /> Google Search Console
+                </div>
+                {seoLoading ? (
+                  <div style={{ color: 'var(--muted-foreground)', fontSize: 12, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Loader2 size={13} className="spin" /> Fetching search performance...
+                  </div>
+                ) : seoConnected === false ? (
+                  <div style={{ border: '1px dashed var(--border)', borderRadius: 3, padding: '14px 16px', fontSize: 12, color: 'var(--muted-foreground)' }}>
+                    Not connected. Add a Google Search Console token (and site URL) under <strong>Connections</strong> to see real search impressions,
+                    clicks and top queries.
+                  </div>
+                ) : seo ? (
+                  <div style={{ border: '1px solid var(--border)', borderRadius: 3, padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)' }}>{seo.siteUrl}</span>
+                      <span style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>
+                        {seo.dateFrom?.slice(0, 10) ?? ''} → {seo.dateTo?.slice(0, 10) ?? ''}
+                      </span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }} className="stack-mobile">
+                      <SeoStat label="Impressions" value={seo.impressions.toLocaleString()} />
+                      <SeoStat label="Clicks" value={seo.clicks.toLocaleString()} />
+                      <SeoStat label="Avg position" value={seo.position.toFixed(1)} />
+                      <SeoStat label="Queries" value={String(seo.queryCount)} />
+                    </div>
+                    {seo.queries.length > 0 && (
+                      <div style={{ marginTop: 12 }}>
+                        <div style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', marginBottom: 8, letterSpacing: 1, textTransform: 'uppercase' }}>
+                          Top queries
+                        </div>
+                        {seo.queries.slice(0, 8).map((q) => (
+                          <div key={q.query} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 12 }}>
+                            <span style={{ color: 'var(--foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.query}</span>
+                            <span style={{ color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span>{q.impressions} imp</span>
+                              <span>{q.clicks} clk</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                {q.position <= 5 ? <TrendingUp size={12} style={{ color: 'var(--accent)' }} /> : <TrendingDown size={12} style={{ color: 'var(--warning)' }} />}
+                                pos {q.position.toFixed(1)}
+                              </span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ border: '1px solid var(--border)', borderRadius: 3, padding: '14px 16px', fontSize: 12, color: 'var(--muted-foreground)' }}>
+                    No search data returned yet.
+                  </div>
+                )}
+                {seoError && (
+                  <div style={{ marginTop: 10 }}>
+                    <ErrorBanner message={seoError} />
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </>

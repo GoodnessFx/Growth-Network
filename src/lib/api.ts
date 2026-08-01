@@ -108,6 +108,8 @@ export interface ApiConnection {
   access_token: string | null
   refresh_token: string | null
   account_id: string | null
+  account_name: string | null
+  expires_at: string | null
   status: string
   created_at: string
   updated_at: string
@@ -124,6 +126,8 @@ export function createConnection(payload: {
   accessToken?: string
   accountId?: string
   refreshToken?: string
+  accountName?: string
+  expiresAt?: string
 }): Promise<{ connection: ApiConnection }> {
   return apiFetch<{ connection: ApiConnection }>("/social/connections", {
     method: "POST",
@@ -176,6 +180,7 @@ export interface SnapshotMetrics {
   clientsAfter: number
   headline: string
   channels: string[]
+  source?: 'live' | 'self-reported'
 }
 
 export interface ApiReport {
@@ -187,6 +192,7 @@ export interface ApiReport {
   metrics: SnapshotMetrics
   before_image: string | null
   after_image: string | null
+  source: string
   generated_at: string
 }
 
@@ -197,6 +203,72 @@ export function fetchPublicResults(businessId: string): Promise<{ business: ApiB
 export function saveSnapshot(businessId: string, metrics: SnapshotMetrics): Promise<{ report: ApiReport }> {
   return apiFetch<{ report: ApiReport }>(`/businesses/${encodeURIComponent(businessId)}/snapshot`, {
     method: "POST",
-    body: JSON.stringify({ metrics }),
+    body: JSON.stringify({ metrics, source: metrics.source ?? 'self-reported' }),
   })
+}
+
+export function fetchSnapshotDraft(
+  businessId: string,
+): Promise<{ draft: Partial<SnapshotMetrics>; dataSources: string[]; suggested: boolean }> {
+  return apiFetch<{ draft: Partial<SnapshotMetrics>; dataSources: string[]; suggested: boolean }>(
+    `/businesses/${encodeURIComponent(businessId)}/snapshot-draft`,
+  )
+}
+
+// ─── Ads + SEO monitoring ─────────────────────────────────────────────────────
+
+export interface AdCampaign {
+  id: string
+  name: string
+  status: string
+  metrics: {
+    impressions: number
+    clicks: number
+    conversions: number
+    spent: number
+    ctr: number
+    cpc: number
+  }
+}
+
+export interface AdPlatformOverview {
+  platform: string
+  label: string
+  connected: boolean
+  campaigns?: AdCampaign[]
+  error?: string
+}
+
+export function fetchAdsOverview(businessId: string): Promise<{ platforms: AdPlatformOverview[]; generatedAt: string }> {
+  return apiFetch<{ platforms: AdPlatformOverview[]; generatedAt: string }>(
+    `/analytics/ads?businessId=${encodeURIComponent(businessId)}`,
+  )
+}
+
+export interface SeoQueryRow {
+  query: string
+  impressions: number
+  clicks: number
+  position: number
+}
+
+export interface SeoPerformance {
+  siteUrl: string
+  impressions: number
+  clicks: number
+  position: number
+  queryCount: number
+  queries: SeoQueryRow[]
+  dateFrom: string
+  dateTo: string
+}
+
+export function fetchSeo(businessId: string): Promise<{ connected: boolean; seo?: SeoPerformance; error?: string }> {
+  return apiFetch<{ connected: boolean; seo?: SeoPerformance; error?: string }>(
+    `/social/seo?businessId=${encodeURIComponent(businessId)}`,
+  )
+}
+
+export function fetchTrackingSnippet(businessId: string): Promise<{ snippet: string; businessId: string }> {
+  return apiFetch<{ snippet: string; businessId: string }>(`/tracking/snippet/${encodeURIComponent(businessId)}`)
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link2, Link2Off, ShieldCheck, RefreshCw, Loader2 } from 'lucide-react'
+import { Link2, Link2Off, ShieldCheck, RefreshCw, Loader2, Copy, Check, Globe } from 'lucide-react'
 import {
   ApiError,
   ApiBusiness,
@@ -9,6 +9,7 @@ import {
   createConnection,
   deleteConnection,
   verifyConnection,
+  fetchTrackingSnippet,
 } from '../lib/api'
 
 const PLATFORM_META: Record<string, { label: string; color: string }> = {
@@ -18,9 +19,14 @@ const PLATFORM_META: Record<string, { label: string; color: string }> = {
   x: { label: 'X (Twitter)', color: '#e7e9ea' },
   youtube: { label: 'YouTube', color: '#FF0000' },
   linkedin: { label: 'LinkedIn', color: '#0A66C2' },
+  snapchat: { label: 'Snapchat Ads', color: '#FFFC00' },
+  pinterest: { label: 'Pinterest', color: '#E60023' },
+  threads: { label: 'Threads', color: '#e7e9ea' },
   whatsapp: { label: 'WhatsApp', color: '#25D366' },
   meta: { label: 'Meta Ads', color: '#1877F2' },
   google: { label: 'Google Ads', color: '#4285F4' },
+  'google-search-console': { label: 'Google Search Console', color: '#4285F4' },
+  'google-business-profile': { label: 'Google Business Profile', color: '#4285F4' },
 }
 
 const PLATFORMS = Object.keys(PLATFORM_META)
@@ -92,12 +98,18 @@ export default function ConnectionsView() {
   const [platform, setPlatform] = useState('facebook')
   const [accessToken, setAccessToken] = useState('')
   const [accountId, setAccountId] = useState('')
+  const [accountName, setAccountName] = useState('')
   const [refreshToken, setRefreshToken] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
   const [busyId, setBusyId] = useState<string | null>(null)
   const [verifyResult, setVerifyResult] = useState<Record<string, { ok: boolean; detail: string }>>({})
+
+  const [snippet, setSnippet] = useState('')
+  const [snippetLoading, setSnippetLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const loadBusinesses = async () => {
     try {
@@ -150,11 +162,15 @@ export default function ConnectionsView() {
         platform,
         accessToken: accessToken.trim(),
         accountId: accountId.trim() || undefined,
+        accountName: accountName.trim() || undefined,
         refreshToken: refreshToken.trim() || undefined,
+        expiresAt: expiresAt.trim() || undefined,
       })
       setAccessToken('')
       setAccountId('')
+      setAccountName('')
       setRefreshToken('')
+      setExpiresAt('')
       await loadConnections(selectedBusinessId)
     } catch (err) {
       setSaveError(err instanceof ApiError ? err.message : 'Failed to connect platform.')
@@ -198,6 +214,29 @@ export default function ConnectionsView() {
   }
 
   const connectedForSelected = connections.filter((c) => c.business_id === selectedBusinessId)
+
+  const loadSnippet = async () => {
+    if (!selectedBusinessId) return
+    setSnippetLoading(true)
+    try {
+      const res = await fetchTrackingSnippet(selectedBusinessId)
+      setSnippet(res.snippet)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to load tracking snippet.')
+    } finally {
+      setSnippetLoading(false)
+    }
+  }
+
+  const copySnippet = async () => {
+    try {
+      await navigator.clipboard.writeText(snippet)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      /* clipboard unavailable */
+    }
+  }
 
   return (
     <div className="page-pad" style={{ padding: 24 }}>
@@ -284,7 +323,7 @@ export default function ConnectionsView() {
                 <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', marginBottom: 16, letterSpacing: 1, textTransform: 'uppercase' }}>
                   Connect a platform
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }} className="field-grid">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14 }} className="field-grid">
                   <div>
                     <Field label="Platform">
                       <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={inputStyle}>
@@ -307,8 +346,18 @@ export default function ConnectionsView() {
                     </Field>
                   </div>
                   <div>
+                    <Field label="Account name" hint="Shown on reports">
+                      <input value={accountName} onChange={(e) => setAccountName(e.target.value)} style={inputStyle} placeholder="Optional" />
+                    </Field>
+                  </div>
+                  <div>
                     <Field label="Refresh token" hint="Optional — ads platforms">
                       <input value={refreshToken} onChange={(e) => setRefreshToken(e.target.value)} style={inputStyle} placeholder="Optional" />
+                    </Field>
+                  </div>
+                  <div>
+                    <Field label="Expires" hint="YYYY-MM-DD or full ISO date">
+                      <input value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} style={inputStyle} placeholder="Optional" />
                     </Field>
                   </div>
                 </div>
@@ -321,7 +370,8 @@ export default function ConnectionsView() {
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 16 }}>
                   <p style={{ fontSize: 11, color: 'var(--muted-foreground)', margin: 0, lineHeight: 1.4 }}>
-                    Manual token entry is a placeholder for the real OAuth flow — the callback would persist tokens server-side per business.
+                    Each platform is connected per business through its OAuth app. Paste a token here during local setup — in production the OAuth callback
+                    exchanges the authorization code server-side and stores it automatically.
                   </p>
                   <button
                     onClick={handleConnect}
@@ -407,10 +457,12 @@ export default function ConnectionsView() {
                               </span>
                             </div>
                             <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {conn.account_name ? `${conn.account_name} · ` : ''}
                               {conn.account_id ? `Account ${conn.account_id} · ` : ''}
                               {conn.access_token ? `Token ${conn.access_token.slice(0, 8)}…` : 'No token'}
                               {conn.access_token && conn.account_id ? ' · ' : ''}
                               Connected {new Date(conn.created_at.replace(' ', 'T') + 'Z').toLocaleDateString()}
+                              {conn.expires_at ? ` · expires ${conn.expires_at.slice(0, 10)}` : ''}
                             </div>
                             {result && (
                               <div
@@ -473,6 +525,84 @@ export default function ConnectionsView() {
                       </div>
                     )
                   })
+                )}
+              </div>
+
+              {/* Tracking snippet */}
+              <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', letterSpacing: 1, textTransform: 'uppercase' }}>
+                    Website tracking snippet
+                  </div>
+                  <button
+                    onClick={loadSnippet}
+                    disabled={snippetLoading}
+                    style={{
+                      background: 'var(--secondary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 3,
+                      padding: '9px 14px',
+                      minHeight: 40,
+                      cursor: snippetLoading ? 'not-allowed' : 'pointer',
+                      color: 'var(--foreground)',
+                      fontSize: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    {snippetLoading ? <Loader2 size={13} className="spin" /> : <Globe size={13} />}
+                    Generate snippet
+                  </button>
+                </div>
+                {snippet ? (
+                  <div style={{ padding: 20 }}>
+                    <div
+                      style={{
+                        background: 'rgba(5,150,105,0.06)',
+                        border: '1px solid rgba(5,150,105,0.25)',
+                        borderRadius: 3,
+                        padding: 14,
+                        fontFamily: 'JetBrains Mono',
+                        fontSize: 11,
+                        color: 'var(--foreground)',
+                        overflowX: 'auto',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-all',
+                      }}
+                    >
+                      {snippet}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
+                      <p style={{ fontSize: 11, color: 'var(--muted-foreground)', margin: 0, lineHeight: 1.4 }}>
+                        Paste this script just before the closing <span style={{ fontFamily: 'JetBrains Mono' }}>{'</body>'}</span> tag on every page of the
+                        business site. Visits, page views and events then flow into Analytics — no demo button needed.
+                      </p>
+                      <button
+                        onClick={copySnippet}
+                        style={{
+                          background: copied ? 'rgba(5,150,105,0.15)' : 'var(--secondary)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 3,
+                          padding: '10px 16px',
+                          minHeight: 40,
+                          cursor: 'pointer',
+                          color: copied ? 'var(--accent)' : 'var(--foreground)',
+                          fontSize: 12,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        {copied ? <Check size={13} /> : <Copy size={13} />}
+                        {copied ? 'Copied' : 'Copy snippet'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '20px 20px', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 12 }}>
+                    Generate the tracking script to send real visits, page views and events for this business into Analytics.
+                  </div>
                 )}
               </div>
             </div>

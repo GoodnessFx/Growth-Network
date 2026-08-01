@@ -42,6 +42,14 @@ function migrate(db: Database.Database): void {
       db.exec("ALTER TABLE social_connections ADD COLUMN expires_at TEXT")
     } catch {}
   }
+
+  const reportCols = db.pragma("table_info(reports)") as Array<{ name: string }>
+  const reportNames = new Set(reportCols.map((c) => c.name))
+  if (!reportNames.has("source")) {
+    try {
+      db.exec("ALTER TABLE reports ADD COLUMN source TEXT NOT NULL DEFAULT 'self-reported'")
+    } catch {}
+  }
 }
 
 export function closeDb(): void {

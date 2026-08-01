@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { TrendingUp, ArrowLeft, Printer, Loader2, Share2 } from 'lucide-react'
+import { Database, TrendingUp, ArrowLeft, Printer, Loader2, Share2 } from 'lucide-react'
 import { ApiError, ApiReport, ApiBusiness, fetchPublicResults } from '../lib/api'
 import { formatCurrency } from '../data/mockData'
 
@@ -204,6 +204,30 @@ function Poster({ business, report, onBack }: { business: ApiBusiness; report: A
           >
             {metrics?.headline || 'Measurable growth, delivered through Growth Network.'}
           </p>
+
+          {report && (
+            <div
+              style={{
+                marginTop: 18,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 11,
+                fontFamily: 'JetBrains Mono',
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                color: report.source === 'live' ? 'var(--primary)' : 'rgba(232,233,235,0.45)',
+                border: '1px solid rgba(232,233,235,0.15)',
+                borderRadius: 2,
+                padding: '5px 10px',
+              }}
+            >
+              <Database size={11} />
+              {report.source === 'live'
+                ? 'Live data · pulled from connected platforms'
+                : 'Self-reported results · provided by the business'}
+            </div>
+          )}
 
           {metrics ? (
             <>

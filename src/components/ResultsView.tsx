@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ExternalLink, Loader2, Pencil, RefreshCw, X } from 'lucide-react'
+import { Database, ExternalLink, Loader2, Pencil, RefreshCw, X } from 'lucide-react'
 import {
   ApiError,
   ApiBusiness,
   ApiReport,
   fetchBusinesses,
   fetchPublicResults,
+  fetchSnapshotDraft,
   saveSnapshot,
   SnapshotMetrics,
 } from '../lib/api'
@@ -78,9 +79,12 @@ export default function ResultsView() {
     clientsAfter: 0,
     headline: '',
     channels: [],
+    source: 'self-reported',
   })
   const [saveError, setSaveError] = useState('')
   const [savedLink, setSavedLink] = useState('')
+  const [filling, setFilling] = useState(false)
+  const [draftSources, setDraftSources] = useState<string[]>([])
 
   const load = async () => {
     setError('')
@@ -119,10 +123,32 @@ export default function ResultsView() {
       clientsAfter: m?.clientsAfter ?? 0,
       headline: m?.headline ?? '',
       channels: m?.channels ?? [],
+      source: m?.source ?? 'self-reported',
     })
+    setDraftSources([])
     setEditing(row)
     setSaveError('')
     setSavedLink('')
+  }
+
+  const handleAutoFill = async () => {
+    if (!editing) return
+    setFilling(true)
+    setSaveError('')
+    try {
+      const res = await fetchSnapshotDraft(editing.business.id)
+      setDraftSources(res.dataSources)
+      setForm((f) => ({
+        ...f,
+        revenueAfter: res.draft.revenueAfter ?? f.revenueAfter,
+        clientsAfter: res.draft.clientsAfter ?? f.clientsAfter,
+        source: res.dataSources.length > 0 ? 'live' : 'self-reported',
+      }))
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : 'Failed to load live data.')
+    } finally {
+      setFilling(false)
+    }
   }
 
   const handleSave = async () => {
@@ -240,20 +266,36 @@ export default function ResultsView() {
                 </div>
                 <div>
                   {published ? (
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontFamily: 'JetBrains Mono',
-                        color: 'var(--accent)',
-                        background: 'rgba(5,150,105,0.1)',
-                        padding: '3px 8px',
-                        borderRadius: 2,
-                        letterSpacing: 0.5,
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Published · +{growth.toFixed(0)}%
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontFamily: 'JetBrains Mono',
+                          color: 'var(--accent)',
+                          background: 'rgba(5,150,105,0.1)',
+                          padding: '3px 8px',
+                          borderRadius: 2,
+                          letterSpacing: 0.5,
+                          textTransform: 'uppercase',
+                          width: 'fit-content',
+                        }}
+                      >
+                        Published · +{growth.toFixed(0)}%
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontFamily: 'JetBrains Mono',
+                          color: row.report?.source === 'live' ? 'var(--primary)' : 'var(--muted-foreground)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        <Database size={10} />
+                        {row.report?.source === 'live' ? 'Live data' : 'Self-reported'}
+                      </span>
+                    </div>
                   ) : (
                     <span style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>Not published</span>
                   )}
@@ -357,6 +399,75 @@ export default function ResultsView() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', letterSpacing: 1, textTransform: 'uppercase' }}>
+                  Data source
+                </span>
+                <button
+                  onClick={handleAutoFill}
+                  disabled={filling}
+                  style={{
+                    background: filling ? 'var(--muted)' : 'var(--secondary)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 3,
+                    padding: '10px 16px',
+                    minHeight: 40,
+                    cursor: filling ? 'not-allowed' : 'pointer',
+                    color: 'var(--foreground)',
+                    fontSize: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {filling ? <Loader2 size={13} className="spin" /> : <Database size={13} />}
+                  Auto-fill from live data
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {(
+                  [
+                    { value: 'live', label: 'Live data', desc: 'Pulled from Analytics, CRM and connected platforms' },
+                    { value: 'self-reported', label: 'Self-reported', desc: 'Numbers typed by the business owner' },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setForm((f) => ({ ...f, source: opt.value }))}
+                    style={{
+                      background: form.source === opt.value ? 'rgba(5,150,105,0.12)' : 'var(--secondary)',
+                      border: form.source === opt.value ? '1px solid rgba(5,150,105,0.5)' : '1px solid var(--border)',
+                      borderRadius: 3,
+                      padding: '12px 14px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      minHeight: 44,
+                    }}
+                  >
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Database size={13} style={{ color: form.source === opt.value ? 'var(--accent)' : 'var(--muted-foreground)' }} />
+                      {opt.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginTop: 3, lineHeight: 1.4 }}>{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+              {draftSources.length > 0 && (
+                <div
+                  style={{
+                    background: 'rgba(27,122,74,0.08)',
+                    border: '1px solid rgba(27,122,74,0.3)',
+                    borderRadius: 3,
+                    padding: '10px 14px',
+                    fontSize: 12,
+                    color: 'var(--primary)',
+                    fontFamily: 'JetBrains Mono',
+                  }}
+                >
+                  Filled from: {draftSources.join(', ')}
+                </div>
+              )}
+
               <Field label="Headline (shown on the poster)">
                 <input value={form.headline} onChange={(e) => setForm((f) => ({ ...f, headline: e.target.value }))} style={inputStyle} placeholder="e.g. From local shop to national brand in 9 months" />
               </Field>

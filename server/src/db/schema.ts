@@ -202,6 +202,7 @@ CREATE TABLE IF NOT EXISTS reports (
   metrics TEXT NOT NULL DEFAULT '{}',
   before_image TEXT,
   after_image TEXT,
+  source TEXT NOT NULL DEFAULT 'self-reported',
   generated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
