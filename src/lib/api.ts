@@ -100,3 +100,41 @@ export function createBusiness(payload: { name: string; type: string; domain?: s
     body: JSON.stringify(payload),
   })
 }
+
+export interface ApiConnection {
+  id: string
+  business_id: string
+  platform: string
+  access_token: string | null
+  refresh_token: string | null
+  account_id: string | null
+  status: string
+  created_at: string
+  updated_at: string
+}
+
+export function fetchConnections(businessId?: string): Promise<{ connections: ApiConnection[] }> {
+  const q = businessId ? `?businessId=${encodeURIComponent(businessId)}` : ""
+  return apiFetch<{ connections: ApiConnection[] }>(`/social/connections${q}`)
+}
+
+export function createConnection(payload: {
+  businessId: string
+  platform: string
+  accessToken?: string
+  accountId?: string
+  refreshToken?: string
+}): Promise<{ connection: ApiConnection }> {
+  return apiFetch<{ connection: ApiConnection }>("/social/connections", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteConnection(id: string): Promise<{ success: boolean }> {
+  return apiFetch<{ success: boolean }>(`/social/connections/${id}`, { method: "DELETE" })
+}
+
+export function verifyConnection(id: string): Promise<{ ok: boolean; detail: string }> {
+  return apiFetch<{ ok: boolean; detail: string }>(`/social/connections/${id}/verify`, { method: "POST" })
+}

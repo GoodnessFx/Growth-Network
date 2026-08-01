@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { getDb } from "../db/index.js"
 import { v4 as uuid } from "uuid"
 import { fetchMetaAdCampaigns, fetchGoogleAdsCampaigns, fetchTikTokAdCampaigns } from "../services/ads.js"
+import { resolveCredentials } from "../services/connections.js"
 import { recordAudit } from "../middleware/audit.js"
 
 const ads = new Hono()
@@ -12,11 +13,12 @@ ads.get("/campaigns/:platform", async (c) => {
   const sync = c.req.query("sync") === "true"
 
   if (sync && platform === "meta") {
-    if (!process.env.META_AD_ACCOUNT_ID || !process.env.META_ACCESS_TOKEN) {
+    const { accessToken, accountId } = resolveCredentials(getDb(), businessId || undefined, "meta", process.env)
+    if (!accessToken || !accountId) {
       c.status(400)
-      return c.json({ error: "META_AD_ACCOUNT_ID and META_ACCESS_TOKEN must be set in .env" })
+      return c.json({ error: "No Meta Ads account connected for this business. Add a connection first." })
     }
-    const campaigns = await fetchMetaAdCampaigns(process.env.META_AD_ACCOUNT_ID, process.env.META_ACCESS_TOKEN)
+    const campaigns = await fetchMetaAdCampaigns(accountId, accessToken)
     const db = getDb()
     for (const camp of campaigns) {
       const existing = db.prepare("SELECT id FROM ad_campaigns WHERE platform_id = ?").get(camp.id)
@@ -42,26 +44,28 @@ ads.get("/campaigns/:platform", async (c) => {
   }
 
   if (sync && platform === "google") {
-    if (!process.env.GOOGLE_ADS_DEVELOPER_TOKEN || !process.env.GOOGLE_ADS_REFRESH_TOKEN) {
+    const { accessToken, accountId, refreshToken } = resolveCredentials(getDb(), businessId || undefined, "google", process.env)
+    if (!accessToken || !accountId || !refreshToken) {
       c.status(400)
-      return c.json({ error: "GOOGLE_ADS_DEVELOPER_TOKEN and GOOGLE_ADS_REFRESH_TOKEN must be set" })
+      return c.json({ error: "No Google Ads account connected for this business. Add a connection first." })
     }
     const campaigns = await fetchGoogleAdsCampaigns(
-      process.env.GOOGLE_ADS_MANAGER_CUSTOMER_ID || "",
-      process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
-      process.env.GOOGLE_ADS_REFRESH_TOKEN,
+      accountId,
+      refreshToken,
+      accessToken,
     )
     return c.json({ campaigns, synced: campaigns.length })
   }
 
   if (sync && platform === "tiktok") {
-    if (!process.env.TIKTOK_ACCESS_TOKEN || !process.env.TIKTOK_ADVERTISER_ID) {
+    const { accessToken, accountId } = resolveCredentials(getDb(), businessId || undefined, "tiktok", process.env)
+    if (!accessToken || !accountId) {
       c.status(400)
-      return c.json({ error: "TIKTOK_ACCESS_TOKEN and TIKTOK_ADVERTISER_ID must be set" })
+      return c.json({ error: "No TikTok Ads account connected for this business. Add a connection first." })
     }
     const campaigns = await fetchTikTokAdCampaigns(
-      process.env.TIKTOK_ADVERTISER_ID,
-      process.env.TIKTOK_ACCESS_TOKEN,
+      accountId,
+      accessToken,
     )
     return c.json({ campaigns, synced: campaigns.length })
   }

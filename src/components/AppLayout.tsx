@@ -16,13 +16,14 @@ import {
   Layers,
   Menu,
   X,
+  Link2,
 } from 'lucide-react'
 import { alerts } from '../data/mockData'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useAuth } from '../lib/AuthContext'
 
 type Page = 'landing' | 'login' | 'operator' | 'business' | 'analytics'
-type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts'
+type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections'
 
 interface AppLayoutProps {
   page: Page
@@ -41,6 +42,7 @@ const navItems: { id: OperatorTab; label: string; icon: React.ElementType }[] = 
   { id: 'campaigns', label: 'Campaigns', icon: Megaphone },
   { id: 'pipeline', label: 'Pipeline', icon: GitBranch },
   { id: 'alerts', label: 'Alerts', icon: Bell },
+  { id: 'connections', label: 'Connections', icon: Link2 },
 ]
 
 export default function AppLayout({

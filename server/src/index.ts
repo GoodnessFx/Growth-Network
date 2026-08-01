@@ -28,7 +28,7 @@ app.route("/api/businesses", businesses)
 app.use("/api/whatsapp/*", authMiddleware)
 app.route("/api/whatsapp", whatsapp)
 
-app.use("/api/social/*", authMiddleware)
+app.use("/api/social/*", authMiddleware, tenantMiddleware)
 app.route("/api/social", social)
 
 app.use("/api/ads/*", authMiddleware)

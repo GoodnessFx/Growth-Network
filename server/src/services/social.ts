@@ -147,19 +147,20 @@ function linkedinClient(token: string): PlatformClient {
   }
 }
 
-export function getClient(platform: string): PlatformClient | null {
+export function getClient(platform: string, accessToken: string | null): PlatformClient | null {
+  if (!accessToken) return null
   switch (platform) {
     case "facebook":
     case "instagram":
-      return process.env.META_ACCESS_TOKEN ? metaGraphApi(process.env.META_ACCESS_TOKEN) : null
+      return metaGraphApi(accessToken)
     case "tiktok":
-      return process.env.TIKTOK_ACCESS_TOKEN ? tiktokClient(process.env.TIKTOK_ACCESS_TOKEN) : null
+      return tiktokClient(accessToken)
     case "x":
-      return process.env.X_BEARER_TOKEN ? xClient(process.env.X_BEARER_TOKEN) : null
+      return xClient(accessToken)
     case "youtube":
-      return process.env.YOUTUBE_API_KEY ? youtubeClient(process.env.YOUTUBE_API_KEY) : null
+      return youtubeClient(accessToken)
     case "linkedin":
-      return process.env.LINKEDIN_ACCESS_TOKEN ? linkedinClient(process.env.LINKEDIN_ACCESS_TOKEN) : null
+      return linkedinClient(accessToken)
     default:
       return null
   }

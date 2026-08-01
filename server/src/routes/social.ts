@@ -2,19 +2,115 @@ import { Hono } from "hono"
 import { getDb } from "../db/index.js"
 import { v4 as uuid } from "uuid"
 import { getClient } from "../services/social.js"
+import {
+  getConnections,
+  getConnection,
+  getConnectionById,
+  upsertConnection,
+  deleteConnection,
+  resolveCredentials,
+} from "../services/connections.js"
 import { recordAudit } from "../middleware/audit.js"
 
 const social = new Hono()
 
-social.get("/accounts", (c) => {
-  const available: string[] = []
-  if (process.env.META_ACCESS_TOKEN) available.push("facebook", "instagram")
-  if (process.env.TIKTOK_ACCESS_TOKEN) available.push("tiktok")
-  if (process.env.X_BEARER_TOKEN) available.push("x")
-  if (process.env.YOUTUBE_API_KEY) available.push("youtube")
-  if (process.env.LINKEDIN_ACCESS_TOKEN) available.push("linkedin")
-  return c.json({ accounts: available })
+const PLATFORMS = ["facebook", "instagram", "tiktok", "x", "youtube", "linkedin", "whatsapp", "meta", "google"]
+
+function tenantBusinessIds(c: import("hono").Context): string[] | null {
+  const user = c.get("user") as { role: string } | undefined
+  if (user?.role === "admin") return null
+  return (c.get("tenantIds") as string[] | null) ?? []
+}
+
+function isOwned(c: import("hono").Context, businessId: string): boolean {
+  const ids = tenantBusinessIds(c)
+  if (ids === null) return true
+  return ids.includes(businessId)
+}
+
+// ─── Connections ──────────────────────────────────────────────────────────────
+
+social.get("/connections", (c) => {
+  const businessId = c.req.query("businessId")
+  const db = getDb()
+  const ids = tenantBusinessIds(c)
+
+  if (ids === null) {
+    const rows = businessId
+      ? db.prepare("SELECT * FROM social_connections WHERE business_id = ? ORDER BY platform").all(businessId)
+      : db.prepare("SELECT * FROM social_connections ORDER BY platform").all()
+    return c.json({ connections: rows })
+  }
+
+  const rows = getConnections(db, ids)
+  const filtered = businessId ? rows.filter((r) => r.business_id === businessId) : rows
+  return c.json({ connections: filtered })
 })
+
+social.post("/connections", async (c) => {
+  const { businessId, platform, accessToken, refreshToken, accountId } = await c.req.json()
+
+  if (!businessId || !platform) {
+    c.status(400)
+    return c.json({ error: "businessId and platform are required" })
+  }
+  if (!PLATFORMS.includes(platform)) {
+    c.status(400)
+    return c.json({ error: `Unknown platform "${platform}". Supported: ${PLATFORMS.join(", ")}` })
+  }
+  if (!isOwned(c, businessId)) {
+    c.status(403)
+    return c.json({ error: "You do not have access to this business" })
+  }
+
+  const db = getDb()
+  const conn = upsertConnection(db, { businessId, platform, accessToken, refreshToken, accountId })
+  recordAudit(c, "connect", "social_connections", conn.id, { platform, businessId })
+  return c.json({ connection: conn })
+})
+
+social.delete("/connections/:id", (c) => {
+  const db = getDb()
+  const existing = getConnectionById(db, c.req.param("id"))
+  if (!existing) {
+    c.status(404)
+    return c.json({ error: "Connection not found" })
+  }
+  if (!isOwned(c, existing.business_id)) {
+    c.status(403)
+    return c.json({ error: "You do not have access to this business" })
+  }
+
+  deleteConnection(db, existing.id)
+  recordAudit(c, "disconnect", "social_connections", existing.id, { platform: existing.platform })
+  return c.json({ success: true })
+})
+
+social.post("/connections/:id/verify", async (c) => {
+  const db = getDb()
+  const existing = getConnectionById(db, c.req.param("id"))
+  if (!existing) {
+    c.status(404)
+    return c.json({ error: "Connection not found" })
+  }
+  if (!isOwned(c, existing.business_id)) {
+    c.status(403)
+    return c.json({ error: "You do not have access to this business" })
+  }
+
+  const client = getClient(existing.platform, existing.access_token)
+  if (!client) {
+    return c.json({ ok: false, detail: `No token stored for ${existing.platform} — reconnect this account` })
+  }
+
+  // Best-effort connectivity probe. Without live platform credentials this
+  // will report a provider error, which is expected until real OAuth tokens
+  // are attached.
+  const result = await client.publish("__growthnet_connectivity_probe__", [])
+  return c.json({ ok: result.success, detail: result.error || `Connected as ${existing.account_id || existing.platform}` })
+})
+
+// ─── Publishing ───────────────────────────────────────────────────────────────
 
 social.post("/publish", async (c) => {
   const { businessId, platform, content, mediaUrls, scheduledFor } = await c.req.json()
@@ -23,14 +119,21 @@ social.post("/publish", async (c) => {
     c.status(400)
     return c.json({ error: "businessId, platform, and content are required" })
   }
-
-  const client = getClient(platform)
-  if (!client) {
-    c.status(400)
-    return c.json({ error: `Platform "${platform}" not configured. Set the required env vars.` })
+  if (!isOwned(c, businessId)) {
+    c.status(403)
+    return c.json({ error: "You do not have access to this business" })
   }
 
   const db = getDb()
+  const { accessToken } = resolveCredentials(db, businessId, platform, process.env)
+  const client = getClient(platform, accessToken)
+  if (!client) {
+    c.status(400)
+    return c.json({
+      error: `Platform "${platform}" is not connected for this business. Add a connection first.`,
+    })
+  }
+
   const id = uuid()
   const status = scheduledFor ? "scheduled" : "published"
 
@@ -85,11 +188,18 @@ social.get("/posts", (c) => {
 
 social.get("/metrics/:platform/:postId", async (c) => {
   const { platform, postId } = c.req.param()
-  const client = getClient(platform)
+  const db = getDb()
+
+  // Look up the owning business from the post, then resolve that business's token.
+  const post = db.prepare("SELECT business_id FROM social_posts WHERE id = ?").get(postId) as
+    | { business_id: string }
+    | undefined
+  const { accessToken } = resolveCredentials(db, post?.business_id, platform, process.env)
+  const client = getClient(platform, accessToken)
 
   if (!client) {
     c.status(400)
-    return c.json({ error: `Platform "${platform}" not configured` })
+    return c.json({ error: `Platform "${platform}" is not connected` })
   }
 
   const metrics = await client.getMetrics(postId)

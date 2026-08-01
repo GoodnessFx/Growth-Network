@@ -40,9 +40,10 @@ import {
   formatCurrency,
 } from '../data/store'
 import { MiniSparkline, ComparisonChart, RevenueChart, AdFunnel } from '../components/Charts'
+import ConnectionsView from '../components/ConnectionsView'
 import { useIsMobile } from '../hooks/useIsMobile'
 
-type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts'
+type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections'
 
 interface OperatorProps {
   tab: OperatorTab
@@ -1146,5 +1147,5 @@ export default function Operator({ tab, onSelectBusiness }: OperatorProps) {
   if (tab === 'campaigns') return <CampaignsView />
   if (tab === 'pipeline') return <PipelineView />
   if (tab === 'alerts') return <AlertsView />
-  return null
+  if (tab === 'connections') return <ConnectionsView />
 }

@@ -76,6 +76,19 @@ CREATE TABLE IF NOT EXISTS social_posts (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS social_connections (
+  id TEXT PRIMARY KEY,
+  business_id TEXT NOT NULL REFERENCES businesses(id),
+  platform TEXT NOT NULL,
+  access_token TEXT,
+  refresh_token TEXT,
+  account_id TEXT,
+  status TEXT NOT NULL DEFAULT 'connected',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (business_id, platform)
+);
+
 CREATE TABLE IF NOT EXISTS ad_campaigns (
   id TEXT PRIMARY KEY,
   business_id TEXT NOT NULL REFERENCES businesses(id),
@@ -195,6 +208,7 @@ CREATE INDEX IF NOT EXISTS idx_contacts_business ON contacts(business_id);
 CREATE INDEX IF NOT EXISTS idx_deals_business ON deals(business_id);
 CREATE INDEX IF NOT EXISTS idx_whatsapp_business ON whatsapp_messages(business_id);
 CREATE INDEX IF NOT EXISTS idx_social_business ON social_posts(business_id);
+CREATE INDEX IF NOT EXISTS idx_connections_business ON social_connections(business_id);
 CREATE INDEX IF NOT EXISTS idx_campaigns_business ON ad_campaigns(business_id);
 CREATE INDEX IF NOT EXISTS idx_tracking_business ON tracking_events(business_id);
 CREATE INDEX IF NOT EXISTS idx_tracking_timestamp ON tracking_events(timestamp);

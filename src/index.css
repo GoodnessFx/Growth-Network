@@ -191,6 +191,13 @@ button, a {
   transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
 }
 
+@keyframes gn-spin {
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: gn-spin 0.9s linear infinite;
+}
+
 @media (max-width: 767px) {
   .mobile-sidebar {
     position: fixed !important;
