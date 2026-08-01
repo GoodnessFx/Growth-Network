@@ -1,12 +1,9 @@
 import { useState } from 'react'
 import { TrendingUp, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
-import { ApiError, createBusiness } from '../lib/api'
-
-type AuthMode = 'login' | 'register'
+import { ApiError } from '../lib/api'
 
 interface AuthProps {
-  initialMode?: AuthMode
   onSuccess: () => void
   onBack: () => void
 }
@@ -165,14 +162,10 @@ function ErrorBanner({ message }: { message: string }) {
   )
 }
 
-export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthProps) {
-  const { login, register } = useAuth()
-  const [mode, setMode] = useState<AuthMode>(initialMode)
+export default function Auth({ onSuccess, onBack }: AuthProps) {
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [businessName, setBusinessName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -185,31 +178,6 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
     setLoading(true)
     try {
       await login(email.trim(), password)
-      onSuccess()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleRegister = async () => {
-    setError('')
-    const name = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ')
-    if (!name || !email.trim()) {
-      setError('Enter your name and email.')
-      return
-    }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
-      return
-    }
-    setLoading(true)
-    try {
-      await register(name, email.trim(), password)
-      if (businessName.trim()) {
-        await createBusiness({ name: businessName.trim(), type: 'general' }).catch(() => null)
-      }
       onSuccess()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
@@ -379,72 +347,17 @@ export default function Auth({ initialMode = 'login', onSuccess, onBack }: AuthP
           <ArrowLeft size={16} /> Back to home
         </button>
 
-        {mode === 'login' && (
-          <AuthCard title="Welcome back." subtitle="Sign in to your operator account.">
-            <InputField label="Email" type="email" placeholder="you@agency.com" value={email} onChange={setEmail} />
-            <InputField label="Password" type="password" value={password} onChange={setPassword} />
-            {error && <ErrorBanner message={error} />}
-            <PrimaryButton onClick={handleLogin} loading={loading}>
-              SIGN IN
-            </PrimaryButton>
-            <p style={{ fontSize: 13, color: 'var(--muted-foreground)', textAlign: 'center', margin: 0 }}>
-              No account?{' '}
-              <button
-                onClick={() => {
-                  setMode('register')
-                  setError('')
-                }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontWeight: 600, fontSize: 13 }}
-              >
-                Start free trial
-              </button>
-            </p>
-          </AuthCard>
-        )}
-
-        {mode === 'register' && (
-          <AuthCard title="Create account." subtitle="Start your 14-day free trial. No credit card required.">
-            <div className="field-grid">
-              <InputField label="First name" value={firstName} onChange={setFirstName} placeholder="Sipho" />
-              <InputField label="Last name" value={lastName} onChange={setLastName} placeholder="Ndlovu" />
-            </div>
-            <InputField label="Email" type="email" placeholder="you@agency.com" value={email} onChange={setEmail} />
-            <InputField
-              label="Business / Agency name"
-              value={businessName}
-              onChange={setBusinessName}
-              placeholder="CoLab Digital"
-            />
-            <InputField
-              label="Password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              hint="Minimum 8 characters"
-            />
-            {error && <ErrorBanner message={error} />}
-            <PrimaryButton onClick={handleRegister} loading={loading}>
-              CREATE ACCOUNT
-            </PrimaryButton>
-            <p style={{ fontSize: 12, color: 'var(--muted-foreground)', textAlign: 'center', margin: 0 }}>
-              By creating an account you agree to our{' '}
-              <a href="#" style={{ color: 'var(--muted-foreground)' }}>Terms</a> and{' '}
-              <a href="#" style={{ color: 'var(--muted-foreground)' }}>Privacy Policy</a>.
-            </p>
-            <p style={{ fontSize: 13, color: 'var(--muted-foreground)', textAlign: 'center', margin: 0 }}>
-              Have an account?{' '}
-              <button
-                onClick={() => {
-                  setMode('login')
-                  setError('')
-                }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontWeight: 600, fontSize: 13 }}
-              >
-                Sign in
-              </button>
-            </p>
-          </AuthCard>
-        )}
+        <AuthCard title="Welcome back." subtitle="Owner sign-in. Growth Network is read-only for the public — the platform owner manages everything here.">
+          <InputField label="Email" type="email" placeholder="you@agency.com" value={email} onChange={setEmail} />
+          <InputField label="Password" type="password" value={password} onChange={setPassword} />
+          {error && <ErrorBanner message={error} />}
+          <PrimaryButton onClick={handleLogin} loading={loading}>
+            SIGN IN
+          </PrimaryButton>
+          <p style={{ fontSize: 13, color: 'var(--muted-foreground)', textAlign: 'center', margin: 0, lineHeight: 1.6 }}>
+            No public sign-up. Only the owner of this Growth Network instance can sign in.
+          </p>
+        </AuthCard>
       </div>
     </div>
   )

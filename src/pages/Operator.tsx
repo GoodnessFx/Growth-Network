@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   TrendingUp,
   TrendingDown,
@@ -32,11 +32,6 @@ import {
 } from '../data/mockData'
 import {
   getBusinesses,
-  addBusiness,
-  removeBusiness,
-  updateBusiness,
-  getNextId,
-  generateMonthlyData,
   formatCurrency,
 } from '../data/store'
 import { MiniSparkline, ComparisonChart, RevenueChart, AdFunnel } from '../components/Charts'
@@ -44,6 +39,7 @@ import ConnectionsView from '../components/ConnectionsView'
 import AnalyticsView from '../components/AnalyticsView'
 import ResultsView from '../components/ResultsView'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { type ApiBusiness, fetchBusinesses, createBusiness, updateBusinessVisibility } from '../lib/api'
 
 type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics' | 'results'
 
@@ -238,41 +234,30 @@ function BusinessCard({ business, onClick }: { business: Business; onClick: () =
   )
 }
 
-function AddBusinessModal({ onClose }: { onClose: () => void }) {
+function AddBusinessModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [name, setName] = useState("")
-  const [owner, setOwner] = useState("")
-  const [industry, setIndustry] = useState("")
-  const [city, setCity] = useState("")
-  const [country, setCountry] = useState("Nigeria")
-  const [revenue, setRevenue] = useState("")
+  const [type, setType] = useState("E-commerce")
+  const [domain, setDomain] = useState("")
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) return
-    const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
-    const baseRevenue = parseInt(revenue) || 500_000
-    addBusiness({
-      id: getNextId(),
-      name: name.trim(),
-      owner: owner.trim() || "You",
-      industry: industry.trim() || "General",
-      city: city.trim() || "Lagos",
-      country,
-      status: "growing",
-      revenue: baseRevenue,
-      revenueChange: 0,
-      clients: 0,
-      clientsChange: 0,
-      pipeline: 0,
-      lastActivity: "Just added",
-      avatar: initials,
-      socialFollowers: 0,
-      socialGrowth: 0,
-      activeCampaigns: 0,
-      openTasks: 0,
-      monthlyData: generateMonthlyData(baseRevenue),
-      socialData: [],
-    })
-    onClose()
+    setSaving(true)
+    setError("")
+    try {
+      await createBusiness({
+        name: name.trim(),
+        type: type.trim() || "General",
+        domain: domain.trim() || undefined,
+      })
+      onCreated()
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create business.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   const inputStyle: React.CSSProperties = {
@@ -321,7 +306,7 @@ function AddBusinessModal({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)" }}>Add Business</div>
-            <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Enter your business details below</div>
+            <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Added businesses appear in the public showcase when marked visible.</div>
           </div>
         </div>
 
@@ -331,50 +316,108 @@ function AddBusinessModal({ onClose }: { onClose: () => void }) {
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. BuySmart Nigeria" style={inputStyle} />
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Owner Name</div>
-            <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="e.g. John Doe" style={inputStyle} />
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Type</div>
+            <input value={type} onChange={(e) => setType(e.target.value)} placeholder="e.g. E-commerce" style={inputStyle} />
           </div>
-          <div className="field-grid">
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Industry</div>
-              <input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. E-commerce" style={inputStyle} />
-            </div>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>City</div>
-              <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lagos" style={inputStyle} />
-            </div>
-          </div>
-          <div className="field-grid">
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Country</div>
-              <select value={country} onChange={(e) => setCountry(e.target.value)} style={inputStyle}>
-                <option>Nigeria</option>
-                <option>Ghana</option>
-                <option>Kenya</option>
-                <option>South Africa</option>
-                <option>Uganda</option>
-                <option>Tanzania</option>
-                <option>Rwanda</option>
-                <option>Ethiopia</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Monthly Revenue (₦)</div>
-              <input value={revenue} onChange={(e) => setRevenue(e.target.value.replace(/[^0-9]/g, ""))} placeholder="e.g. 500000" style={inputStyle} />
-            </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Domain (optional)</div>
+            <input value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="e.g. buysmart.ng" style={inputStyle} />
           </div>
         </div>
+
+        {error && (
+          <div style={{ marginTop: 14, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 3, padding: "10px 14px", fontSize: 13, color: "var(--danger)" }}>
+            {error}
+          </div>
+        )}
 
         <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
           <button onClick={onClose} style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--foreground)", padding: "10px 20px", borderRadius: 3, fontSize: 13, cursor: "pointer" }}>
             Cancel
           </button>
-          <button onClick={handleSubmit} style={{ background: "var(--primary)", border: "none", color: "#FFFFFF", padding: "10px 24px", borderRadius: 3, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Barlow Condensed", letterSpacing: 0.5 }}>
-            ADD BUSINESS
+          <button onClick={handleSubmit} disabled={saving} style={{ background: "var(--primary)", border: "none", color: "#FFFFFF", padding: "10px 24px", borderRadius: 3, fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "Barlow Condensed", letterSpacing: 0.5 }}>
+            {saving ? "SAVING..." : "ADD BUSINESS"}
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function PublicVisibilityPanel({ businesses, onRefresh }: { businesses: ApiBusiness[]; onRefresh: () => void }) {
+  const [toggling, setToggling] = useState<string | null>(null)
+
+  const toggle = async (b: ApiBusiness) => {
+    setToggling(b.id)
+    try {
+      await updateBusinessVisibility(b.id, b.visible !== 1)
+      onRefresh()
+    } catch (err) {
+      console.error("visibility toggle failed", err)
+    } finally {
+      setToggling(null)
+    }
+  }
+
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 3, background: 'var(--card)', marginBottom: 24, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+        <span style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>
+          Public Showcase — Visibility
+        </span>
+        <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
+          Hidden businesses (and their posters) are invisible to the public.
+        </span>
+      </div>
+      {businesses.length === 0 ? (
+        <div style={{ padding: '24px 20px', fontSize: 13, color: 'var(--muted-foreground)' }}>
+          No businesses yet. Add one with the &quot;NEW BUSINESS&quot; button above.
+        </div>
+      ) : (
+        businesses.map((b) => (
+          <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {b.name}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>{b.type}</div>
+            </div>
+            {b.visible === 1 && (
+              <a
+                href={`/public/${encodeURIComponent(b.id)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12, color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
+              >
+                View page <ExternalLink size={12} />
+              </a>
+            )}
+            <button
+              onClick={() => toggle(b)}
+              disabled={toggling === b.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: b.visible === 1 ? 'rgba(5,150,105,0.08)' : 'transparent',
+                border: `1px solid ${b.visible === 1 ? 'rgba(5,150,105,0.4)' : 'var(--border)'}`,
+                borderRadius: 3,
+                padding: '6px 12px',
+                minHeight: 44,
+                cursor: toggling === b.id ? 'wait' : 'pointer',
+                fontSize: 11,
+                fontFamily: 'JetBrains Mono',
+                letterSpacing: 0.5,
+                color: b.visible === 1 ? 'var(--accent)' : 'var(--muted-foreground)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: b.visible === 1 ? 'var(--accent)' : 'var(--muted-foreground)', flexShrink: 0 }} />
+              {toggling === b.id ? '…' : b.visible === 1 ? 'VISIBLE' : 'HIDDEN'}
+            </button>
+          </div>
+        ))
+      )}
     </div>
   )
 }
@@ -385,6 +428,17 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showAddModal, setShowAddModal] = useState(false)
   const [version, setVersion] = useState(0)
+  const [dbBusinesses, setDbBusinesses] = useState<ApiBusiness[]>([])
+
+  const refreshDbBusinesses = () => {
+    fetchBusinesses()
+      .then((res) => setDbBusinesses(res.businesses))
+      .catch(() => {})
+  }
+
+  useEffect(() => {
+    refreshDbBusinesses()
+  }, [])
 
   const allBiz = getBusinesses()
   const filtered = allBiz.filter((b) => {
@@ -409,7 +463,10 @@ function PortfolioView({ onSelectBusiness }: { onSelectBusiness: (b: Business) =
 
   return (
     <div className="page-pad" style={{ padding: 24 }}>
-      {showAddModal && <AddBusinessModal onClose={handleModalClose} />}
+      {showAddModal && <AddBusinessModal onClose={handleModalClose} onCreated={refreshDbBusinesses} />}
+
+      {/* Public showcase visibility — owner-only, backed by the API */}
+      <PublicVisibilityPanel businesses={dbBusinesses} onRefresh={refreshDbBusinesses} />
 
       {/* Portfolio summary strip */}
       <div

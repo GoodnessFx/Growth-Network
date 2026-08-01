@@ -50,6 +50,14 @@ function migrate(db: Database.Database): void {
       db.exec("ALTER TABLE reports ADD COLUMN source TEXT NOT NULL DEFAULT 'self-reported'")
     } catch {}
   }
+
+  const bizCols = db.pragma("table_info(businesses)") as Array<{ name: string }>
+  const bizNames = new Set(bizCols.map((c) => c.name))
+  if (!bizNames.has("visible")) {
+    try {
+      db.exec("ALTER TABLE businesses ADD COLUMN visible INTEGER NOT NULL DEFAULT 1")
+    } catch {}
+  }
 }
 
 export function closeDb(): void {

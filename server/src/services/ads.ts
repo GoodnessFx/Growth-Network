@@ -1,4 +1,6 @@
 import axios from "axios"
+import type { Database } from "better-sqlite3"
+import { resolveCredentials } from "./connections.js"
 
 export interface AdMetrics {
   impressions: number
@@ -7,6 +9,70 @@ export interface AdMetrics {
   spent: number
   ctr: number
   cpc: number
+}
+
+export interface AdPlatformOverview {
+  platform: string
+  label: string
+  connected: boolean
+  campaigns?: Array<{ id: string; name: string; status: string; metrics: AdMetrics }>
+  error?: string
+}
+
+const AD_PLATFORMS = [
+  { platform: "meta", label: "Meta Ads" },
+  { platform: "google", label: "Google Ads" },
+  { platform: "tiktok", label: "TikTok Ads" },
+  { platform: "linkedin", label: "LinkedIn Ads" },
+  { platform: "snapchat", label: "Snapchat Ads" },
+] as const
+
+/**
+ * Aggregates per-platform campaign data for a business by resolving its stored
+ * credentials. Used by both the owner dashboard and the public (visible-only)
+ * read view, so ad performance can be shown publicly when a business opts in.
+ */
+export async function getAdsOverview(
+  db: Database,
+  businessId: string,
+): Promise<{ platforms: AdPlatformOverview[]; generatedAt: string }> {
+  const platforms = await Promise.all(
+    AD_PLATFORMS.map(async ({ platform, label }) => {
+      const { accessToken, accountId, refreshToken } = resolveCredentials(db, businessId, platform, process.env)
+      const base = { platform, label }
+      if (!accessToken) return { ...base, connected: false }
+      if (!accountId && platform !== "linkedin") {
+        return { ...base, connected: false, error: "Connected but no account ID stored — reconnect and add the account/page ID" }
+      }
+      try {
+        let campaigns: Array<{ id: string; name: string; status: string; metrics: AdMetrics }>
+        switch (platform) {
+          case "meta":
+            campaigns = await fetchMetaAdCampaigns(accountId as string, accessToken)
+            break
+          case "google":
+            campaigns = await fetchGoogleAdsCampaigns(accountId as string, refreshToken as string, accessToken)
+            break
+          case "tiktok":
+            campaigns = await fetchTikTokAdCampaigns(accountId as string, accessToken)
+            break
+          case "linkedin":
+            campaigns = await fetchLinkedInAdCampaigns(accessToken)
+            break
+          case "snapchat":
+            campaigns = await fetchSnapchatAdCampaigns(accountId as string, accessToken)
+            break
+          default:
+            campaigns = []
+        }
+        return { ...base, connected: true, campaigns }
+      } catch (err: unknown) {
+        return { ...base, connected: true, campaigns: [], error: err instanceof Error ? err.message : String(err) }
+      }
+    }),
+  )
+
+  return { platforms, generatedAt: new Date().toISOString() }
 }
 
 export async function fetchMetaAdCampaigns(

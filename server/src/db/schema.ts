@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   owner_id TEXT NOT NULL REFERENCES users(id),
   domain TEXT,
   logo TEXT,
+  visible INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

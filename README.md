@@ -25,11 +25,25 @@ pnpm install
 # 2. Start both frontend and backend
 pnpm dev:all          # backend on :3001, frontend on :8443
 
-# 3. Open http://localhost:8443
-# 4. Register an account, click "+ NEW BUSINESS", and the system is live
+# 3. Seed the owner account and demo businesses
+pnpm db:seed
+
+# 4. Open http://localhost:8443 and sign in as the owner
+#    founder@growthnetwork.app / Founder123!  (owner account from the seed)
 ```
 
 Separately: `pnpm dev` (frontend only) or `pnpm dev:server` (backend only). The Vite dev server proxies `/api/*` to `:3001`.
+
+## Public Read-Only Model
+
+Growth Network is a **public showcase** with a single owner. No public sign-up exists — there is no `POST /api/auth/register` route.
+
+- **Anyone can view** the landing page's live portfolio and each business's public growth-snapshot poster (`/public/:id`). These read endpoints (`/api/public`, `/api/public/:id`) require no auth.
+- **Only the owner can write.** Every write route (businesses, social publish, ads, automations, export-trade, audit, analytics simulate, tracking) is gated by the `requireOwner` middleware, which accepts the `owner` role.
+- **Visibility control.** Each business has a `visible` flag. Hidden businesses disappear from the public listing, the public poster returns 404, and the tracking snippet refuses to emit events. The owner toggles this in the dashboard's "Public Showcase — Visibility" panel.
+- **Tracking snippet is secret-gated.** `POST /api/tracking/event` requires a per-install `TRACKING_SECRET` (randomly generated at boot if not set) that is embedded in the generated snippet; events without the secret are rejected with 401.
+
+To reset to a clean owner state at any time, run `pnpm db:seed` (idempotent — it removes demo/test users and their data, then upserts the owner account and three demo businesses).
 
 ## Configuration (Environment Variables)
 
@@ -48,6 +62,7 @@ Copy `.env.example` to `.env` and fill in what you need. The file is fully comme
 | Pinterest | Pinterest app | [developers.pinterest.com](https://developers.pinterest.com) |
 | Threads | Meta app with the Threads product | [developers.facebook.com](https://developers.facebook.com) |
 | Website tracking | None — paste the generated snippet | Generated in Connections → "Website tracking snippet" |
+| CORS / tracking origins | `ALLOWED_ORIGINS`, `TRACKING_ALLOWED_ORIGINS` (comma-separated) + `TRACKING_SECRET` | Set in `.env`; see `.env.example` |
 
 ### OAuth Model
 
@@ -107,6 +122,7 @@ server/src/
 5. **Charts load as one bundle** — the app does not code-split yet (Vite warns the main chunk exceeds 500 kB).
 6. **localStorage tokens** — sessions live in localStorage; a httpOnly-cookie flow is a future hardening step (the backend has no CSRF middleware today, so cookies are not used).
 7. **Search Console requires a verified property** in the Google Search Console account being queried.
+8. **No server deploy target wired yet** — the frontend ships as static Vite output (`dist/`); the Hono API + SQLite backend needs a VPS/container target before the public showcase goes fully live.
 
 ## Branches
 

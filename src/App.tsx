@@ -102,7 +102,6 @@ function AppInner() {
     return (
       <Landing
         onLogin={() => navigate('login')}
-        onRegister={() => navigate('login')}
         onDashboard={() => navigate('operator')}
       />
     )

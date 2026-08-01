@@ -68,13 +68,6 @@ export function login(email: string, password: string): Promise<AuthResponse> {
   })
 }
 
-export function register(name: string, email: string, password: string): Promise<AuthResponse> {
-  return apiFetch<AuthResponse>("/auth/register", {
-    method: "POST",
-    body: JSON.stringify({ email, name, password }),
-  })
-}
-
 export function fetchMe(): Promise<{ user: AuthUser }> {
   return apiFetch<{ user: AuthUser }>("/auth/me")
 }
@@ -86,6 +79,7 @@ export interface ApiBusiness {
   status: string
   owner_id: string
   domain: string | null
+  visible: number
   created_at: string
   updated_at: string
 }
@@ -99,6 +93,18 @@ export function createBusiness(payload: { name: string; type: string; domain?: s
     method: "POST",
     body: JSON.stringify(payload),
   })
+}
+
+export function updateBusinessVisibility(businessId: string, visible: boolean): Promise<{ business: ApiBusiness }> {
+  return apiFetch<{ business: ApiBusiness }>(`/businesses/${encodeURIComponent(businessId)}/visibility`, {
+    method: "PATCH",
+    body: JSON.stringify({ visible }),
+  })
+}
+
+// Public, unauthenticated listing of the businesses the owner has made visible.
+export function fetchPublicBusinesses(): Promise<{ businesses: Pick<ApiBusiness, "id" | "name" | "type" | "status" | "domain" | "created_at">[] }> {
+  return apiFetch<{ businesses: Pick<ApiBusiness, "id" | "name" | "type" | "status" | "domain" | "created_at">[] }>("/public")
 }
 
 export interface ApiConnection {

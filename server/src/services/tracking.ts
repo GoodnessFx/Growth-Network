@@ -55,12 +55,14 @@ export function getEvents(
   return db.prepare(sql).all(...params) as Array<Record<string, unknown>>
 }
 
-export function generateTrackingSnippet(businessId: string, apiUrl: string): string {
+export function generateTrackingSnippet(businessId: string, apiUrl: string, secret: string): string {
+  const api = `${apiUrl.replace(/\/+$/, "")}/api/tracking/event`
   return `<!-- Growth Network Tracking Pixel -->
 <script>
 (function() {
   var bid = "${businessId}";
-  var api = "${apiUrl.replace(/\/+$/, "")}";
+  var api = "${api}";
+  var secret = "${secret}";
   var sid = localStorage.getItem("gn_session_id") || "sess_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
   localStorage.setItem("gn_session_id", sid);
   var vid = localStorage.getItem("gn_visitor_id") || "vis_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
@@ -76,11 +78,12 @@ export function generateTrackingSnippet(businessId: string, apiUrl: string): str
       referrer: document.referrer || undefined,
       metadata: metadata || {},
     };
+    var q = "?secret=" + encodeURIComponent(secret);
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(api + "/api/tracking/event", JSON.stringify(payload));
+      navigator.sendBeacon(api + q, JSON.stringify(payload));
     } else {
       var xhr = new XMLHttpRequest();
-      xhr.open("POST", api + "/api/tracking/event", true);
+      xhr.open("POST", api + q, true);
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.send(JSON.stringify(payload));
     }

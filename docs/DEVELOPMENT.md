@@ -34,6 +34,7 @@ Frontend dev server: `:8443`. Backend: `:3001`. Vite proxies `/api/*` → backen
 | `pnpm build` | Production frontend build → `dist/` |
 | `pnpm build:server` | Compile/run backend (starts server) |
 | `pnpm db:init` | Initialize SQLite schema |
+| `pnpm db:seed` | Seed owner account + demo businesses (idempotent) |
 | `pnpm format` | oxfmt formatting |
 
 ## Environment variables
@@ -46,6 +47,9 @@ client IDs/secrets for the production OAuth flow, plus long-lived token fallback
 - `PORT` — backend port (default `3001`)
 - `API_PORT` — used by Vite proxy target (default `3001`)
 - `DB_PATH` — SQLite file path (default `data/growth-network.db`)
+- `ALLOWED_ORIGINS` — comma-separated CORS whitelist for the API (plus localhost dev origins)
+- `TRACKING_ALLOWED_ORIGINS` — comma-separated origins allowed to call the tracking ingest
+- `TRACKING_SECRET` — shared secret embedded in generated tracking snippets; without it a random secret is generated at boot and shown nowhere, so set it in production before installing pixels
 - Platform credentials (used as fallback when no per-business connection exists):
   `META_CLIENT_ID`/`META_CLIENT_SECRET`, `META_ACCESS_TOKEN`, `META_AD_ACCOUNT_ID`,
   `TIKTOK_CLIENT_KEY`/`TIKTOK_CLIENT_SECRET`, `TIKTOK_ACCESS_TOKEN`,
@@ -64,10 +68,10 @@ client IDs/secrets for the production OAuth flow, plus long-lived token fallback
 
 ## API reference
 
-### Auth (`/api/auth`)
-- `POST /register` — `{ email, name, password }` → `{ token, user }` (JWT, 7 days)
-- `POST /login` — `{ email, password }` → `{ token, user }`
+### Auth (`/api/auth`) — owner-only login
+- `POST /login` — `{ email, password }` → `{ token, user }`; rate-limited (10 attempts / 15 min per IP+email, `429` + `Retry-After`)
 - `GET /me` — protected, returns current user
+- Registration is **removed**: there is no `POST /register`. Accounts are created by the seed (`pnpm db:seed`) and carry the `owner` role. All write routes require `requireOwner` (`role === 'owner'` or `'admin'`).
 
 Session handling: the JWT is stored in `localStorage` (`src/lib/AuthContext.tsx`) and sent as
 `Authorization: Bearer <token>` on every request via `src/lib/api.ts`. An httpOnly cookie was
@@ -78,12 +82,13 @@ already lives behind a 7-day expiry. The token is cleared from `localStorage` on
 the UI until a real email-token backend exists — the old "forgot password" screen was a dead end
 and was removed.
 
-### Businesses (`/api/businesses`) — auth + tenant
-- `GET /` — list businesses for the tenant
+### Businesses (`/api/businesses`) — auth + tenant (writes owner-checked)
+- `GET /` — list businesses for the tenant (admin sees all; rows include `visible`)
 - `GET /:id` — single business (owner-checked)
-- `POST /` — `{ name, type, domain? }` → create
-- `PUT /:id` — partial update
-- `DELETE /:id` — delete
+- `POST /` — `{ name, type, domain? }` → create (owner-only)
+- `PUT /:id` — partial update (owner-only)
+- `PATCH /:id/visibility` — `{ visible: boolean }` — toggles the public-showcase flag (owner-only); hidden businesses return 404 from `/api/public`
+- `DELETE /:id` — delete (owner-only)
 - `POST /:id/snapshot` — publish a growth snapshot; body `{ metrics, source? }` where `source` is `"live"` or `"self-reported"` (default) — owner-checked
 - `GET /:id/snapshot-draft` — suggested snapshot values pulled from real data (CRM won-deals → `revenueAfter`, 30-day Analytics visitors or contacts → `clientsAfter`), returns `{ draft, dataSources, suggested }`
 
@@ -109,14 +114,15 @@ google-search-console, google-business-profile.
 - `GET /ads?businessId=` — unified ad monitoring across meta/google/tiktok/linkedin/snapchat; each platform returns `{ platform, label, connected, campaigns?, error? }` (never fabricated when unconnected)
 - `POST /simulate` — `{ businessId, count }` — demo traffic generator through the same ingestion API as the browser pixel
 
-### Tracking (`/api/tracking`) — public (pixel)
-- `POST /event` — ingestion used by the tracking snippet
-- `GET /events?businessId=` — query stored events
-- `GET /snippet/:businessId` — returns the embeddable tracking pixel
+### Tracking (`/api/tracking`) — pixel ingest is secret-gated, reads owner-checked
+- `POST /event?secret=...` — ingestion used by the tracking snippet; 400 on missing `sessionId`/`visitorId`, 401 on a missing or wrong `TRACKING_SECRET`, 404 for a hidden business
+- `GET /events?businessId=` — query stored events (owner)
+- `GET /snippet/:businessId` — returns the embeddable tracking pixel with the secret baked in (owner)
 - `GET /health`
 
-### Public (`/api/public`) — auth-free
-- `GET /:businessId` — business + latest growth snapshot (used by `/public/:id` poster)
+### Public (`/api/public`) — auth-free (visible businesses only)
+- `GET /` — list businesses with `visible = 1` (used by the landing page's Live Portfolio)
+- `GET /:businessId` — business + latest growth snapshot (used by `/public/:id` poster); returns 404 when the business is hidden or missing
 
 ### Other modules
 - `automations`, `whatsapp`, `export-trade`, `audit` — see `server/src/routes/`
@@ -130,17 +136,26 @@ SQLite via better-sqlite3, created on first run. Key tables:
 `response_times`, `follow_ups`, `reports` (growth snapshots).
 
 Tenant isolation is enforced in middleware: operators only ever see businesses
-they own (`owner_id`).
+they own (`owner_id`). Since the public model has a single owner, every write
+route is additionally gated by `requireOwner`; public read routes filter on the
+`visible` flag.
+
+## Security model
+
+- **No public registration** — only the seeded owner (`role: 'owner'`) exists; write routes reject any other role.
+- **Tracking secret** — `POST /api/tracking/event` validates `?secret=` against `TRACKING_SECRET` before ingesting; the generated snippet embeds the secret.
+- **CORS whitelist** — the API only reflects allowed origins (`ALLOWED_ORIGINS`, `TRACKING_ALLOWED_ORIGINS`, localhost dev origins); disallowed origins get no CORS headers.
+- **Login rate limiting** — in-memory 10 attempts / 15 min per `ip|email`, returning `429` with `Retry-After`.
 
 ## Real vs simulated
 
-**Real** — JWT auth (register/login/me), tenant-isolated CRUD for businesses,
-connection store (per-business tokens + env fallback), tracking ingestion,
-analytics aggregation, unified ads monitoring and Google Search Console SEO,
-social publishing where the platform has a real client and a token is present
-(TikTok, YouTube, X, LinkedIn, Pinterest, Threads, Facebook, Instagram,
-WhatsApp), growth snapshot publication (labeled `live` or `self-reported`),
-audit logging.
+**Real** — JWT auth (owner login/me), tenant-isolated CRUD for businesses with
+public-visibility flags, connection store (per-business tokens + env fallback),
+tracking ingestion (secret-gated), analytics aggregation, unified ads monitoring
+and Google Search Console SEO, social publishing where the platform has a real
+client and a token is present (TikTok, YouTube, X, LinkedIn, Pinterest, Threads,
+Facebook, Instagram, WhatsApp), growth snapshot publication (labeled `live` or
+`self-reported`), audit logging, login rate limiting, CORS whitelist.
 
 **Simulated / demo** — the analytics traffic simulator and the frontend
 dashboard seed data (`data/`) are demo fixtures and are labeled as such in the
@@ -191,3 +206,9 @@ numbers. Snapchat organic and Google Business Profile posting return an honest
    to the OAuth-app credential model, `README.md` rewritten as UTF-8; Dependabot
    advisories remediated (removed unused drizzle-orm/drizzle-kit, Vite bumped
    8.0.3 → 8.2.0, `pnpm audit` clean).
+8. **Public read-only model** — removed `POST /auth/register`; seeded a single
+   `owner` role with idempotent `pnpm db:seed`; `requireOwner` gate on all write
+   routes; per-business `visible` flag (migration) hiding businesses from every
+   public endpoint; secret-gated tracking ingest (`TRACKING_SECRET`); CORS
+   origin whitelist; login rate limiting; owner-only UI (Portfolio wired to the
+   API with a visibility toggle, registration UI removed); docs updated.

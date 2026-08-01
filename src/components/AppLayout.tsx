@@ -391,7 +391,7 @@ export default function AppLayout({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div className="hide-xs" style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textAlign: 'right' }}>
               <div>{displayName}</div>
-              <div style={{ color: 'var(--accent)', fontSize: 10 }}>Operator</div>
+              <div style={{ color: 'var(--accent)', fontSize: 10 }}>Owner</div>
             </div>
             <div
               style={{

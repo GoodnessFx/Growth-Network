@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { TrendingUp, CheckCircle2, ChevronRight, ArrowRight, BarChart3, Users, Globe, Zap, Star, Menu, X, LayoutGrid } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { TrendingUp, CheckCircle2, ChevronRight, ArrowRight, BarChart3, Users, Globe, Zap, Star, Menu, X, LayoutGrid, ExternalLink, Loader2 } from 'lucide-react'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { fetchPublicBusinesses } from '../lib/api'
 
 interface LandingProps {
   onLogin: () => void
-  onRegister: () => void
   onDashboard: () => void
 }
 
@@ -460,7 +460,110 @@ const industries = [
   'Agriculture & Agro-processing',
 ]
 
-export default function Landing({ onLogin, onRegister, onDashboard }: LandingProps) {
+// ─── Live portfolio (public read-only showcase) ──────────────────────────────
+
+function LivePortfolio() {
+  const [businesses, setBusinesses] = useState<Array<{ id: string; name: string; type: string; status: string; domain: string | null }>>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchPublicBusinesses()
+      .then((res) => setBusinesses(res.businesses))
+      .catch(() => setBusinesses([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  return (
+    <section
+      style={{
+        borderTop: '1px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
+        padding: '72px 32px',
+        background: 'var(--card)',
+      }}
+    >
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div className="eyebrow">LIVE PORTFOLIO</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 32 }}>
+          <h2 className="section-title" style={{ margin: 0 }}>
+            GROWTH, PUBLICLY PROVEN.
+            <br />
+            <span style={{ color: 'var(--muted-foreground)', fontWeight: 600 }}>LIVE RESULTS FROM REAL BUSINESSES.</span>
+          </h2>
+        </div>
+
+        {loading ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--muted-foreground)', fontSize: 13, padding: '24px 0' }}>
+            <Loader2 size={15} className="spin" /> Loading live portfolio...
+          </div>
+        ) : businesses.length === 0 ? (
+          <div style={{ border: '1px dashed var(--border)', borderRadius: 3, padding: '40px', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
+            No businesses published yet. The owner can publish results from the dashboard.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2 }}>
+            {businesses.map((b) => (
+              <a
+                key={b.id}
+                href={`/public/${encodeURIComponent(b.id)}`}
+                style={{
+                  background: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 3,
+                  padding: '24px',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 14,
+                  transition: 'border-color 0.15s, transform 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--primary)'
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border)'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div
+                    style={{
+                      fontSize: 9,
+                      fontFamily: 'JetBrains Mono',
+                      color: 'var(--accent)',
+                      border: '1px solid rgba(5,150,105,0.3)',
+                      borderRadius: 2,
+                      padding: '3px 8px',
+                      letterSpacing: 1,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {b.status}
+                  </div>
+                  <ExternalLink size={14} color="var(--muted-foreground)" />
+                </div>
+                <div>
+                  <div className="font-display" style={{ fontSize: 22, fontWeight: 800, color: 'var(--foreground)', lineHeight: 1.15 }}>
+                    {b.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginTop: 4 }}>
+                    {b.type}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  View growth snapshot <ArrowRight size={13} />
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+export default function Landing({ onLogin, onDashboard }: LandingProps) {
   return (
     <div style={{ background: 'var(--background)', minHeight: '100vh', color: 'var(--foreground)' }}>
       <Navbar onLogin={onLogin} onDashboard={onDashboard} />
@@ -587,7 +690,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
               SEE THE DASHBOARD <ArrowRight size={16} />
             </button>
             <button
-              onClick={onLogin}
+              onClick={onDashboard}
               style={{
                 background: 'rgba(255,255,255,0.08)',
                 backdropFilter: 'blur(8px)',
@@ -600,7 +703,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
                 fontWeight: 500,
               }}
             >
-              Start free trial
+              Sign in as owner
             </button>
           </div>
 
@@ -677,6 +780,9 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
         <StatBar />
       </div>
+
+      {/* Live portfolio — public read-only showcase */}
+      <LivePortfolio />
 
       {/* Features */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 32px' }}>
@@ -845,8 +951,8 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
                 'Invoice management',
                 'Email support',
               ]}
-              cta="Start free trial"
-              onCta={onRegister}
+              cta="Get started"
+              onCta={onLogin}
             />
             <PricingCard
               name="Agency"
@@ -865,8 +971,8 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
                 'Priority support',
               ]}
               highlight
-              cta="Start free trial"
-              onCta={onRegister}
+              cta="Get started"
+              onCta={onLogin}
             />
             <PricingCard
               name="Enterprise"
@@ -943,7 +1049,7 @@ export default function Landing({ onLogin, onRegister, onDashboard }: LandingPro
             YOUR BUSINESSES ARE WAITING.
           </h2>
         <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.75)', margin: '0 0 32px' }}>
-          Start your free 14-day trial. No credit card required.
+          Explore the live portfolio above, or sign in as the owner to manage the showcase.
         </p>
         <button
           onClick={onDashboard}

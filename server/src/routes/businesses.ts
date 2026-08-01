@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { getDb } from "../db/index.js"
 import { v4 as uuid } from "uuid"
 import { recordAudit } from "../middleware/audit.js"
+import { requireOwner } from "../middleware/auth.js"
 
 const businesses = new Hono()
 
@@ -47,7 +48,7 @@ businesses.get("/:id", (c) => {
   return c.json({ business: row })
 })
 
-businesses.post("/", async (c) => {
+businesses.post("/", requireOwner, async (c) => {
   const user = c.get("user") as { id: string }
   const { name, type, domain } = await c.req.json()
 
@@ -66,7 +67,7 @@ businesses.post("/", async (c) => {
   return c.json({ business: { id, name, type, status: "active", ownerId: user.id, domain } })
 })
 
-businesses.put("/:id", async (c) => {
+businesses.put("/:id", requireOwner, async (c) => {
   const { name, type, status, domain } = await c.req.json()
   const db = getDb()
   const existing = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id"))
@@ -84,7 +85,33 @@ businesses.put("/:id", async (c) => {
   return c.json({ business: updated })
 })
 
-businesses.post("/:id/snapshot", async (c) => {
+// Owner-only: control whether a business (and its analytics) is visible to the
+// public, read-only view. Hidden businesses are excluded from every public
+// endpoint. The owner still sees them internally, flagged as hidden.
+businesses.patch("/:id/visibility", requireOwner, async (c) => {
+  const db = getDb()
+  const existing = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id")) as
+    | { owner_id: string }
+    | undefined
+  if (!existing) {
+    c.status(404)
+    return c.json({ error: "Business not found" })
+  }
+
+  const body = await c.req.json().catch(() => ({}))
+  const visible = body.visible === true ? 1 : body.visible === false ? 0 : null
+  if (visible === null) {
+    c.status(400)
+    return c.json({ error: "visible (boolean) is required" })
+  }
+
+  db.prepare("UPDATE businesses SET visible = ?, updated_at = datetime('now') WHERE id = ?").run(visible, c.req.param("id"))
+  recordAudit(c, "set_visibility", "business", c.req.param("id"), { visible: visible === 1 })
+  const updated = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id"))
+  return c.json({ business: updated })
+})
+
+businesses.post("/:id/snapshot", requireOwner, async (c) => {
   const user = c.get("user") as { id: string; role: string }
   const { metrics, source } = await c.req.json()
 
@@ -126,7 +153,7 @@ businesses.post("/:id/snapshot", async (c) => {
   return c.json({ report })
 })
 
-businesses.get("/:id/snapshot-draft", (c) => {
+businesses.get("/:id/snapshot-draft", requireOwner, (c) => {
   const user = c.get("user") as { id: string; role: string }
   const db = getDb()
   const existing = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id")) as
@@ -167,7 +194,7 @@ businesses.get("/:id/snapshot-draft", (c) => {
   return c.json({ draft, dataSources, suggested: true })
 })
 
-businesses.delete("/:id", (c) => {
+businesses.delete("/:id", requireOwner, (c) => {
   const db = getDb()
   const existing = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id"))
   if (!existing) {

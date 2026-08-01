@@ -11,7 +11,8 @@
     "build:server": "npx tsx server/src/index.ts",
     "preview": "vite preview",
     "format": "oxfmt",
-    "db:init": "npx tsx -e \"require('./server/src/db/index').getDb(); console.log('DB initialized')\""
+    "db:init": "npx tsx -e \"require('./server/src/db/index').getDb(); console.log('DB initialized')\"",
+    "db:seed": "npx tsx server/src/seed.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.12",
