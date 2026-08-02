@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { TrendingUp, CheckCircle2, ChevronRight, ArrowRight, BarChart3, Users, Globe, Zap, Star, Menu, X, LayoutGrid, ExternalLink, Loader2 } from 'lucide-react'
+import { TrendingUp, CheckCircle2, ChevronRight, ArrowRight, BarChart3, Users, Globe, Zap, Menu, X, LayoutGrid, ExternalLink, Loader2 } from 'lucide-react'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { fetchPublicBusinesses } from '../lib/api'
 
@@ -32,20 +32,11 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            background: 'var(--primary)',
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <TrendingUp size={16} color="#111827" strokeWidth={2.5} />
-        </div>
+        <img
+          src="/gnlogo.jpg"
+          alt="GrowthNet logo"
+          style={{ width: 30, height: 30, borderRadius: 2, objectFit: 'contain', flexShrink: 0 }}
+        />
         <span
           className="font-display"
           style={{ fontSize: 20, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)', whiteSpace: 'nowrap' }}
@@ -418,33 +409,6 @@ function PricingCard({
   )
 }
 
-const testimonials = [
-  {
-    name: 'Oluwakemi Adeyemi',
-    role: "Owner, Kemi's Logistics",
-    city: 'Lagos, Nigeria',
-    avatar: 'KA',
-    quote:
-      "Before GrowthNet I was running 6 WhatsApp groups to manage my drivers, clients and finances. Now it's one screen. Revenue up 31% in 8 months.",
-  },
-  {
-    name: 'Abena Asante',
-    role: 'Founder, Abena Fashion House',
-    city: 'Accra, Ghana',
-    avatar: 'AA',
-    quote:
-      "My social following doubled in a quarter. The campaign tools actually understand what sells in Ghana — not some generic US playbook.",
-  },
-  {
-    name: 'Sipho Ndlovu',
-    role: 'Director, CoLab Digital Agency',
-    city: 'Cape Town, South Africa',
-    avatar: 'SN',
-    quote:
-      "Managing 7 client businesses used to need a 4-person ops team. GrowthNet cut that to me and one assistant. The portfolio dashboard alone is worth it.",
-  },
-]
-
 const industries = [
   'Logistics & Delivery',
   'Fashion & Retail',
@@ -706,73 +670,6 @@ export default function Landing({ onLogin, onDashboard }: LandingProps) {
               Sign in as owner
             </button>
           </div>
-
-          <div
-            style={{
-              display: 'flex',
-              gap: 20,
-              marginTop: 40,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <div style={{ display: 'flex' }}>
-              {['KA', 'AA', 'DM', 'AO', 'GN'].map((av, i) => (
-                <div
-                  key={av}
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: '50%',
-                    background: ['#C2A77D', '#1B7A4A', '#F5A623', '#7B8FFF', '#FF8FD4'][i],
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: '#FFFFFF',
-                    fontFamily: 'Barlow Condensed',
-                    marginLeft: i > 0 ? -8 : 0,
-                    border: '2px solid rgba(255,255,255,0.3)',
-                  }}
-                >
-                  {av}
-                </div>
-              ))}
-            </div>
-            <div>
-              <div style={{ display: 'flex', gap: 2 }}>
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} size={12} fill="#C2A77D" color="#C2A77D" />
-                ))}
-              </div>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: '2px 0 0' }}>
-                Trusted by 1,240+ businesses across Africa
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Floating metric chip */}
-        <div
-          className="hide-mobile"
-          style={{
-            position: 'absolute',
-            bottom: 40,
-            right: 40,
-            background: 'rgba(255,255,255,0.12)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: 3,
-            padding: '14px 20px',
-            zIndex: 2,
-          }}
-        >
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontFamily: 'JetBrains Mono' }}>REVENUE MTD</div>
-          <div className="font-display" style={{ fontSize: 28, fontWeight: 900, color: '#FFFFFF' }}>
-            ₦16.3M
-          </div>
-          <div style={{ fontSize: 12, color: '#1B7A4A', fontWeight: 600 }}>↑ 28% vs last month</div>
         </div>
       </section>
 
@@ -859,64 +756,6 @@ export default function Landing({ onLogin, onDashboard }: LandingProps) {
               </span>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 32px' }}>
-        <div className="eyebrow">FROM THE FIELD</div>
-        <h2 className="section-title" style={{ margin: '0 0 24px' }}>
-          REAL OPERATORS. REAL RESULTS.
-        </h2>
-        <div className="testimonial-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
-          {testimonials.map((t) => (
-            <div
-              key={t.name}
-              style={{
-                background: 'var(--card)',
-                border: '1px solid var(--border)',
-                borderRadius: 3,
-                padding: 28,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 20,
-              }}
-            >
-              <div style={{ display: 'flex', gap: 2 }}>
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} size={13} fill="#C2A77D" color="#C2A77D" />
-                ))}
-              </div>
-              <p style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--foreground)', margin: 0, fontStyle: 'italic' }}>
-                &quot;{t.quote}&quot;
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: '50%',
-                    background: 'var(--primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: '#111827',
-                    fontFamily: 'Barlow Condensed',
-                    flexShrink: 0,
-                  }}
-                >
-                  {t.avatar}
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)' }}>{t.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{t.role}</div>
-                  <div style={{ fontSize: 11, color: 'var(--accent)', fontFamily: 'JetBrains Mono' }}>{t.city}</div>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -1089,19 +928,11 @@ export default function Landing({ onLogin, onDashboard }: LandingProps) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
-            style={{
-              width: 24,
-              height: 24,
-              background: 'var(--primary)',
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <TrendingUp size={12} color="#111827" strokeWidth={2.5} />
-          </div>
+          <img
+            src="/gnlogo.jpg"
+            alt="GrowthNet logo"
+            style={{ width: 24, height: 24, borderRadius: 2, objectFit: 'contain' }}
+          />
           <span
             className="font-display"
             style={{ fontSize: 16, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)' }}

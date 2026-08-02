@@ -1,6 +1,6 @@
 import { businesses as seedBusinesses, formatCurrency, type Business, type HealthStatus } from "./mockData"
 
-const STORAGE_KEY = "gn_businesses"
+const STORAGE_KEY = "gn_businesses_v2"
 
 function load(): Business[] {
   try {
@@ -46,17 +46,18 @@ export function updateBusiness(id: string, updates: Partial<Business>): void {
 export function getNextId(): string {
   const list = getBusinesses()
   const maxId = list.reduce((max, b) => {
-    const num = parseInt(b.id.replace("b", ""), 10)
+    const match = b.id.match(/^b(\d+)$/)
+    const num = match ? parseInt(match[1], 10) : 0
     return num > max ? num : max
   }, 0)
   return `b${maxId + 1}`
 }
 
 export function generateMonthlyData(base: number, trend: number = 1) {
-  return seedBusinesses[0].monthlyData.map((m, i) => ({
+  return seedBusinesses[0].monthlyData.map((m) => ({
     month: m.month,
-    revenue: Math.round(base * (1 + trend * i * 0.08) + (Math.random() - 0.5) * base * 0.1),
-    clients: Math.round(12 + i * (trend > 0 ? 2.1 : -0.5) + Math.random() * 3),
+    revenue: 0,
+    clients: 0,
   }))
 }
 

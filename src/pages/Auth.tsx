@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TrendingUp, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
 import { ApiError } from '../lib/api'
 
@@ -211,19 +211,11 @@ export default function Auth({ onSuccess, onBack }: AuthProps) {
       >
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'auto' }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              background: 'var(--primary)',
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <TrendingUp size={17} color="#111827" strokeWidth={2.5} />
-          </div>
+          <img
+            src="/gnlogo.jpg"
+            alt="GrowthNet logo"
+            style={{ width: 32, height: 32, borderRadius: 2, objectFit: 'contain' }}
+          />
           <span
             className="font-display"
             style={{ fontSize: 22, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)' }}
@@ -305,20 +297,11 @@ export default function Auth({ onSuccess, onBack }: AuthProps) {
       >
         {/* Mobile logo */}
         <div className="show-mobile" style={{ display: 'none', alignItems: 'center', gap: 10, width: '100%', marginBottom: 8 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              background: 'var(--primary)',
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <TrendingUp size={17} color="#111827" strokeWidth={2.5} />
-          </div>
+          <img
+            src="/gnlogo.jpg"
+            alt="GrowthNet logo"
+            style={{ width: 32, height: 32, borderRadius: 2, objectFit: 'contain', flexShrink: 0 }}
+          />
           <span
             className="font-display"
             style={{ fontSize: 22, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)' }}

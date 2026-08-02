@@ -110,20 +110,11 @@ export default function AppLayout({
             minHeight: 60,
           }}
         >
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              background: 'var(--primary)',
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <TrendingUp size={15} color="#111827" strokeWidth={2.5} />
-          </div>
+          <img
+            src="/gnlogo.jpg"
+            alt="GrowthNet logo"
+            style={{ width: 28, height: 28, borderRadius: 2, objectFit: 'contain', flexShrink: 0 }}
+          />
           {!collapsed && (
             <span
               className="font-display"

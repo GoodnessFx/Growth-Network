@@ -177,7 +177,7 @@ function BusinessCard({ business, onClick }: { business: Business; onClick: () =
               {business.name}
             </div>
             <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>
-              {business.city} · {business.industry}
+              {business.city ? `${business.city} · ` : ''}{business.industry}
             </div>
           </div>
         </div>
@@ -317,7 +317,7 @@ function AddBusinessModal({ onClose, onCreated }: { onClose: () => void; onCreat
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Business Name *</div>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. BuySmart Nigeria" style={inputStyle} />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. My Company Ltd" style={inputStyle} />
           </div>
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>Type</div>
@@ -709,7 +709,7 @@ function PortfolioView({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{b.name}</div>
                   <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "JetBrains Mono" }}>
-                    {b.city} · {b.industry}
+                    {b.city ? `${b.city} · ` : ""}{b.industry}
                   </div>
                 </div>
                 <StatusBadge status={b.status} />
@@ -775,7 +775,7 @@ function CompareView() {
               <Avatar initials={b.avatar} size={32} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)' }}>{b.name}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>{b.city}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>{b.city || b.industry}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 14, fontWeight: 700, fontFamily: 'JetBrains Mono', color: 'var(--foreground)' }}>
@@ -815,7 +815,7 @@ function CompareView() {
               <Avatar initials={b.avatar} size={28} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--foreground)' }}>{b.name}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>{b.city}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>{b.city || b.industry}</div>
               </div>
             </div>
             <div style={{ fontSize: 13, fontFamily: 'JetBrains Mono', color: 'var(--foreground)' }}>{formatCurrency(b.revenue)}</div>
@@ -837,14 +837,7 @@ function CompareView() {
 
 // ─── Inbox ────────────────────────────────────────────────────────────────────
 
-const inboxMessages = [
-  { id: 1, business: "Kemi's Logistics", platform: 'Instagram', from: 'emeka_delivery_ng', message: 'Hi, do you deliver to Ogun State? What are your rates?', time: '10 min ago', unread: true },
-  { id: 2, business: 'Abena Fashion House', platform: 'Facebook', from: 'abena_customer_2', message: "Love the new collection! When's the next restock?", time: '42 min ago', unread: true },
-  { id: 3, business: 'CoLab Digital Agency', platform: 'LinkedIn', from: 'Kofi Mensah', message: "Saw your post on brand strategy. Would love to discuss a potential project.", time: '2 hours ago', unread: true },
-  { id: 4, business: 'Amara Beauty Studio', platform: 'Instagram', from: 'glowup_lagos', message: 'How much is the full glam package? 🔥', time: '3 hours ago', unread: false },
-  { id: 5, business: "Ade's Tech Repair", platform: 'Facebook', from: 'techfix_customer', message: 'My MacBook is making a clicking sound. Can you fix it?', time: '5 hours ago', unread: false },
-  { id: 6, business: 'Mama Fresh Foods', platform: 'Instagram', from: 'foodie_kumasi', message: "Can you do catering for 200 people next weekend?", time: '1 day ago', unread: false },
-]
+const inboxMessages = []
 
 const PLATFORM_COLORS: Record<string, string> = {
   Instagram: '#E1306C',
@@ -866,6 +859,11 @@ function InboxView() {
       <div className={isMobile ? 'stack-mobile' : ''} style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 2, height: isMobile ? 'auto' : 520 }}>
         {/* Message list */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflowY: isMobile ? 'visible' : 'auto' }}>
+          {inboxMessages.length === 0 && (
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
+              Awaiting data — connected conversations will appear here.
+            </div>
+          )}
           {inboxMessages.map((msg) => (
             <div
               key={msg.id}
@@ -988,7 +986,7 @@ function InboxView() {
 function CampaignsView() {
   const totalSpend = campaigns.reduce((s, c) => s + c.spend, 0)
   const totalConversions = campaigns.reduce((s, c) => s + c.conversions, 0)
-  const avgROAS = (campaigns.reduce((s, c) => s + c.roas, 0) / campaigns.length).toFixed(1)
+  const avgROAS = campaigns.length === 0 ? '0.0' : (campaigns.reduce((s, c) => s + c.roas, 0) / campaigns.length).toFixed(1)
 
   return (
     <div className="page-pad" style={{ padding: 24 }}>
@@ -1017,6 +1015,11 @@ function CampaignsView() {
               <div key={h} style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>{h}</div>
             ))}
           </div>
+          {campaigns.length === 0 && (
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
+              Awaiting data — ad campaigns will appear here once they are connected.
+            </div>
+          )}
           {campaigns.map((c) => (
             <div
               key={c.id}

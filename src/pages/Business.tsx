@@ -5,7 +5,6 @@ import {
   TrendingDown,
   Users,
   DollarSign,
-  Calendar,
   FileText,
   Tag,
   Phone,
@@ -146,12 +145,12 @@ function OverviewTab({ business }: { business: Business }) {
             Open Tasks ({business.openTasks})
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              { label: 'Send Q3 report to owner', due: 'Today', priority: 'high' },
-              { label: 'Review social content calendar', due: 'Tomorrow', priority: 'medium' },
-              { label: 'Follow up on Atlas Freight quote', due: 'Aug 2', priority: 'high' },
-              { label: 'Update invoice #INV-0048', due: 'Aug 3', priority: 'low' },
-            ].slice(0, business.openTasks > 3 ? 4 : business.openTasks).map((task, i) => (
+            {business.openTasks === 0 && (
+              <div style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
+                Awaiting data — tasks will appear here once added.
+              </div>
+            )}
+            {[].slice(0, business.openTasks > 3 ? 4 : business.openTasks).map((task: { label: string; due: string; priority: string }, i: number) => (
               <div
                 key={i}
                 style={{
@@ -198,31 +197,20 @@ function OverviewTab({ business }: { business: Business }) {
           Upcoming Meetings
         </div>
         <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-          {[
-            { title: 'Monthly strategy review', with: 'Emeka Obi', date: 'Aug 1, 2026', time: '10:00 AM' },
-            { title: 'Campaign performance debrief', with: 'CoLab Team', date: 'Aug 4, 2026', time: '2:00 PM' },
-            { title: 'Onboarding call – Atlas Freight', with: 'Sipho Khumalo', date: 'Aug 6, 2026', time: '11:30 AM' },
-          ].map((m, i) => (
-            <div
-              key={i}
-              style={{
-                background: 'var(--secondary)',
-                border: '1px solid var(--border)',
-                borderRadius: 3,
-                padding: '14px 16px',
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', marginBottom: 6 }}>{m.title}</div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
-                <Users size={11} color="var(--muted-foreground)" />
-                <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{m.with}</span>
-              </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <Calendar size={11} color="var(--accent)" />
-                <span style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--accent)' }}>{m.date} · {m.time}</span>
-              </div>
-            </div>
-          ))}
+          <div
+            style={{
+              gridColumn: '1 / -1',
+              background: 'var(--secondary)',
+              border: '1px dashed var(--border)',
+              borderRadius: 3,
+              padding: '32px 20px',
+              textAlign: 'center',
+              color: 'var(--muted-foreground)',
+              fontSize: 13,
+            }}
+          >
+            Awaiting data — meetings will appear here once scheduled.
+          </div>
         </div>
       </div>
     </div>
@@ -268,6 +256,11 @@ function CRMTab() {
       <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 2 }}>
         {/* Client list */}
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
+          {clients.length === 0 && (
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
+              Awaiting data — clients will appear here once added.
+            </div>
+          )}
           {clients.map((client) => (
             <div
               key={client.id}
@@ -437,11 +430,11 @@ function CRMTab() {
 // ─── Pipeline (sales kanban) ──────────────────────────────────────────────────
 
 const KANBAN_STAGES = [
-  { id: 'lead', label: 'New Lead', color: '#6B7E99', cards: [{ title: 'Royale Hair Salon', value: 180_000, contact: 'Tola Ade', daysInStage: 2 }] },
-  { id: 'qualified', label: 'Qualified', color: '#F5A623', cards: [{ title: 'Bright Minds Academy', value: 420_000, contact: 'Ngozi Eze', daysInStage: 5 }] },
-  { id: 'proposal', label: 'Proposal', color: '#C2A77D', cards: [{ title: 'SwiftShip Ltd', value: 840_000, contact: 'Emeka Obi', daysInStage: 3 }] },
-  { id: 'negotiation', label: 'Negotiating', color: '#7B8FFF', cards: [{ title: 'Zara Wholesale', value: 490_000, contact: 'Fatima Bello', daysInStage: 8 }] },
-  { id: 'closed', label: 'Closed Won', color: '#1EFFA8', cards: [{ title: 'BuildRight Construction', value: 220_000, contact: 'Kofi Mensah', daysInStage: 1 }] },
+  { id: 'lead', label: 'New Lead', color: '#6B7E99', cards: [] },
+  { id: 'qualified', label: 'Qualified', color: '#F5A623', cards: [] },
+  { id: 'proposal', label: 'Proposal', color: '#C2A77D', cards: [] },
+  { id: 'negotiation', label: 'Negotiating', color: '#7B8FFF', cards: [] },
+  { id: 'closed', label: 'Closed Won', color: '#1EFFA8', cards: [] },
 ]
 
 function PipelineTab() {
@@ -543,11 +536,11 @@ function PipelineTab() {
 // ─── Social ───────────────────────────────────────────────────────────────────
 
 const CONTENT_CALENDAR = [
-  { date: 'Mon Jul 28', posts: [{ platform: 'Instagram', caption: 'Client success spotlight — 40% growth in 90 days.', status: 'published' }] },
-  { date: 'Tue Jul 29', posts: [{ platform: 'Facebook', caption: 'Behind the scenes: our process for launching a new business.', status: 'published' }] },
-  { date: 'Wed Jul 30', posts: [{ platform: 'Instagram', caption: 'Tips for managing client relationships as an agency.', status: 'scheduled' }, { platform: 'TikTok', caption: '1-minute agency hack that saves 3 hours a week.', status: 'draft' }] },
+  { date: 'Mon Jul 28', posts: [] },
+  { date: 'Tue Jul 29', posts: [] },
+  { date: 'Wed Jul 30', posts: [] },
   { date: 'Thu Jul 31', posts: [] },
-  { date: 'Fri Aug 1', posts: [{ platform: 'LinkedIn', caption: 'Agency growth report: Q2 highlights.', status: 'scheduled' }] },
+  { date: 'Fri Aug 1', posts: [] },
 ]
 
 const STATUS_STYLES: Record<string, { color: string; bg: string }> = {
@@ -711,13 +704,7 @@ function SocialTab({ business }: { business: Business }) {
 
 // ─── Finance ──────────────────────────────────────────────────────────────────
 
-const invoices = [
-  { id: 'INV-0051', client: 'SwiftShip Ltd', amount: 480_000, status: 'paid', issued: '2026-07-01', due: '2026-07-15' },
-  { id: 'INV-0050', client: 'Zara Wholesale', amount: 240_000, status: 'paid', issued: '2026-07-01', due: '2026-07-15' },
-  { id: 'INV-0049', client: 'BuildRight Construction', amount: 120_000, status: 'overdue', issued: '2026-06-20', due: '2026-07-05' },
-  { id: 'INV-0048', client: 'Sahel Medics', amount: 180_000, status: 'draft', issued: '2026-07-28', due: '2026-08-12' },
-  { id: 'INV-0047', client: 'Emeka Obi', amount: 84_000, status: 'pending', issued: '2026-07-15', due: '2026-07-30' },
-]
+const invoices = []
 
 const INV_STYLES: Record<string, { color: string; bg: string }> = {
   paid: { color: 'var(--accent)', bg: 'rgba(5,150,105,0.1)' },
@@ -732,8 +719,8 @@ function FinanceTab({ business }: { business: Business }) {
       {/* Finance summary */}
       <div className="summary-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
         <MetricCard label="Revenue (MTD)" value={formatCurrency(business.revenue)} change={business.revenueChange} accent="var(--primary)" />
-        <MetricCard label="Outstanding" value={formatCurrency(264_000)} accent="var(--warning)" />
-        <MetricCard label="Overdue" value={formatCurrency(120_000)} accent="var(--danger)" />
+        <MetricCard label="Outstanding" value={formatCurrency(0)} accent="var(--warning)" />
+        <MetricCard label="Overdue" value={formatCurrency(0)} accent="var(--danger)" />
       </div>
 
       {/* Revenue trend */}
@@ -777,6 +764,11 @@ function FinanceTab({ business }: { business: Business }) {
             <div key={h} style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>{h}</div>
           ))}
         </div>
+        {invoices.length === 0 && (
+          <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
+            Awaiting data — invoices will appear here once issued.
+          </div>
+        )}
         {invoices.map((inv) => (
           <div
             key={inv.id}
@@ -863,7 +855,9 @@ export default function BusinessView({ business, onBack }: BusinessProps) {
             {business.name}
           </div>
           <div className="hide-mobile" style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginTop: 2 }}>
-            {business.industry} · {business.city}, {business.country} · Owner: {business.owner}
+            {business.industry}
+            {business.city || business.country ? ` · ${[business.city, business.country].filter(Boolean).join(', ')}` : ''}
+            {business.owner ? ` · Owner: ${business.owner}` : ''}
           </div>
         </div>
 
