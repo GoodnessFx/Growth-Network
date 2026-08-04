@@ -20,13 +20,14 @@ import {
   Link2,
   Activity,
   FileText,
+  CalendarDays,
 } from 'lucide-react'
 import { alerts } from '../data/mockData'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useAuth } from '../lib/AuthContext'
 
 type Page = 'landing' | 'login' | 'operator' | 'business' | 'analytics'
-type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics' | 'results'
+type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics' | 'results' | 'content'
 
 interface AppLayoutProps {
   page: Page
@@ -48,7 +49,12 @@ const navItems: { id: OperatorTab; label: string; icon: React.ElementType }[] = 
   { id: 'connections', label: 'Connections', icon: Link2 },
   { id: 'analytics', label: 'Analytics', icon: Activity },
   { id: 'results', label: 'Results', icon: FileText },
+  { id: 'content', label: 'Content Calendar', icon: CalendarDays },
 ]
+
+// Owner-only tabs. Content calendar is gated server-side too (requireOwner);
+// hiding the nav item for non-owners is the client-side half.
+const OWNER_ONLY_TABS: OperatorTab[] = ['content']
 
 export default function AppLayout({
   page,
@@ -64,6 +70,9 @@ export default function AppLayout({
   const isMobile = useIsMobile()
   const { user } = useAuth()
   const unreadAlerts = alerts.filter((a) => !a.read).length
+
+  const isOwner = user?.role === 'owner' || user?.role === 'admin'
+  const visibleNavItems = isOwner ? navItems : navItems.filter((n) => !OWNER_ONLY_TABS.includes(n.id))
 
   const displayName = user?.name ?? 'Operator'
   const initials =
@@ -181,7 +190,7 @@ export default function AppLayout({
                 {!collapsed && 'All Businesses'}
               </button>
             </>
-          ) : (            navItems.map((item) => {
+          ) : (            visibleNavItems.map((item) => {
               const active = operatorTab === item.id
               return (
                 <button
@@ -374,7 +383,7 @@ export default function AppLayout({
                 className="font-display"
                 style={{ fontSize: 20, fontWeight: 700, letterSpacing: 0.5, color: 'var(--foreground)' }}
               >
-                {navItems.find((n) => n.id === operatorTab)?.label ?? 'Dashboard'}
+                {visibleNavItems.find((n) => n.id === operatorTab)?.label ?? 'Dashboard'}
               </span>
             )}
           </div>

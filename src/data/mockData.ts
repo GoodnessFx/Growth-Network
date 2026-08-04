@@ -59,6 +59,20 @@ export interface Alert {
   read: boolean
 }
 
+export interface Prospect {
+  name: string
+  city: string
+  value: number
+  contact: string
+}
+
+export interface PipelineStage {
+  id: string
+  label: string
+  color: string
+  prospects: Prospect[]
+}
+
 const ZERO_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const zeroMonthly = ZERO_MONTHS.map((month) => ({ month, revenue: 0, clients: 0 }))
 
@@ -159,7 +173,7 @@ export const campaigns: Campaign[] = []
 
 export const alerts: Alert[] = []
 
-export const pipelineStages = [
+export const pipelineStages: PipelineStage[] = [
   {
     id: 'prospect',
     label: 'Prospect',

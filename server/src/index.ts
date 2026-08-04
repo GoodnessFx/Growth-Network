@@ -14,6 +14,7 @@ import { automations } from "./routes/automations.js"
 import { exportTrade } from "./routes/export-trade.js"
 import { publicApi } from "./routes/public.js"
 import { audit } from "./routes/audit.js"
+import { contentCalendar } from "./routes/content-calendar.js"
 import { processScheduledAutomations } from "./services/automations.js"
 
 const app = new Hono()
@@ -76,6 +77,9 @@ app.route("/api/export-trade", exportTrade)
 
 app.use("/api/audit/*", authMiddleware, requireOwner)
 app.route("/api/audit", audit)
+
+app.use("/api/content-calendar/*", authMiddleware, tenantMiddleware, requireOwner)
+app.route("/api/content-calendar", contentCalendar)
 
 const PORT = parseInt(process.env.PORT || "3001")
 

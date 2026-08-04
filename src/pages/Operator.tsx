@@ -38,11 +38,12 @@ import { MiniSparkline, ComparisonChart, RevenueChart, AdFunnel } from '../compo
 import ConnectionsView from '../components/ConnectionsView'
 import AnalyticsView from '../components/AnalyticsView'
 import ResultsView from '../components/ResultsView'
+import ContentCalendarView from '../components/ContentCalendarView'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { type ApiBusiness, fetchBusinesses, createBusiness, updateBusinessVisibility } from '../lib/api'
 import { useAuth } from '../lib/AuthContext'
 
-type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics' | 'results'
+type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics' | 'results' | 'content'
 
 interface OperatorProps {
   tab: OperatorTab
@@ -837,7 +838,7 @@ function CompareView() {
 
 // ─── Inbox ────────────────────────────────────────────────────────────────────
 
-const inboxMessages = []
+const inboxMessages: Array<{ id: number; from: string; platform: string; business: string; message: string; time: string; unread: boolean }> = []
 
 const PLATFORM_COLORS: Record<string, string> = {
   Instagram: '#E1306C',
@@ -1292,4 +1293,5 @@ export default function Operator({ tab, onSelectBusiness, onRequireAuth, autoOpe
   if (tab === 'connections') return <ConnectionsView />
   if (tab === 'analytics') return <AnalyticsView />
   if (tab === 'results') return <ResultsView />
+  if (tab === 'content') return <ContentCalendarView />
 }

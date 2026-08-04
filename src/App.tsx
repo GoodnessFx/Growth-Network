@@ -19,6 +19,7 @@ type OperatorTab =
   | 'connections'
   | 'analytics'
   | 'results'
+  | 'content'
 
 function AppInner() {
   const { user, loading, logout } = useAuth()

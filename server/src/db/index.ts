@@ -58,6 +58,12 @@ function migrate(db: Database.Database): void {
       db.exec("ALTER TABLE businesses ADD COLUMN visible INTEGER NOT NULL DEFAULT 1")
     } catch {}
   }
+
+  // Roles were historically 'operator' (non-owner, limited scope). Normalize
+  // them to 'client' so the access model is explicit: owner/admin vs client.
+  try {
+    db.exec("UPDATE users SET role = 'client' WHERE role = 'operator'")
+  } catch {}
 }
 
 export function closeDb(): void {

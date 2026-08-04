@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'operator',
+  role TEXT NOT NULL DEFAULT 'client',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -207,6 +207,23 @@ CREATE TABLE IF NOT EXISTS reports (
   generated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS content_calendar (
+  id TEXT PRIMARY KEY,
+  business_id TEXT NOT NULL REFERENCES businesses(id),
+  scheduled_date TEXT NOT NULL,
+  slot INTEGER NOT NULL,
+  platform TEXT NOT NULL,
+  title TEXT,
+  body TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  is_ai_generated INTEGER NOT NULL DEFAULT 1,
+  source TEXT NOT NULL DEFAULT 'ai',
+  content_hash TEXT NOT NULL,
+  edited_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (business_id, scheduled_date, slot)
+);
+
 CREATE INDEX IF NOT EXISTS idx_businesses_owner ON businesses(owner_id);
 CREATE INDEX IF NOT EXISTS idx_contacts_business ON contacts(business_id);
 CREATE INDEX IF NOT EXISTS idx_deals_business ON deals(business_id);
@@ -222,4 +239,7 @@ CREATE INDEX IF NOT EXISTS idx_shipments_business ON export_shipments(business_i
 CREATE INDEX IF NOT EXISTS idx_response_times_business ON response_times(business_id);
 CREATE INDEX IF NOT EXISTS idx_follow_ups_scheduled ON follow_ups(scheduled_for);
 CREATE INDEX IF NOT EXISTS idx_reports_business ON reports(business_id);
+CREATE INDEX IF NOT EXISTS idx_calendar_business ON content_calendar(business_id);
+CREATE INDEX IF NOT EXISTS idx_calendar_date ON content_calendar(scheduled_date);
+CREATE INDEX IF NOT EXISTS idx_calendar_hash ON content_calendar(content_hash);
 `

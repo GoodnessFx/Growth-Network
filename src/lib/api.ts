@@ -280,3 +280,82 @@ export function fetchSeo(businessId: string): Promise<{ connected: boolean; demo
 export function fetchTrackingSnippet(businessId: string): Promise<{ snippet: string; businessId: string }> {
   return apiFetch<{ snippet: string; businessId: string }>(`/tracking/snippet/${encodeURIComponent(businessId)}`)
 }
+
+// ─── Content calendar (owner-only) ───────────────────────────────────────────
+
+export interface CalendarEntry {
+  id: string
+  business_id: string
+  scheduled_date: string
+  slot: number
+  platform: string
+  title: string | null
+  body: string
+  status: string
+  is_ai_generated: number
+  source: string
+  content_hash: string
+  created_at: string
+}
+
+export interface CalendarCoverage {
+  id: string
+  name: string
+  filledDays: number
+  totalDays: number
+  filledSlots: number
+  slotsPerDay: number
+}
+
+export function fetchCalendarEntries(params?: {
+  businessId?: string
+  from?: string
+  to?: string
+  status?: string
+}): Promise<{ entries: CalendarEntry[] }> {
+  const q = new URLSearchParams()
+  if (params?.businessId) q.set("businessId", params.businessId)
+  if (params?.from) q.set("from", params.from)
+  if (params?.to) q.set("to", params.to)
+  if (params?.status) q.set("status", params.status)
+  const qs = q.toString()
+  return apiFetch<{ entries: CalendarEntry[] }>(`/content-calendar${qs ? `?${qs}` : ""}`)
+}
+
+export function fetchCalendarCoverage(): Promise<{ coverage: CalendarCoverage[]; startDate: string; endDate: string }> {
+  return apiFetch<{ coverage: CalendarCoverage[]; startDate: string; endDate: string }>("/content-calendar/coverage")
+}
+
+export function generateCalendar(
+  businessId: string,
+  days?: number,
+  startDate?: string,
+): Promise<{ created: number; skippedExisting: number; failed: number; startDate: string; days: number }> {
+  return apiFetch<{ created: number; skippedExisting: number; failed: number; startDate: string; days: number }>(
+    "/content-calendar/generate",
+    {
+      method: "POST",
+      body: JSON.stringify({ businessId, days, startDate }),
+    },
+  )
+}
+
+export function updateCalendarEntry(
+  id: string,
+  patch: { title?: string; body?: string; status?: string },
+): Promise<{ entry: CalendarEntry }> {
+  return apiFetch<{ entry: CalendarEntry }>(`/content-calendar/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  })
+}
+
+export function approveCalendarEntry(id: string): Promise<{ success: boolean; status: string }> {
+  return apiFetch<{ success: boolean; status: string }>(`/content-calendar/${encodeURIComponent(id)}/approve`, {
+    method: "POST",
+  })
+}
+
+export function deleteCalendarEntry(id: string): Promise<{ success: boolean }> {
+  return apiFetch<{ success: boolean }>(`/content-calendar/${encodeURIComponent(id)}`, { method: "DELETE" })
+}

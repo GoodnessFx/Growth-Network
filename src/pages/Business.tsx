@@ -429,7 +429,21 @@ function CRMTab() {
 
 // ─── Pipeline (sales kanban) ──────────────────────────────────────────────────
 
-const KANBAN_STAGES = [
+interface KanbanCard {
+  title: string
+  contact: string
+  value: number
+  daysInStage: number
+}
+
+interface KanbanStage {
+  id: string
+  label: string
+  color: string
+  cards: KanbanCard[]
+}
+
+const KANBAN_STAGES: KanbanStage[] = [
   { id: 'lead', label: 'New Lead', color: '#6B7E99', cards: [] },
   { id: 'qualified', label: 'Qualified', color: '#F5A623', cards: [] },
   { id: 'proposal', label: 'Proposal', color: '#C2A77D', cards: [] },
@@ -535,7 +549,18 @@ function PipelineTab() {
 
 // ─── Social ───────────────────────────────────────────────────────────────────
 
-const CONTENT_CALENDAR = [
+interface CalendarDayPost {
+  platform: string
+  caption: string
+  status: string
+}
+
+interface CalendarDay {
+  date: string
+  posts: CalendarDayPost[]
+}
+
+const CONTENT_CALENDAR: CalendarDay[] = [
   { date: 'Mon Jul 28', posts: [] },
   { date: 'Tue Jul 29', posts: [] },
   { date: 'Wed Jul 30', posts: [] },
@@ -704,7 +729,17 @@ function SocialTab({ business }: { business: Business }) {
 
 // ─── Finance ──────────────────────────────────────────────────────────────────
 
-const invoices = []
+interface Invoice {
+  id: string
+  number: string
+  client: string
+  amount: number
+  issued: string
+  due: string
+  status: string
+}
+
+const invoices: Invoice[] = []
 
 const INV_STYLES: Record<string, { color: string; bg: string }> = {
   paid: { color: 'var(--accent)', bg: 'rgba(5,150,105,0.1)' },

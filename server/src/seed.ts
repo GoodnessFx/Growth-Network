@@ -18,7 +18,14 @@ import bcrypt from "bcryptjs"
 
 const OWNER_EMAIL = process.env.OWNER_EMAIL || "founder@growthnetwork.app"
 const OWNER_NAME = process.env.OWNER_NAME || "Iyamah Goodness"
-const OWNER_PASSWORD = process.env.OWNER_PASSWORD || "Founder123!"
+const OWNER_PASSWORD = process.env.OWNER_PASSWORD
+
+if (!OWNER_PASSWORD) {
+  console.error(
+    "[seed] OWNER_PASSWORD is not set. Set OWNER_PASSWORD (strong, unique) in your environment before seeding — it is never committed to the repo.",
+  )
+  process.exit(1)
+}
 
 // Business IDs are stable so API consumers (e.g. the export-trade shipment
 // feature) can rely on them. a98c48ec-... is the Export Trade business wired
@@ -64,6 +71,7 @@ const CONTENT_TABLES: Array<[string, string]> = [
   ["export_shipments", "business_id"],
   ["response_times", "business_id"],
   ["reports", "business_id"],
+  ["content_calendar", "business_id"],
 ]
 
 const db = getDb()
