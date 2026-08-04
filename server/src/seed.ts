@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { getDb, closeDb } from "./db/index.js"
 import { v4 as uuid } from "uuid"
 import bcrypt from "bcryptjs"
@@ -87,8 +88,12 @@ if (!ownerId) {
   )
   console.log(`[seed] Created owner ${OWNER_EMAIL}`)
 } else {
-  db.prepare("UPDATE users SET role = 'owner', name = ? WHERE id = ?").run(OWNER_NAME, ownerId)
-  console.log(`[seed] Owner ${OWNER_EMAIL} already exists - ensured role 'owner'`)
+  db.prepare("UPDATE users SET role = 'owner', name = ?, password_hash = ? WHERE id = ?").run(
+    OWNER_NAME,
+    await bcrypt.hash(OWNER_PASSWORD, 10),
+    ownerId,
+  )
+  console.log(`[seed] Owner ${OWNER_EMAIL} exists - ensured role 'owner' and refreshed password from OWNER_PASSWORD`)
 }
 
 const finalOwner = db.prepare("SELECT id FROM users WHERE email = ?").get(OWNER_EMAIL) as { id: string }
