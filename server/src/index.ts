@@ -16,6 +16,8 @@ import { exportTrade } from "./routes/export-trade.js"
 import { publicApi } from "./routes/public.js"
 import { audit } from "./routes/audit.js"
 import { contentCalendar } from "./routes/content-calendar.js"
+import { assets } from "./routes/assets.js"
+import { reviewQueue } from "./routes/review-queue.js"
 import { processScheduledAutomations } from "./services/automations.js"
 
 const app = new Hono()
@@ -81,6 +83,20 @@ app.route("/api/audit", audit)
 
 app.use("/api/content-calendar/*", authMiddleware, tenantMiddleware, requireOwner)
 app.route("/api/content-calendar", contentCalendar)
+
+// Asset storage: authenticated list/upload/delete, but file streaming must stay
+// public so <img> tags and platform embed links work without a Bearer header.
+const guardAssets = async (c: import("hono").Context, next: import("hono").Next) => {
+  if (c.req.path.startsWith("/api/assets/file/")) return next()
+  return authMiddleware(c, async () => {
+    await tenantMiddleware(c, next)
+  })
+}
+app.use("/api/assets/*", guardAssets)
+app.route("/api/assets", assets)
+
+app.use("/api/review-queue/*", authMiddleware, tenantMiddleware)
+app.route("/api/review-queue", reviewQueue)
 
 const PORT = parseInt(process.env.PORT || "3001")
 

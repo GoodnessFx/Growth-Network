@@ -3,6 +3,7 @@ import { getDb } from "../db/index.js"
 import { v4 as uuid } from "uuid"
 import { recordAudit } from "../middleware/audit.js"
 import { requireOwner } from "../middleware/auth.js"
+import { storage } from "../services/storage.js"
 
 const businesses = new Hono()
 
@@ -194,7 +195,11 @@ businesses.get("/:id/snapshot-draft", requireOwner, (c) => {
   return c.json({ draft, dataSources, suggested: true })
 })
 
-businesses.delete("/:id", requireOwner, (c) => {
+// Offboarding: permanently delete a business and every piece of its data —
+// connections (tokens), posts, calendar, ads, analytics, messages, assets
+// (including the stored files on disk/R2). Runs in one transaction so a partial
+// failure never leaves a half-deleted tenant behind.
+businesses.delete("/:id", requireOwner, async (c) => {
   const db = getDb()
   const existing = db.prepare("SELECT * FROM businesses WHERE id = ?").get(c.req.param("id"))
   if (!existing) {
@@ -202,9 +207,48 @@ businesses.delete("/:id", requireOwner, (c) => {
     return c.json({ error: "Business not found" })
   }
 
-  db.prepare("DELETE FROM businesses WHERE id = ?").run(c.req.param("id"))
-  recordAudit(c, "delete", "business", c.req.param("id"))
-  return c.json({ success: true })
+  // Remove stored asset objects first (best-effort per object) so the DB rows
+  // and the files go together.
+  const assets = db.prepare("SELECT id, file_url FROM assets WHERE business_id = ?").all(c.req.param("id")) as Array<{
+    id: string
+    file_url: string
+  }>
+
+  db.transaction(() => {
+    for (const table of [
+      "social_posts",
+      "social_connections",
+      "content_calendar",
+      "ad_campaigns",
+      "tracking_events",
+      "automation_rules",
+      "whatsapp_messages",
+      "contacts",
+      "deals",
+      "export_shipments",
+      "response_times",
+      "follow_ups",
+      "reports",
+      "audit_logs",
+      "error_logs",
+      "assets",
+    ]) {
+      try {
+        db.prepare(`DELETE FROM ${table} WHERE business_id = ?`).run(c.req.param("id"))
+      } catch {}
+    }
+    db.prepare("DELETE FROM businesses WHERE id = ?").run(c.req.param("id"))
+  })()
+
+  for (const a of assets) {
+    const key = a.file_url.replace(/^\/api\/assets\/file\//, "")
+    if (key && key.startsWith("businesses/")) {
+      await storage.delete(decodeURIComponent(key)).catch(() => {})
+    }
+  }
+
+  recordAudit(c, "offboard", "business", c.req.param("id"), { name: (existing as { name: string }).name, assetsRemoved: assets.length })
+  return c.json({ success: true, assetsRemoved: assets.length })
 })
 
 export { businesses }

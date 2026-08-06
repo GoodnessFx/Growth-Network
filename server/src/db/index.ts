@@ -59,6 +59,29 @@ function migrate(db: Database.Database): void {
     } catch {}
   }
 
+  const calCols = db.pragma("table_info(content_calendar)") as Array<{ name: string }>
+  const calNames = new Set(calCols.map((c) => c.name))
+  if (!calNames.has("media_asset_id")) {
+    try {
+      db.exec("ALTER TABLE content_calendar ADD COLUMN media_asset_id TEXT")
+    } catch {}
+  }
+  if (!calNames.has("publish_status")) {
+    try {
+      db.exec("ALTER TABLE content_calendar ADD COLUMN publish_status TEXT NOT NULL DEFAULT 'pending'")
+    } catch {}
+  }
+  if (!calNames.has("published_at")) {
+    try {
+      db.exec("ALTER TABLE content_calendar ADD COLUMN published_at TEXT")
+    } catch {}
+  }
+  if (!calNames.has("publish_error")) {
+    try {
+      db.exec("ALTER TABLE content_calendar ADD COLUMN publish_error TEXT")
+    } catch {}
+  }
+
   // Roles were historically 'operator' (non-owner, limited scope). Normalize
   // them to 'client' so the access model is explicit: owner/admin vs client.
   try {

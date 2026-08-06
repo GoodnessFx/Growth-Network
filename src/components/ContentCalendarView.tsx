@@ -8,9 +8,14 @@ import {
   X,
   RefreshCw,
   AlertTriangle,
+  Send,
+  Clock,
+  Image as ImageIcon,
+  FileIcon,
 } from 'lucide-react'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useAuth } from '../lib/AuthContext'
+import AssetLibrary from './AssetLibrary'
 import {
   fetchBusinesses,
   fetchCalendarEntries,
@@ -19,9 +24,15 @@ import {
   updateCalendarEntry,
   approveCalendarEntry,
   deleteCalendarEntry,
+  fetchReviewQueue,
+  editQueueEntry,
+  publishQueueEntry,
+  fetchAssets,
   type ApiBusiness,
   type CalendarEntry,
   type CalendarCoverage,
+  type QueueEntry,
+  type Asset,
 } from '../lib/api'
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -202,6 +213,340 @@ function EntryModal({
   )
 }
 
+function FileIconBox() {
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)' }}>
+      <FileIcon size={18} color="var(--muted-foreground)" />
+    </div>
+  )
+}
+
+function fmtTime(date: string): string {  const d = new Date(date.includes('T') ? date : `${date}T00:00:00`)
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
+const PUBLISH_STYLES: Record<string, { color: string; bg: string; label: string }> = {
+  pending: { color: 'var(--warning)', bg: 'rgba(245,158,11,0.1)', label: 'Awaiting review' },
+  in_flight: { color: 'var(--primary)', bg: 'rgba(59,130,246,0.1)', label: 'Posting…' },
+  published: { color: 'var(--accent)', bg: 'rgba(5,150,105,0.1)', label: 'Published' },
+  failed: { color: 'var(--danger)', bg: 'rgba(239,68,68,0.1)', label: 'Failed' },
+}
+
+function ReviewQueuePanel({ bizId }: { bizId: string }) {
+  const [entries, setEntries] = useState<QueueEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [publishingId, setPublishingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editBody, setEditBody] = useState('')
+  const [editTitle, setEditTitle] = useState('')
+  const [editAssetId, setEditAssetId] = useState<string | null>(null)
+  const [editAssets, setEditAssets] = useState<Asset[]>([])
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [editError, setEditError] = useState('')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetchReviewQueue({ businessId: bizId || undefined })
+      setEntries(res.entries)
+    } catch {
+      // The main view handles its own errors; the queue degrades quietly.
+    } finally {
+      setLoading(false)
+    }
+  }, [bizId])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const publish = async (id: string) => {
+    if (publishingId) return
+    setPublishingId(id)
+    try {
+      const res = await publishQueueEntry(id)
+      if (!res.success) {
+        setEntries((prev) =>
+          prev.map((e) =>
+            e.id === id ? { ...e, publish_status: 'failed', publish_error: res.publishError ?? 'Publish failed' } : e,
+          ),
+        )
+      } else {
+        setEntries((prev) =>
+          prev.map((e) =>
+            e.id === id
+              ? { ...e, publish_status: 'published', publish_error: null, published_at: new Date().toISOString() }
+              : e,
+          ),
+        )
+      }
+      await load()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Publish failed'
+      setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, publish_status: 'failed', publish_error: msg } : e)))
+    } finally {
+      setPublishingId(null)
+    }
+  }
+
+  const startEdit = async (e: QueueEntry) => {
+    setEditingId(e.id)
+    setEditBody(e.body)
+    setEditTitle(e.title ?? '')
+    setEditAssetId(e.media_asset_id)
+    setEditAssets([])
+    setEditError('')
+    try {
+      const res = await fetchAssets(e.business_id)
+      setEditAssets(res.assets)
+    } catch {
+      // asset picker is optional; degrade to text-only editing
+    }
+  }
+
+  const saveEdit = async () => {
+    if (!editingId) return
+    if (!editBody.trim()) {
+      setEditError('Content cannot be empty.')
+      return
+    }
+    setSavingEdit(true)
+    setEditError('')
+    try {
+      await editQueueEntry(editingId, {
+        title: editTitle.trim() || undefined,
+        body: editBody,
+        mediaAssetId: editAssetId ?? null,
+      })
+      setEditingId(null)
+      await load()
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Could not save this entry.')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  const visible = entries.filter((e) => e.publish_status !== 'published')
+
+  return (
+    <div style={{ border: '1px solid var(--border)', borderRadius: 3, background: 'var(--card)', marginBottom: 24, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <span style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>
+          Approval Queue
+        </span>
+        <span style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--warning)' }}>
+          {loading ? '…' : `${visible.length} awaiting ${bizId ? 'this business' : 'review'}`}
+        </span>
+      </div>
+
+      {loading ? (
+        <div style={{ padding: '20px', fontSize: 13, color: 'var(--muted-foreground)' }}>Loading queue…</div>
+      ) : visible.length === 0 ? (
+        <div style={{ padding: '20px', fontSize: 13, color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Check size={14} color="var(--accent)" /> Nothing awaiting review — all clear.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12 }}>
+          {visible.map((entry) => {
+            const ps = PUBLISH_STYLES[entry.publish_status] ?? PUBLISH_STYLES.pending
+            const plColor = PLATFORM_COLORS[entry.platform] ?? 'var(--muted-foreground)'
+            const isEditing = editingId === entry.id
+            return (
+              <div
+                key={entry.id}
+                style={{
+                  background: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  borderLeft: `3px solid ${ps.color}`,
+                  borderRadius: 3,
+                  padding: 14,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', whiteSpace: 'nowrap' }}>
+                    {fmtDate(entry.scheduled_date)}
+                  </span>
+                  <span style={{ fontSize: 9, fontFamily: 'JetBrains Mono', background: plColor + '20', color: plColor, padding: '1px 6px', borderRadius: 2, letterSpacing: 0.5 }}>
+                    {PLATFORM_LABELS[entry.platform] ?? entry.platform}
+                  </span>
+                  <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    {entry.business_name}
+                  </span>
+                  <span style={{ fontSize: 9, fontFamily: 'JetBrains Mono', letterSpacing: 0.5, textTransform: 'uppercase', color: ps.color, background: ps.bg, padding: '1px 6px', borderRadius: 2 }}>
+                    {ps.label}
+                  </span>
+                </div>
+
+                {!isEditing ? (
+                  <>
+                    <div style={{ fontSize: 13, color: 'var(--foreground)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      {entry.body.length > 320 ? `${entry.body.slice(0, 320)}…` : entry.body}
+                    </div>
+
+                    {entry.publish_status === 'failed' && entry.publish_error && (
+                      <div style={{ marginTop: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 3, padding: '8px 12px', fontSize: 12, color: 'var(--danger)' }}>
+                        <AlertTriangle size={12} style={{ marginRight: 6, verticalAlign: -2 }} />
+                        {entry.publish_error}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                      {entry.publish_status === 'pending' || entry.publish_status === 'failed' ? (
+                        <>
+                          <button
+                            onClick={() => publish(entry.id)}
+                            disabled={publishingId !== null}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6,
+                              background: 'var(--primary)', border: 'none', color: '#FFFFFF',
+                              padding: '9px 16px', minHeight: 44, borderRadius: 3, fontSize: 12, fontWeight: 700,
+                              cursor: publishingId !== null ? 'wait' : 'pointer',
+                              fontFamily: 'Barlow Condensed', letterSpacing: 0.5,
+                            }}
+                          >
+                            <Send size={13} />
+                            {publishingId === entry.id ? 'POSTING…' : entry.publish_status === 'failed' ? 'RETRY POST' : 'APPROVE & POST'}
+                          </button>
+                          <button
+                            onClick={() => startEdit(entry)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6,
+                              background: 'transparent', border: '1px solid var(--border)', color: 'var(--foreground)',
+                              padding: '9px 16px', minHeight: 44, borderRadius: 3, fontSize: 12,
+                              cursor: 'pointer', fontFamily: 'Barlow Condensed', letterSpacing: 0.5,
+                            }}
+                          >
+                            <Pencil size={13} /> EDIT
+                          </button>
+                        </>
+                      ) : (
+                        entry.publish_status === 'in_flight' && (
+                          <button
+                            disabled
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6,
+                              background: 'rgba(59,130,246,0.1)', border: '1px solid var(--primary)', color: 'var(--primary)',
+                              padding: '9px 16px', minHeight: 44, borderRadius: 3, fontSize: 12, fontWeight: 700,
+                              cursor: 'wait', fontFamily: 'Barlow Condensed', letterSpacing: 0.5,
+                            }}
+                          >
+                            <Clock size={13} /> PUBLISHING…
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--foreground)', marginBottom: 4 }}>Headline (optional)</div>
+                    <input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="A short, factual hook"
+                      style={{ width: '100%', padding: '9px 12px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, fontSize: 13, color: 'var(--foreground)', outline: 'none', fontFamily: 'Outfit', marginBottom: 8 }}
+                    />
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--foreground)', marginBottom: 4 }}>Content *</div>
+                    <textarea
+                      value={editBody}
+                      onChange={(e) => setEditBody(e.target.value)}
+                      rows={5}
+                      style={{ width: '100%', padding: '9px 12px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, fontSize: 13, color: 'var(--foreground)', outline: 'none', fontFamily: 'Outfit', resize: 'vertical', lineHeight: 1.6 }}
+                    />
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <ImageIcon size={12} /> Attach an image
+                      </div>
+                      {editAssets.length === 0 ? (
+                        <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+                          No images in this business&apos;s library yet. Add some in the asset library below.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}>
+                          {editAssets.map((a) => {
+                            const active = editAssetId === a.id
+                            return (
+                              <button
+                                key={a.id}
+                                onClick={() => setEditAssetId(active ? null : a.id)}
+                                title={a.file_name}
+                                style={{
+                                  flexShrink: 0,
+                                  width: 64, height: 64,
+                                  borderRadius: 3,
+                                  overflow: 'hidden',
+                                  border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                  padding: 0,
+                                  cursor: 'pointer',
+                                  background: 'rgba(0,0,0,0.3)',
+                                  position: 'relative',
+                                }}
+                              >
+                                {a.mime_type?.startsWith('image/') ? (
+                                  <img src={a.file_url} alt={a.file_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                ) : (
+                                  <FileIconBox />
+                                )}
+                                {active && (
+                                  <span
+                                    style={{
+                                      position: 'absolute', top: 2, right: 2,
+                                      background: 'var(--primary)', color: '#fff',
+                                      borderRadius: 999, width: 16, height: 16,
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}
+                                  >
+                                    <Check size={10} />
+                                  </span>
+                                )}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    {editError && (
+                      <div style={{ marginTop: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 3, padding: '8px 12px', fontSize: 12, color: 'var(--danger)' }}>
+                        {editError}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                      <button
+                        onClick={saveEdit}
+                        disabled={savingEdit}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          background: 'var(--primary)', border: 'none', color: '#FFFFFF',
+                          padding: '9px 16px', minHeight: 44, borderRadius: 3, fontSize: 12, fontWeight: 700,
+                          cursor: savingEdit ? 'wait' : 'pointer',
+                          fontFamily: 'Barlow Condensed', letterSpacing: 0.5,
+                        }}
+                      >
+                        <Check size={13} /> {savingEdit ? 'SAVING…' : 'SAVE EDIT'}
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          background: 'transparent', border: '1px solid var(--border)', color: 'var(--foreground)',
+                          padding: '9px 16px', minHeight: 44, borderRadius: 3, fontSize: 12,
+                          cursor: 'pointer', fontFamily: 'Barlow Condensed', letterSpacing: 0.5,
+                        }}
+                      >
+                        <X size={13} /> CANCEL
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ContentCalendarView() {
   const { user } = useAuth()
   const isMobile = useIsMobile()
@@ -287,6 +632,10 @@ export default function ContentCalendarView() {
   return (
     <div className="page-pad" style={{ padding: 24 }}>
       <SectionHeader label="Content Calendar" />
+
+      <ReviewQueuePanel bizId={bizId} />
+
+      <AssetLibrary bizId={bizId} businesses={businesses} />
 
       {message && (
         <div

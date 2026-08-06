@@ -219,9 +219,35 @@ CREATE TABLE IF NOT EXISTS content_calendar (
   is_ai_generated INTEGER NOT NULL DEFAULT 1,
   source TEXT NOT NULL DEFAULT 'ai',
   content_hash TEXT NOT NULL,
+  media_asset_id TEXT,
+  publish_status TEXT NOT NULL DEFAULT 'pending',
+  published_at TEXT,
+  publish_error TEXT,
   edited_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE (business_id, scheduled_date, slot)
+);
+
+CREATE TABLE IF NOT EXISTS assets (
+  id TEXT PRIMARY KEY,
+  business_id TEXT NOT NULL REFERENCES businesses(id),
+  file_name TEXT NOT NULL,
+  file_url TEXT NOT NULL,
+  mime_type TEXT,
+  size INTEGER NOT NULL DEFAULT 0,
+  category TEXT NOT NULL DEFAULT 'post-image',
+  uploaded_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS error_logs (
+  id TEXT PRIMARY KEY,
+  business_id TEXT,
+  platform TEXT,
+  operation TEXT NOT NULL,
+  message TEXT NOT NULL,
+  details TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_businesses_owner ON businesses(owner_id);
@@ -242,4 +268,6 @@ CREATE INDEX IF NOT EXISTS idx_reports_business ON reports(business_id);
 CREATE INDEX IF NOT EXISTS idx_calendar_business ON content_calendar(business_id);
 CREATE INDEX IF NOT EXISTS idx_calendar_date ON content_calendar(scheduled_date);
 CREATE INDEX IF NOT EXISTS idx_calendar_hash ON content_calendar(content_hash);
+CREATE INDEX IF NOT EXISTS idx_assets_business ON assets(business_id);
+CREATE INDEX IF NOT EXISTS idx_errors_created ON error_logs(created_at);
 `
