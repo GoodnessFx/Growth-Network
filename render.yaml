@@ -13,9 +13,11 @@ services:
         value: production
       - key: PORT
         value: "3001"
-      - key: JWT_SECRET
+      # Supabase Google sign-in — the only identity system. Set in Render's
+      # dashboard (same project URL + anon key as the frontend).
+      - key: SUPABASE_URL
         sync: false
-      - key: OWNER_PASSWORD
+      - key: SUPABASE_ANON_KEY
         sync: false
       - key: DB_PATH
         value: /data/growth-network.db

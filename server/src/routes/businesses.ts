@@ -12,7 +12,7 @@ businesses.get("/", (c) => {
   const tenantIds = c.get("tenantIds") as string[] | null
   const db = getDb()
 
-  if (user.role === "admin") {
+  if (user.role === "admin" || user.role === "owner") {
     const rows = db.prepare("SELECT * FROM businesses ORDER BY created_at DESC").all()
     return c.json({ businesses: rows })
   }
@@ -39,7 +39,7 @@ businesses.get("/:id", (c) => {
     c.status(404)
     return c.json({ error: "Business not found" })
   }
-  if (user.role !== "admin" && row.owner_id !== user.id) {
+  if (user.role !== "admin" && user.role !== "owner" && row.owner_id !== user.id) {
     c.status(403)
     return c.json({ error: "You do not have access to this business" })
   }
@@ -124,7 +124,7 @@ businesses.post("/:id/snapshot", requireOwner, async (c) => {
     c.status(404)
     return c.json({ error: "Business not found" })
   }
-  if (user.role !== "admin" && existing.owner_id !== user.id) {
+  if (user.role !== "admin" && user.role !== "owner" && existing.owner_id !== user.id) {
     c.status(403)
     return c.json({ error: "You do not have access to this business" })
   }
@@ -164,7 +164,7 @@ businesses.get("/:id/snapshot-draft", requireOwner, (c) => {
     c.status(404)
     return c.json({ error: "Business not found" })
   }
-  if (user.role !== "admin" && existing.owner_id !== user.id) {
+  if (user.role !== "admin" && user.role !== "owner" && existing.owner_id !== user.id) {
     c.status(403)
     return c.json({ error: "You do not have access to this business" })
   }

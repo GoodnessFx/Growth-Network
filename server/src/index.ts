@@ -4,7 +4,6 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { authMiddleware, requireOwner } from "./middleware/auth.js"
 import { tenantMiddleware } from "./middleware/tenant.js"
-import { auth } from "./routes/auth.js"
 import { businesses } from "./routes/businesses.js"
 import { whatsapp } from "./routes/whatsapp.js"
 import { social } from "./routes/social.js"
@@ -50,8 +49,6 @@ app.use(
 )
 
 app.get("/api/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }))
-
-app.route("/api/auth", auth)
 
 app.use("/api/businesses/*", authMiddleware, tenantMiddleware)
 app.route("/api/businesses", businesses)

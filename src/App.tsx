@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Landing from './pages/Landing'
 import Auth from './pages/Auth'
 import Operator from './pages/Operator'
@@ -31,6 +31,15 @@ function AppInner() {
     const match = window.location.pathname.match(/^\/public\/([^/]+)/)
     return match ? decodeURIComponent(match[1]) : null
   })
+
+  // Google OAuth lands back on this origin after a full-page redirect. Supabase
+  // restores the session, onAuthStateChange fires, and we move from the login
+  // page into the dashboard automatically.
+  useEffect(() => {
+    if (user && page === 'login') {
+      setPage('operator')
+    }
+  }, [user, page])
 
   if (publicBusinessId) {
     return (
@@ -116,7 +125,6 @@ function AppInner() {
   if (page === 'login') {
     return (
       <Auth
-        onSuccess={() => setPage('operator')}
         onBack={() => {
           setPendingAddBusiness(false)
           setPage('landing')

@@ -82,11 +82,35 @@ function migrate(db: Database.Database): void {
     } catch {}
   }
 
-  // Roles were historically 'operator' (non-owner, limited scope). Normalize
-  // them to 'client' so the access model is explicit: owner/admin vs client.
-  try {
-    db.exec("UPDATE users SET role = 'client' WHERE role = 'operator'")
-  } catch {}
+  // Auth moved to Supabase (Google-only): the legacy `users` table with
+  // password hashes is gone. `businesses.owner_id` referenced users(id), so on
+  // databases created before the switch we rebuild the table without the FK and
+  // drop the users table. The new schema already defines owner_id as a plain
+  // nullable TEXT column for fresh databases.
+  const hasUsersTable = !!db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get()
+  if (hasUsersTable) {
+    db.pragma("foreign_keys = OFF")
+    db.exec(`
+      CREATE TABLE businesses_new (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        owner_id TEXT,
+        domain TEXT,
+        logo TEXT,
+        visible INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT INTO businesses_new SELECT id, name, type, status, owner_id, domain, logo, visible, created_at, updated_at FROM businesses;
+      DROP TABLE businesses;
+      ALTER TABLE businesses_new RENAME TO businesses;
+      DROP TABLE IF EXISTS users;
+    `)
+    db.pragma("foreign_keys = ON")
+    db.exec("CREATE INDEX IF NOT EXISTS idx_businesses_owner ON businesses(owner_id)")
+  }
 }
 
 export function closeDb(): void {

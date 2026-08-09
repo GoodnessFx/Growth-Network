@@ -186,6 +186,28 @@ body {
   padding: 48px;
 }
 
+/* Auth: refined sign-in card interactions (base styles live inline in Auth.tsx) */
+.auth-google-btn:hover:not(:disabled) {
+  background-color: #14613B;
+  border-color: #14613B;
+}
+.auth-google-btn:active:not(:disabled) {
+  background-color: #105232;
+  border-color: #105232;
+}
+.auth-google-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(27, 122, 74, 0.35);
+}
+.auth-back-link:hover {
+  color: var(--foreground);
+}
+.auth-back-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(27, 122, 74, 0.25);
+  border-radius: 6px;
+}
+
 /* Smooth transitions for interactive elements */
 button, a {
   transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;

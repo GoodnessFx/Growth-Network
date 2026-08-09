@@ -1,10 +1,10 @@
-const TOKEN_KEY = "gn_token"
+import { getAccessToken } from "./supabase"
 
 /**
  * API base URL. In dev, Vite proxies `/api/*` to the local backend, so the
  * relative default just works. In production, set VITE_API_URL to the deployed
  * API origin (e.g. https://growth-network-api.up.railway.app) — the trailing
- * /api is appended here so the rest of the code keeps calling "/auth/login".
+ * /api is appended here so callers keep using path-only routes.
  */
 const API_ORIGIN = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? ""
 const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api"
@@ -25,24 +25,10 @@ export class ApiError extends Error {
   }
 }
 
-export function getToken(): string | null {
-  try {
-    return localStorage.getItem(TOKEN_KEY)
-  } catch {
-    return null
-  }
-}
-
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token)
-}
-
-export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY)
-}
-
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = getToken()
+  // Auth is Supabase-only: the access token lives in the SDK's own session
+  // storage and is attached here as a Bearer token for the backend to verify.
+  const token = await getAccessToken()
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
@@ -63,22 +49,6 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
 
   return body as T
-}
-
-export interface AuthResponse {
-  token: string
-  user: AuthUser
-}
-
-export function login(email: string, password: string): Promise<AuthResponse> {
-  return apiFetch<AuthResponse>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  })
-}
-
-export function fetchMe(): Promise<{ user: AuthUser }> {
-  return apiFetch<{ user: AuthUser }>("/auth/me")
 }
 
 export interface ApiBusiness {
@@ -454,7 +424,7 @@ export function fetchAssets(businessId: string, category?: string): Promise<{ as
 }
 
 export async function uploadAsset(businessId: string, file: File, category = "post-image"): Promise<{ asset: Asset }> {
-  const token = getToken()
+  const token = await getAccessToken()
   const fd = new FormData()
   fd.append("file", file)
   fd.append("category", category)

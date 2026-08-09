@@ -17,11 +17,10 @@ cp .env.example .env
 # Start both frontend and backend
 pnpm dev:all          # backend on :3001, frontend on :8443
 
-# Seed the owner account and demo businesses
-# REQUIRED: OWNER_PASSWORD must be set, or the seed fails.
+# Seed the demo businesses (idempotent; no owner account — auth is Google-only)
 pnpm db:seed
 
-# Open http://localhost:8443 and sign in as the owner.
+# Open http://localhost:8443 and sign in with Google (owner access).
 ```
 
 Separately: `pnpm dev` (frontend only) or `pnpm dev:server` (backend only). The Vite dev server proxies `/api/*` to `:3001`.
@@ -47,15 +46,16 @@ Separately: `pnpm dev` (frontend only) or `pnpm dev:server` (backend only). The 
 
 ## Access Model
 
-Growth Network is a **single-owner showcase**. There is no public sign-up — no `POST /api/auth/register` route.
+Growth Network is a **single-owner showcase**. There is no public sign-up — the only identity system is **Google Sign-In via Supabase** (`supabase.auth.signInWithOAuth({ provider: 'google' })`).
 
-- **Roles:** `owner` (full control, including the content calendar), `admin`, `client`. The legacy `operator` role was renamed to `client`; existing rows are migrated on boot.
+- **No custom user database.** There is no `users` table and no email/password login. Supabase Auth is the single source of truth; `onAuthStateChange` keeps the app in sync and the SDK owns session storage (no `gn_token`-style localStorage).
+- **Google-only.** Any authenticated Supabase user is treated as the owner (full access). Roles (`owner`/`admin`/`client`) are kept as a server concept but always resolve to the owner for signed-in users.
 - **Anyone can view** the landing page's live portfolio and each business's public growth-snapshot poster (`/public/:id`) — no auth required.
 - **Only the owner can write.** Every write route (businesses, social publish, ads, automations, export-trade, audit, content calendar) is gated by the `requireOwner` middleware.
 - **Visibility control.** Each business has a `visible` flag: hidden businesses disappear from the public listing, the public poster returns 404, and the tracking snippet refuses to emit events.
 - **Tracking is secret-gated.** `POST /api/tracking/event` requires a per-install `TRACKING_SECRET`; events without it are rejected with 401.
 
-Reset to a clean owner state anytime with `pnpm db:seed` (idempotent — removes demo/test users and their data, then upserts the owner and demo businesses).
+Reset to a clean state anytime with `pnpm db:seed` (idempotent — upserts the demo businesses and clears content tables).
 
 ---
 
@@ -65,7 +65,7 @@ Copy `.env.example` to `.env` and fill in what you need. It is fully commented w
 
 | What you want | What you need | Where to get it |
 |---|---|---|
-| Owner password | `OWNER_PASSWORD` (**required for `pnpm db:seed`**; no default — the seed exits if unset) | Set it in `.env` |
+| Google sign-in | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (frontend) and `SUPABASE_URL` + `SUPABASE_ANON_KEY` (backend) | Supabase project → Settings → API. Google OAuth provider + Redirect URLs are configured in Supabase (Authentication → Providers / URL Configuration) |
 | WhatsApp Cloud API | Meta Business Verification + WABA + permanent token | [developers.facebook.com/docs/whatsapp/cloud-api/get-started](https://developers.facebook.com/docs/whatsapp/cloud-api/get-started) |
 | Meta Ads / Instagram / Facebook | Meta app (client ID + secret), long-lived token for fallback | [developers.facebook.com](https://developers.facebook.com) |
 | Google Ads / YouTube / Search Console / Business Profile | One Google OAuth app covering all four scopes | [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials) |
@@ -160,7 +160,7 @@ server/src/
 3. **YouTube uploads require an OAuth access token**; TikTok publishing requires a published video URL.
 4. **Real API verification needs credentials.** WhatsApp requires Meta Business Verification; Meta/LinkedIn/Snapchat/Google Ads require their developer approvals. Until then sections show explicit "not connected" states.
 5. **Charts load as one bundle** — no code-splitting yet (Vite warns the main chunk exceeds 500 kB).
-6. **localStorage tokens** — sessions live in localStorage; an httpOnly-cookie flow is future hardening (no CSRF middleware today, so cookies are not used).
+6. **Supabase-managed session storage** — the supabase-js SDK keeps sessions in localStorage (its default storage). An httpOnly-cookie flow is future hardening.
 7. **Search Console requires a verified property** in the queried Google Search Console account.
 8. **No server deploy target wired yet** — the frontend ships as static Vite output (`dist/`); the Hono API + SQLite backend needs a VPS/container target before the public showcase goes fully live.
 
