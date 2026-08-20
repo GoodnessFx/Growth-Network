@@ -8,8 +8,7 @@ const DEMO_REQUESTS = [
   { id: '2', title: 'Logo Redesign', category: 'design', description: 'Modernize our logo to better reflect the new brand direction we discussed.', status: 'scoping', created_at: '2026-08-05T14:30:00Z' },
   { id: '3', title: 'Email Drip Campaign', category: 'automation', description: 'Set up automated welcome sequence for new subscribers, 5 emails over 14 days.', status: 'completed', created_at: '2026-07-15T09:00:00Z' },
   { id: '4', title: 'Instagram Content Package', category: 'marketing', description: '30 branded posts with captions for the next month, aligned with our tone of voice.', status: 'in-progress', created_at: '2026-08-10T11:00:00Z' },
-  { id: '5', title: 'Inventory Dashboard', category: 'operations', description: 'Build a simple inventory tracker to replace our spreadsheet system.', status: 'scoping', created_at: '2026-08-12T16:00:00Z' },
-  { id: '6', title: 'AI Chatbot for Website', category: 'automation', description: 'Customer support chatbot trained on our FAQ and product catalog.', status: 'scoping', created_at: '2026-08-14T08:00:00Z' },
+  { id: '5', title: 'Custom CRM Integration', category: 'custom', description: 'Need a custom tool integrated with our current CRM to auto-fetch leads.', status: 'scoping', created_at: '2026-08-18T10:00:00Z' }
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -18,7 +17,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   automation: 'Automation & AI',
   operations: 'Business Operations',
   marketing: 'Growth & Marketing',
-  custom: 'Custom Request',
+  custom: 'Custom Tool Integration',
 }
 
 const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
@@ -33,53 +32,65 @@ export default function ServiceRequests({ business }: { business?: ApiBusiness }
   const [requests, setRequests] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
-  const [category, setCategory] = useState('software')
+  const [category, setCategory] = useState('custom')
   const [description, setDescription] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
-  const fetchRequests = async () => {
-    try {
+  useEffect(() => {
+    let active = true
+    const fetchRequests = async () => {
       setLoading(true)
       if (isSupabaseConfigured) {
-        let query = supabase.from('projects').select('*').order('created_at', { ascending: false })
-        if (business) {
-          query = query.eq('business_id', business.id)
-        }
-        const { data } = await query
-        if (data && data.length > 0) {
-          setRequests(data)
-        } else {
-          setRequests(DEMO_REQUESTS)
+        try {
+          let query = supabase.from('projects').select('*').order('created_at', { ascending: false })
+          if (business) query = query.eq('business_id', business.id)
+          const { data } = await query
+          if (!active) return
+          if (data && data.length > 0) setRequests(data)
+          else setRequests(DEMO_REQUESTS)
+        } catch {
+          if (active) setRequests(DEMO_REQUESTS)
         }
       } else {
         setRequests(DEMO_REQUESTS)
       }
-    } catch {
-      setRequests(DEMO_REQUESTS)
-    } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => {
+    
     fetchRequests()
+
+    let sub: any = null
+    if (isSupabaseConfigured && business) {
+      sub = supabase.channel('service-updates')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'projects', filter: `business_id=eq.${business.id}` }, () => fetchRequests())
+        .subscribe()
+    }
+
+    return () => {
+      active = false
+      if (sub) supabase.removeChannel(sub)
+    }
   }, [business])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title) return
 
     const newReq = {
-      id: `local-${Date.now()}`,
       business_id: business?.id || 'dummy-biz-1',
       title,
       category,
       description,
       status: 'scoping',
-      created_at: new Date().toISOString(),
     }
 
-    setRequests(prev => [newReq, ...prev])
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.from('projects').insert([newReq]).select()
+      if (data && !error) setRequests(prev => [data[0], ...prev])
+    } else {
+      setRequests(prev => [{ id: `local-${Date.now()}`, ...newReq, created_at: new Date().toISOString() }, ...prev])
+    }
+    
     setTitle('')
     setDescription('')
     setShowForm(false)
@@ -111,7 +122,7 @@ export default function ServiceRequests({ business }: { business?: ApiBusiness }
         </button>
       </div>
       <p style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 24 }}>
-        Submit and track service requests across all categories.
+        Submit and track service requests, including custom integrations and tools.
       </p>
 
       {/* New request form */}
@@ -124,7 +135,7 @@ export default function ServiceRequests({ business }: { business?: ApiBusiness }
               <input
                 value={title} onChange={e => setTitle(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 3, color: 'var(--foreground)' }}
-                placeholder="e.g. New Landing Page" required
+                placeholder="e.g. Custom CRM Integration" required
               />
             </div>
             <div>
