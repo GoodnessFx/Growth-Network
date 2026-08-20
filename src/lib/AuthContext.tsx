@@ -2,12 +2,12 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { supabase, isSupabaseConfigured } from "./supabase"
 import type { AuthUser } from "./api"
 
-// Dummy user for local development if needed
+// Dummy user for local development / demo access
 const DUMMY_USER: AuthUser = {
   id: "dummy-123",
-  email: "dummy@example.com",
-  name: "Dummy Client",
-  role: "client"
+  email: "demo@growthnetwork.io",
+  name: "Demo User",
+  role: "owner"
 }
 
 interface AuthContextValue {

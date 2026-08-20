@@ -151,7 +151,7 @@ function SectionHeader({ label, action }: { label: string; action?: React.ReactN
 function BusinessCard({ business, onClick }: { business: Business; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   const { businesses: allBiz } = useBusinesses()
-  const maxRevenue = allBiz.length > 0 ? Math.max(...allBiz.map((b) => b.revenue || 0)) : 0
+  const maxRevenue = allBiz.length > 0 ? Math.max(...allBiz.map((b: any) => b.revenue || 0)) : 0
 
   return (
     <div
@@ -724,7 +724,7 @@ function PortfolioView({
                   </div>
                 </div>
                 <div style={{ width: 60, height: 28 }}>
-                  <MiniSparkline data={b.monthlyData} color={STATUS_CONFIG[b.status].color} height={28} />
+                  <MiniSparkline data={b.monthlyData} color={STATUS_CONFIG[b.status as HealthStatus]?.color || '#9ca3af'} height={28} />
                 </div>
                 <ChevronRight size={16} color="var(--muted-foreground)" />
               </div>

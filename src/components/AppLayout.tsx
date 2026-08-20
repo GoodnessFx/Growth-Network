@@ -21,40 +21,69 @@ import {
   Activity,
   FileText,
   CalendarDays,
+  ClipboardList,
+  UserPlus,
+  BarChart3,
 } from 'lucide-react'
 import { alerts } from '../data/mockData'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useAuth } from '../lib/AuthContext'
 
 type Page = 'landing' | 'login' | 'operator' | 'business' | 'analytics'
-type OperatorTab = 'portfolio' | 'compare' | 'inbox' | 'campaigns' | 'pipeline' | 'alerts' | 'connections' | 'analytics' | 'results' | 'content'
+type OperatorTab =
+  | 'portfolio'
+  | 'compare'
+  | 'inbox'
+  | 'campaigns'
+  | 'pipeline'
+  | 'alerts'
+  | 'connections'
+  | 'analytics'
+  | 'results'
+  | 'content'
+  | 'client-dashboard'
+  | 'client-calendar'
+  | 'client-requests'
+  | 'client-leads'
 
 interface AppLayoutProps {
   page: Page
-  operatorTab: OperatorTab
-  setOperatorTab: (t: OperatorTab) => void
+  operatorTab: string
+  setOperatorTab: (t: string) => void
   setPage: (p: Page) => void
   children: React.ReactNode
   businessName?: string
   onLogout: () => void
 }
 
-const navItems: { id: OperatorTab; label: string; icon: React.ElementType }[] = [
-  { id: 'portfolio', label: 'Portfolio', icon: LayoutGrid },
-  { id: 'compare', label: 'Compare', icon: TrendingUp },
-  { id: 'inbox', label: 'Inbox', icon: Inbox },
-  { id: 'campaigns', label: 'Campaigns', icon: Megaphone },
-  { id: 'pipeline', label: 'Pipeline', icon: GitBranch },
-  { id: 'alerts', label: 'Alerts', icon: Bell },
-  { id: 'connections', label: 'Connections', icon: Link2 },
-  { id: 'analytics', label: 'Analytics', icon: Activity },
-  { id: 'results', label: 'Results', icon: FileText },
-  { id: 'content', label: 'Content Calendar', icon: CalendarDays },
+interface NavItem {
+  id: string
+  label: string
+  icon: React.ElementType
+  section?: string
+}
+
+// All nav items, grouped by section
+const operatorNavItems: NavItem[] = [
+  { id: 'portfolio', label: 'Portfolio', icon: LayoutGrid, section: 'manage' },
+  { id: 'compare', label: 'Compare', icon: TrendingUp, section: 'manage' },
+  { id: 'inbox', label: 'Inbox', icon: Inbox, section: 'manage' },
+  { id: 'campaigns', label: 'Campaigns', icon: Megaphone, section: 'manage' },
+  { id: 'pipeline', label: 'Pipeline', icon: GitBranch, section: 'manage' },
+  { id: 'alerts', label: 'Alerts', icon: Bell, section: 'manage' },
+  { id: 'connections', label: 'Connections', icon: Link2, section: 'manage' },
+  { id: 'analytics', label: 'Analytics', icon: Activity, section: 'manage' },
+  { id: 'results', label: 'Results', icon: FileText, section: 'manage' },
+  { id: 'content', label: 'Content Calendar', icon: CalendarDays, section: 'manage' },
 ]
 
-// Owner-only tabs. Content calendar is gated server-side too (requireOwner);
-// hiding the nav item for non-owners is the client-side half.
-const OWNER_ONLY_TABS: OperatorTab[] = ['content']
+// New feature tabs — visible to everyone
+const featureNavItems: NavItem[] = [
+  { id: 'client-dashboard', label: 'Dashboard', icon: BarChart3, section: 'features' },
+  { id: 'client-calendar', label: 'Scheduling Calendar', icon: CalendarDays, section: 'features' },
+  { id: 'client-requests', label: 'Service Requests', icon: ClipboardList, section: 'features' },
+  { id: 'client-leads', label: 'Leads Pipeline', icon: UserPlus, section: 'features' },
+]
 
 export default function AppLayout({
   page,
@@ -72,7 +101,16 @@ export default function AppLayout({
   const unreadAlerts = alerts.filter((a) => !a.read).length
 
   const isOwner = user?.role === 'owner' || user?.role === 'admin'
-  const visibleNavItems = isOwner ? navItems : navItems.filter((n) => !OWNER_ONLY_TABS.includes(n.id))
+
+  // Build the visible nav items based on role
+  let visibleNavItems: NavItem[]
+  if (isOwner) {
+    // Owners see everything: operator tabs + feature tabs
+    visibleNavItems = [...operatorNavItems, ...featureNavItems]
+  } else {
+    // Clients and other roles see only the feature tabs
+    visibleNavItems = [...featureNavItems]
+  }
 
   const displayName = user?.name ?? 'Operator'
   const initials =
@@ -82,6 +120,8 @@ export default function AppLayout({
       .slice(0, 2)
       .map((w) => w[0]!.toUpperCase())
       .join('') ?? 'OP'
+
+  const roleLabel = isOwner ? 'Owner' : user?.role === 'client' ? 'Client' : user?.role ?? 'User'
 
   const sidebarWidth = collapsed && !isMobile ? 56 : isMobile ? 240 : 220
   const showSidebar = !isMobile || mobileOpen
@@ -146,7 +186,7 @@ export default function AppLayout({
                 textTransform: 'uppercase',
               }}
             >
-              {page === 'business' ? 'BUSINESS VIEW' : 'OPERATOR MODE'}
+              {page === 'business' ? 'BUSINESS VIEW' : isOwner ? 'OPERATOR MODE' : 'CLIENT MODE'}
             </div>
             {page === 'business' && businessName && (
               <div
@@ -190,64 +230,130 @@ export default function AppLayout({
                 {!collapsed && 'All Businesses'}
               </button>
             </>
-          ) : (            visibleNavItems.map((item) => {
-              const active = operatorTab === item.id
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setOperatorTab(item.id)}
+          ) : (
+            <>
+              {/* If owner, show section label before feature tabs */}
+              {isOwner && !collapsed && (
+                <div
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    width: '100%',
-                  padding: collapsed ? '10px 14px' : '10px 20px',
-                  minHeight: 44,
-                  background: active ? 'var(--secondary)' : 'transparent',
-                    borderLeft: active ? '3px solid var(--primary)' : '3px solid transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
-                    fontSize: 13,
-                    fontWeight: active ? 600 : 400,
-                    textAlign: 'left',
-                    position: 'relative',
-                    transition: 'background 0.15s',
+                    fontSize: 9,
+                    fontFamily: 'JetBrains Mono',
+                    color: 'var(--muted-foreground)',
+                    letterSpacing: 2,
+                    textTransform: 'uppercase',
+                    padding: '12px 20px 4px',
                   }}
                 >
-                  <item.icon size={16} strokeWidth={active ? 2.5 : 1.8} />
-                  {!collapsed && <span>{item.label}</span>}
-                  {!collapsed && item.id === 'alerts' && unreadAlerts > 0 && (
-                    <span
+                  OPERATIONS
+                </div>
+              )}
+              {visibleNavItems
+                .filter((n) => n.section === 'manage')
+                .map((item) => {
+                  const active = operatorTab === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setOperatorTab(item.id)
+                        if (isMobile) setMobileOpen(false)
+                      }}
                       style={{
-                        marginLeft: 'auto',
-                        background: 'var(--danger)',
-                        color: '#fff',
-                        fontSize: 10,
-                        fontFamily: 'JetBrains Mono',
-                        borderRadius: 10,
-                        padding: '1px 6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        width: '100%',
+                        padding: collapsed ? '10px 14px' : '10px 20px',
+                        minHeight: 44,
+                        background: active ? 'var(--secondary)' : 'transparent',
+                        borderLeft: active ? '3px solid var(--primary)' : '3px solid transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
+                        fontSize: 13,
+                        fontWeight: active ? 600 : 400,
+                        textAlign: 'left',
+                        position: 'relative',
+                        transition: 'background 0.15s',
                       }}
                     >
-                      {unreadAlerts}
-                    </span>
-                  )}
-                  {collapsed && item.id === 'alerts' && unreadAlerts > 0 && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 6,
-                        width: 7,
-                        height: 7,
-                        background: 'var(--danger)',
-                        borderRadius: '50%',
+                      <item.icon size={16} strokeWidth={active ? 2.5 : 1.8} />
+                      {!collapsed && <span>{item.label}</span>}
+                      {!collapsed && item.id === 'alerts' && unreadAlerts > 0 && (
+                        <span
+                          style={{
+                            marginLeft: 'auto',
+                            background: 'var(--danger)',
+                            color: '#fff',
+                            fontSize: 10,
+                            fontFamily: 'JetBrains Mono',
+                            borderRadius: 10,
+                            padding: '1px 6px',
+                          }}
+                        >
+                          {unreadAlerts}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+
+              {/* Section divider for feature tabs */}
+              {!collapsed && (
+                <div
+                  style={{
+                    fontSize: 9,
+                    fontFamily: 'JetBrains Mono',
+                    color: 'var(--muted-foreground)',
+                    letterSpacing: 2,
+                    textTransform: 'uppercase',
+                    padding: '16px 20px 4px',
+                    borderTop: isOwner ? '1px solid var(--border)' : 'none',
+                    marginTop: isOwner ? 8 : 0,
+                  }}
+                >
+                  FEATURES
+                </div>
+              )}
+              {collapsed && isOwner && (
+                <div style={{ borderTop: '1px solid var(--border)', margin: '8px 8px' }} />
+              )}
+              {visibleNavItems
+                .filter((n) => n.section === 'features')
+                .map((item) => {
+                  const active = operatorTab === item.id
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setOperatorTab(item.id)
+                        if (isMobile) setMobileOpen(false)
                       }}
-                    />
-                  )}
-                </button>
-              )
-            })
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        width: '100%',
+                        padding: collapsed ? '10px 14px' : '10px 20px',
+                        minHeight: 44,
+                        background: active ? 'var(--secondary)' : 'transparent',
+                        borderLeft: active ? '3px solid var(--primary)' : '3px solid transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
+                        fontSize: 13,
+                        fontWeight: active ? 600 : 400,
+                        textAlign: 'left',
+                        position: 'relative',
+                        transition: 'background 0.15s',
+                      }}
+                    >
+                      <item.icon size={16} strokeWidth={active ? 2.5 : 1.8} />
+                      {!collapsed && <span>{item.label}</span>}
+                    </button>
+                  )
+                })}
+            </>
           )}
         </nav>
 
@@ -393,7 +499,7 @@ export default function AppLayout({
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div className="hide-xs" style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textAlign: 'right' }}>
                 <div>{displayName}</div>
-                <div style={{ color: 'var(--accent)', fontSize: 10 }}>Owner</div>
+                <div style={{ color: 'var(--accent)', fontSize: 10 }}>{roleLabel}</div>
               </div>
               <div
                 style={{

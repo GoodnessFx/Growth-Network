@@ -57,10 +57,10 @@ function ErrorBanner({ message }: { message: string }) {
   )
 }
 
-export default function Auth({ onBack }: { onBack?: () => void }) {
+export default function Auth({ onBack }: AuthProps) {
   const { signInWithGoogle, signInDummy } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
   const handleSignIn = async () => {
     setError('')
@@ -71,6 +71,17 @@ export default function Auth({ onBack }: { onBack?: () => void }) {
       // restores the session and the app moves to the dashboard on its own.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  const handleDummySignIn = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await signInDummy()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.')
       setLoading(false)
     }
   }
@@ -172,7 +183,7 @@ export default function Auth({ onBack }: { onBack?: () => void }) {
         </div>
       </div>
 
-      {/* Right panel — Google sign-in */}
+      {/* Right panel — sign-in */}
       <div
         className="auth-form-panel"
         style={{
@@ -264,6 +275,37 @@ export default function Auth({ onBack }: { onBack?: () => void }) {
               <span style={{ fontSize: 15, fontWeight: 600, color: loading ? 'var(--muted-foreground)' : '#ffffff', letterSpacing: 0.5 }}>
                 {loading ? 'PLEASE WAIT...' : 'SIGN IN WITH GOOGLE'}
               </span>
+            </button>
+
+            {/* Divider */}
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '4px 0' }}>
+              <div style={{ position: 'absolute', width: '100%', height: 1, background: 'var(--border)' }} />
+              <span style={{ position: 'relative', background: 'var(--card)', padding: '0 12px', fontSize: 12, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>or</span>
+            </div>
+
+            {/* Dummy login for testing */}
+            <button
+              onClick={handleDummySignIn}
+              disabled={loading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                width: '100%',
+                height: 46,
+                background: 'var(--secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: RADIUS,
+                padding: '0 24px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: 15,
+                fontWeight: 600,
+                color: 'var(--foreground)',
+                letterSpacing: 0.5,
+              }}
+            >
+              CONTINUE AS DEMO USER
             </button>
           </AuthCard>
         </div>

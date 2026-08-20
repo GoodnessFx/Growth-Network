@@ -13,27 +13,11 @@ import ServiceRequests from './pages/ServiceRequests'
 import LeadsPipeline from './pages/LeadsPipeline'
 
 type Page = 'landing' | 'login' | 'operator' | 'business'
-type OperatorTab =
-  | 'portfolio'
-  | 'compare'
-  | 'inbox'
-  | 'campaigns'
-  | 'pipeline'
-  | 'alerts'
-  | 'connections'
-  | 'analytics'
-  | 'results'
-  | 'results'
-  | 'content'
-  | 'client-dashboard'
-  | 'client-calendar'
-  | 'client-requests'
-  | 'client-leads'
 
 function AppInner() {
   const { user, loading, logout } = useAuth()
   const [page, setPage] = useState<Page>('landing')
-  const [operatorTab, setOperatorTab] = useState<OperatorTab>('portfolio')
+  const [operatorTab, setOperatorTab] = useState('portfolio')
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
   const [pendingAddBusiness, setPendingAddBusiness] = useState(false)
   const [publicBusinessId, setPublicBusinessId] = useState<string | null>(() => {
@@ -46,11 +30,8 @@ function AppInner() {
   // page into the dashboard automatically.
   useEffect(() => {
     if (user && page === 'login') {
-      if (user.role === 'client') {
-        setOperatorTab('client-dashboard')
-      } else {
-        setOperatorTab('portfolio')
-      }
+      const isOwner = user.role === 'owner' || user.role === 'admin'
+      setOperatorTab(isOwner ? 'portfolio' : 'client-dashboard')
       setPage('operator')
     }
   }, [user, page])
@@ -147,12 +128,29 @@ function AppInner() {
     )
   }
 
+  // Dummy business object for feature pages when no real business is selected
+  const dummyBusiness = {
+    id: 'dummy-biz-1',
+    name: user?.name ?? 'My Company',
+    type: 'E-commerce',
+    status: 'active',
+    owner_id: user?.id ?? '',
+    domain: '',
+    visible: 1,
+    created_at: '',
+    updated_at: '',
+  }
+
+  // Determine which operator-level tabs use the original Operator component
+  const operatorTabs = ['portfolio', 'compare', 'inbox', 'campaigns', 'pipeline', 'alerts', 'connections', 'analytics', 'results', 'content']
+  const isOperatorTab = operatorTabs.includes(operatorTab)
+
   return (
     <AppLayout
       page={page}
       operatorTab={operatorTab}
       setOperatorTab={(tab) => {
-        setOperatorTab(tab as OperatorTab)
+        setOperatorTab(tab)
         if (page === 'business') {
           setPage('operator')
           setSelectedBusiness(null)
@@ -162,27 +160,32 @@ function AppInner() {
       onLogout={handleLogout}
       businessName={selectedBusiness?.name}
     >
-      {page === 'operator' && user?.role !== 'client' && (
+      {/* Original operator views (portfolio, compare, inbox, etc.) */}
+      {page === 'operator' && isOperatorTab && (
         <Operator
-          tab={operatorTab}
+          tab={operatorTab as any}
           onSelectBusiness={handleSelectBusiness}
           onRequireAuth={handleRequireAuth}
           autoOpenAddBusiness={pendingAddBusiness}
           onAddBusinessHandled={handleAddBusinessHandled}
         />
       )}
-      {page === 'operator' && user?.role === 'client' && operatorTab === 'client-dashboard' && (
-        <ClientDashboard business={{ id: 'dummy-biz-1', name: 'My Company', type: 'E-commerce', status: 'active', owner_id: user.id, domain: '', visible: 1, created_at: '', updated_at: '' }} />
+
+      {/* New feature pages — accessible to ALL authenticated users */}
+      {page === 'operator' && operatorTab === 'client-dashboard' && (
+        <ClientDashboard business={dummyBusiness} />
       )}
-      {page === 'operator' && user?.role === 'client' && operatorTab === 'client-calendar' && (
-        <ContentCalendar business={{ id: 'dummy-biz-1', name: 'My Company', type: 'E-commerce', status: 'active', owner_id: user.id, domain: '', visible: 1, created_at: '', updated_at: '' }} />
+      {page === 'operator' && operatorTab === 'client-calendar' && (
+        <ContentCalendar business={dummyBusiness} />
       )}
-      {page === 'operator' && user?.role === 'client' && operatorTab === 'client-requests' && (
-        <ServiceRequests business={{ id: 'dummy-biz-1', name: 'My Company', type: 'E-commerce', status: 'active', owner_id: user.id, domain: '', visible: 1, created_at: '', updated_at: '' }} />
+      {page === 'operator' && operatorTab === 'client-requests' && (
+        <ServiceRequests business={dummyBusiness} />
       )}
-      {page === 'operator' && user?.role === 'client' && operatorTab === 'client-leads' && (
-        <LeadsPipeline business={{ id: 'dummy-biz-1', name: 'My Company', type: 'E-commerce', status: 'active', owner_id: user.id, domain: '', visible: 1, created_at: '', updated_at: '' }} />
+      {page === 'operator' && operatorTab === 'client-leads' && (
+        <LeadsPipeline business={dummyBusiness} />
       )}
+
+      {/* Business detail view */}
       {page === 'business' && selectedBusiness && (
         <BusinessView business={selectedBusiness} onBack={handleBackFromBusiness} />
       )}
