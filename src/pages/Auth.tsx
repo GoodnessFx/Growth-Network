@@ -57,10 +57,10 @@ function ErrorBanner({ message }: { message: string }) {
   )
 }
 
-export default function Auth({ onBack }: AuthProps) {
-  const { signInWithGoogle } = useAuth()
+export default function Auth({ onBack }: { onBack?: () => void }) {
+  const { signInWithGoogle, signInDummy } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   const handleSignIn = async () => {
     setError('')

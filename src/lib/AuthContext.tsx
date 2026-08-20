@@ -2,22 +2,38 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { supabase, isSupabaseConfigured } from "./supabase"
 import type { AuthUser } from "./api"
 
+// Dummy user for local development if needed
+const DUMMY_USER: AuthUser = {
+  id: "dummy-123",
+  email: "dummy@example.com",
+  name: "Dummy Client",
+  role: "client"
+}
+
 interface AuthContextValue {
   user: AuthUser | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
+  signInDummy: () => Promise<void>
   logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-function toAuthUser(u: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }): AuthUser {
+async function toAuthUser(u: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }): Promise<AuthUser> {
   const rawName = u.user_metadata?.full_name
+  
+  let role = "client"
+  try {
+    const { data } = await supabase.from('profiles').select('role').eq('id', u.id).single()
+    if (data?.role) role = data.role
+  } catch (err) {}
+
   return {
     id: u.id,
     email: u.email ?? "",
-    name: typeof rawName === "string" && rawName ? rawName : (u.email ?? "Owner"),
-    role: "owner",
+    name: typeof rawName === "string" && rawName ? rawName : (u.email ?? "User"),
+    role,
   }
 }
 
@@ -36,7 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const restore = async () => {
       const { data } = await supabase.auth.getSession()
       if (!active) return
-      setUser(data.session?.user ? toAuthUser(data.session.user) : null)
+      if (data.session?.user) {
+        const u = await toAuthUser(data.session.user)
+        if (active) setUser(u)
+      } else {
+        setUser(null)
+      }
       setLoading(false)
     }
     restore()
@@ -44,9 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Single source of truth: every sign-in/out/token refresh flows through
     // Supabase, and this subscription keeps the app's user state in sync. No
     // custom session storage is used.
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!active) return
-      setUser(session?.user ? toAuthUser(session.user) : null)
+      if (session?.user) {
+        const u = await toAuthUser(session.user)
+        if (active) setUser(u)
+      } else {
+        setUser(null)
+      }
     })
 
     return () => {
@@ -65,13 +91,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }
 
+  const signInDummy = async () => {
+    setUser(DUMMY_USER)
+    setLoading(false)
+  }
+
   const logout = async () => {
+    if (user?.id === DUMMY_USER.id) {
+      setUser(null)
+      return
+    }
     await supabase.auth.signOut()
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signInDummy, logout }}>
       {children}
     </AuthContext.Provider>
   )

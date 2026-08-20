@@ -7,6 +7,10 @@ import PublicResults from './pages/PublicResults'
 import AppLayout from './components/AppLayout'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { type Business } from './data/mockData'
+import ClientDashboard from './pages/ClientDashboard'
+import ContentCalendar from './pages/ContentCalendar'
+import ServiceRequests from './pages/ServiceRequests'
+import LeadsPipeline from './pages/LeadsPipeline'
 
 type Page = 'landing' | 'login' | 'operator' | 'business'
 type OperatorTab =
@@ -19,7 +23,12 @@ type OperatorTab =
   | 'connections'
   | 'analytics'
   | 'results'
+  | 'results'
   | 'content'
+  | 'client-dashboard'
+  | 'client-calendar'
+  | 'client-requests'
+  | 'client-leads'
 
 function AppInner() {
   const { user, loading, logout } = useAuth()
@@ -37,6 +46,11 @@ function AppInner() {
   // page into the dashboard automatically.
   useEffect(() => {
     if (user && page === 'login') {
+      if (user.role === 'client') {
+        setOperatorTab('client-dashboard')
+      } else {
+        setOperatorTab('portfolio')
+      }
       setPage('operator')
     }
   }, [user, page])
@@ -148,7 +162,7 @@ function AppInner() {
       onLogout={handleLogout}
       businessName={selectedBusiness?.name}
     >
-      {page === 'operator' && (
+      {page === 'operator' && user?.role !== 'client' && (
         <Operator
           tab={operatorTab}
           onSelectBusiness={handleSelectBusiness}
@@ -156,6 +170,18 @@ function AppInner() {
           autoOpenAddBusiness={pendingAddBusiness}
           onAddBusinessHandled={handleAddBusinessHandled}
         />
+      )}
+      {page === 'operator' && user?.role === 'client' && operatorTab === 'client-dashboard' && (
+        <ClientDashboard business={{ id: 'dummy-biz-1', name: 'My Company', type: 'E-commerce', status: 'active', owner_id: user.id, domain: '', visible: 1, created_at: '', updated_at: '' }} />
+      )}
+      {page === 'operator' && user?.role === 'client' && operatorTab === 'client-calendar' && (
+        <ContentCalendar business={{ id: 'dummy-biz-1', name: 'My Company', type: 'E-commerce', status: 'active', owner_id: user.id, domain: '', visible: 1, created_at: '', updated_at: '' }} />
+      )}
+      {page === 'operator' && user?.role === 'client' && operatorTab === 'client-requests' && (
+        <ServiceRequests business={{ id: 'dummy-biz-1', name: 'My Company', type: 'E-commerce', status: 'active', owner_id: user.id, domain: '', visible: 1, created_at: '', updated_at: '' }} />
+      )}
+      {page === 'operator' && user?.role === 'client' && operatorTab === 'client-leads' && (
+        <LeadsPipeline business={{ id: 'dummy-biz-1', name: 'My Company', type: 'E-commerce', status: 'active', owner_id: user.id, domain: '', visible: 1, created_at: '', updated_at: '' }} />
       )}
       {page === 'business' && selectedBusiness && (
         <BusinessView business={selectedBusiness} onBack={handleBackFromBusiness} />

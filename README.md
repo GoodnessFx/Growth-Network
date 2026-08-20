@@ -1,182 +1,83 @@
 # Growth Network
 
-> An operating system for agencies, operators, and holding companies managing multiple African SMEs — portfolio tracking, unified social publishing, ads/SEO monitoring, WhatsApp, automations, and an AI content calendar, all behind a single owner account.
+Growth Network is the operating system for small business growth. We combine software, automation, and a real execution team so growing businesses get what larger companies take for granted, technology, design, and operations that actually work together, without needing to hire and manage five separate vendors.
 
-Built with **React 19 + Vite 8 + Tailwind CSS v4** on the frontend and a **Hono + SQLite** API on the backend. Works in Figma Make or any Node environment.
+## The Problem
 
----
+Small and growing businesses are underserved by the freelance and agency market. A business that needs a website, a social media presence, an inventory system, and basic automation today has to find, vet, and manage four or five separate freelancers who never talk to each other, work in different tools, and leave the business owner as the only person holding the full picture.
 
-## Quick Start
+This is expensive in time, not just money. Business owners become project managers for their own growth instead of running their business.
 
-```bash
-pnpm install
+## The Solution
 
-# Create .env from the template (see "Configuration" below)
-cp .env.example .env
+Growth Network is a single platform and team that a business works with for everything it needs to grow and operate, software, design, automation, and operational tooling, coordinated through one dashboard instead of scattered across disconnected vendors.
 
-# Start both frontend and backend
-pnpm dev:all          # backend on :3001, frontend on :8443
+Clients get a live dashboard showing their content calendar, growth metrics, active projects, and service requests in one place. Our team executes the work behind it, using the same platform to manage every client relationship consistently as we scale.
 
-# Seed the demo businesses (idempotent; no owner account — auth is Google-only)
-pnpm db:seed
+## How It Works
 
-# Open http://localhost:8443 and sign in with Google (owner access).
-```
+1. A business signs up and completes a short intake covering their goals, current tools, and immediate needs
+2. They are matched to the relevant service categories, software, design, automation, or operations support
+3. Work is scoped, tracked, and delivered through the platform, visible to the client in real time
+4. Growth metrics, content performance, and project status are tracked continuously, not reported once and forgotten
 
-Separately: `pnpm dev` (frontend only) or `pnpm dev:server` (backend only). The Vite dev server proxies `/api/*` to `:3001`.
+## Service Categories
 
----
+### Software and Web
+Websites, web applications, mobile apps, and custom internal tools built around a specific business workflow, quote calculators, inventory trackers, booking systems, and similar tools.
 
-## What It Does
+### Design and Branding
+Logo and brand identity, marketing materials, social media graphics, and visual assets built to a consistent standard.
 
-- **Portfolio grid** — every business on one screen: revenue trend, pipeline value, social growth, campaign performance, and health status (growing / flat / declining).
-- **Per-business dashboard** — CRM, sales pipeline (kanban), content calendar, finance, export/trade shipments, and automation rules.
-- **Content calendar** — owner-only AI drafting for every business: **365 days × 3 posts per day**, spanning Instagram, Facebook, LinkedIn, X, and Threads. Deterministic rule-based generation (no LLM) that composes copy **only from real business data** — no phone numbers, prices, percentages, or stats are ever invented. Generation is deduplicated by content hash and fills only gaps, so re-running never repeats. Posts are **draft until the owner approves them**; nothing is ever auto-published.
-- **WhatsApp Cloud API** — send messages, broadcast to segments, automated follow-ups, response-time tracking (requires Meta Business Verification).
-- **Unified social publishing** — Facebook, Instagram, TikTok, X, YouTube, LinkedIn, Snapchat (Ads), Pinterest, Threads, Google Business Profile, and more.
-- **Ads monitoring** — live campaign sync for Meta, Google, TikTok, LinkedIn, and Snapchat Ads.
-- **SEO monitoring** — Google Search Console performance (impressions, clicks, position, top queries) per business.
-- **Website tracking pixel** — generated per business; paste into any site to stream pageviews, clicks, and form submissions into Analytics.
-- **Export/Trade vertical** — shipments, customs documents, payment status, incoterms.
-- **Automations** — real triggers (WhatsApp inbound, deal stage change, tracking event, scheduled time) with audit logging.
-- **Growth snapshots** — shareable before/after posters, each labeled by data source.
-- **Audit logging & tenant isolation** — every action logged; data strictly isolated per business.
+### Automation and AI
+Chatbots, automated customer service and quote handling, email automation, and AI content tools trained on a client's brand voice.
 
----
+### Business Operations Support
+Lightweight accounting and invoicing tools, inventory dashboards, CRM setup, and reporting automation for businesses still running on spreadsheets or notebooks.
 
-## Access Model
+### Growth and Marketing
+Social media management, content scheduling, paid advertising across Google, Meta, and LinkedIn, SEO, and growth reporting.
 
-Growth Network is a **single-owner showcase**. There is no public sign-up — the only identity system is **Google Sign-In via Supabase** (`supabase.auth.signInWithOAuth({ provider: 'google' })`).
+### Custom Requests
+Any need outside the categories above is scoped and delivered as a tracked project through the same platform, so the business always has one place to see everything happening across their engagement with us, regardless of what it is.
 
-- **No custom user database.** There is no `users` table and no email/password login. Supabase Auth is the single source of truth; `onAuthStateChange` keeps the app in sync and the SDK owns session storage (no `gn_token`-style localStorage).
-- **Google-only.** Any authenticated Supabase user is treated as the owner (full access). Roles (`owner`/`admin`/`client`) are kept as a server concept but always resolve to the owner for signed-in users.
-- **Anyone can view** the landing page's live portfolio and each business's public growth-snapshot poster (`/public/:id`) — no auth required.
-- **Only the owner can write.** Every write route (businesses, social publish, ads, automations, export-trade, audit, content calendar) is gated by the `requireOwner` middleware.
-- **Visibility control.** Each business has a `visible` flag: hidden businesses disappear from the public listing, the public poster returns 404, and the tracking snippet refuses to emit events.
-- **Tracking is secret-gated.** `POST /api/tracking/event` requires a per-install `TRACKING_SECRET`; events without it are rejected with 401.
+## Platform Features
 
-Reset to a clean state anytime with `pnpm db:seed` (idempotent — upserts the demo businesses and clears content tables).
+### Client Dashboard
+A single view per client showing active projects, scheduled content, growth metrics over time, and open service requests.
 
----
+### Social Media Scheduling Calendar
+A per business content calendar supporting draft, scheduled, and published posts across Instagram, LinkedIn, and Facebook, connected directly to each business's social accounts through OAuth.
 
-## Configuration
+### Growth Analytics
+Follower growth, engagement, and website or lead traffic tracked over time and visualized as real progress charts, not static snapshots.
 
-Copy `.env.example` to `.env` and fill in what you need. It is fully commented with developer-console links and scope lists. **Nothing is required to run the app locally** — integrations only activate once a platform is connected.
+### Lead and CRM Tracking
+Inquiries from client websites are captured and tracked from new to converted, visible to both the client and our team.
 
-| What you want | What you need | Where to get it |
-|---|---|---|
-| Google sign-in | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (frontend) and `SUPABASE_URL` + `SUPABASE_ANON_KEY` (backend) | Supabase project → Settings → API. Google OAuth provider + Redirect URLs are configured in Supabase (Authentication → Providers / URL Configuration) |
-| WhatsApp Cloud API | Meta Business Verification + WABA + permanent token | [developers.facebook.com/docs/whatsapp/cloud-api/get-started](https://developers.facebook.com/docs/whatsapp/cloud-api/get-started) |
-| Meta Ads / Instagram / Facebook | Meta app (client ID + secret), long-lived token for fallback | [developers.facebook.com](https://developers.facebook.com) |
-| Google Ads / YouTube / Search Console / Business Profile | One Google OAuth app covering all four scopes | [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials) |
-| Google Ads API | Developer token (apply via the Ads API center) | [developers.google.com/google-ads](https://developers.google.com/google-ads) |
-| TikTok organic + TikTok Ads | TikTok app (client key/secret), advertiser ID | [developers.tiktok.com](https://developers.tiktok.com) |
-| X (Twitter) | X OAuth 2.0 app | [developer.x.com](https://developer.x.com) |
-| LinkedIn (organic + Ads) | LinkedIn app (client ID/secret) | [developer.linkedin.com](https://developer.linkedin.com) |
-| Snapchat Ads | Snapchat Marketing API application + approval | [developers.snap.com](https://developers.snap.com) |
-| Pinterest | Pinterest app | [developers.pinterest.com](https://developers.pinterest.com) |
-| Threads | Meta app with the Threads product | [developers.facebook.com](https://developers.facebook.com) |
-| Website tracking | None — paste the generated snippet | Generated in Connections → "Website tracking snippet" |
-| CORS / tracking origins | `ALLOWED_ORIGINS`, `TRACKING_ALLOWED_ORIGINS` + `TRACKING_SECRET` | Set in `.env`; see `.env.example` |
-| Demo data | `ENABLE_DEMO_DATA=1` (default) | On by default; set `0` to require real connections |
+### Service Request and Project Management
+Clients can submit new requests directly through the platform. Our internal team scopes, assigns, and tracks delivery, so every engagement, regardless of category, moves through the same visible process.
 
-### OAuth Model
+### Authentication and Data Security
+Built on Supabase with row level security, so every client's data is fully isolated, and every team member has their own authenticated account with appropriate access.
 
-Each platform is connected **per business**, not per account. The server stores tokens in the `social_connections` table (`access_token`, `refresh_token`, `account_id`, `account_name`, `expires_at`).
+## Why Now
 
-- **Local/first-run flow (what the UI uses today):** paste a long-lived token (and account ID where relevant) into the Connections view, or set the `*_ACCESS_TOKEN` fallback variables in `.env`. The server prefers the per-business row and falls back to the env var.
-- Tokens are verified per platform with the "Verify" button, which calls the platform API with the stored credential.
+AI and no code tooling have made it possible for a small, focused team to deliver what used to require a much larger agency. Growth Network is built to take advantage of that shift, offering businesses full stack growth support at a fraction of the traditional cost, while giving our own team the leverage to serve far more clients than a traditional agency structure would allow.
 
-### Demo Data
+## Current Status
 
-Until a platform is actually connected (or its env fallback is set), every credential-gated feature returns **labeled demo data** so the dashboard is explorable without accounts:
+- Frontend built and live
+- WhatsApp Business API integration in place
+- OAuth integrations connected for LinkedIn, X, Meta, and Google Ads
+- **Backend migrated to Supabase** for persistent, secure client data, with RLS applied.
+- **Social media scheduling calendar** developed and integrated into the dashboard.
+- **Client dashboard** deployed with active project tracking and growth charts.
+- **Service request tracking** and custom client needs pipeline is live.
+- **Leads pipeline** implemented.
 
-- Ads, SEO, social publishing, per-post metrics, WhatsApp messaging, and connection verification fall back to sample numbers when no working credential exists — or when a live call fails.
-- Every fallback is flagged `demo: true`; the UI shows a "demo" badge so you always know you're looking at sample numbers.
-- The moment a working connection is added, real data replaces demo values automatically.
-- Set `ENABLE_DEMO_DATA=0` to turn this off and get the original "connect a platform" errors instead.
+## Roadmap
 
----
-
-## Content Calendar (AI Drafting)
-
-Owner-only, at **Content → Calendar** in the app. Nothing is posted automatically.
-
-- **Generate:** fills up to 365 days × 3 slots (morning / afternoon / evening) for one business, distributing across Instagram, Facebook, LinkedIn, X, and Threads.
-- **No invented facts:** the generator is deterministic and rule-based — it composes copy only from each business's real name and type plus fixed editorial templates. `validateBody` rejects currency amounts, percentages, phone numbers, emails, and long numeric strings in both generated and edited content (e.g. `5000 naira`, `0801 234 5678`, `2.5%` all fail).
-- **No repetition:** every post stores a sha-256 `content_hash`; generation retries with new seeds until a slot's text is unique for that business, and re-running only fills gaps (`skippedExisting`).
-- **Review flow:** posts are `draft` until the owner edits and/or approves them (`PATCH /:id`, `POST /:id/approve`). Deleting a slot lets you regenerate just that slot.
-- **Coverage:** the coverage strip shows filled days vs. a rolling 365-day window (today → today+364) for every business.
-- **Access:** all calendar routes sit behind `authMiddleware → tenantMiddleware → requireOwner`; non-owners get 403.
-
-### API
-
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/api/content-calendar` | List entries (filters: `businessId`, `from`, `to`, `status`) |
-| `GET` | `/api/content-calendar/coverage` | Filled days per business over the rolling window |
-| `POST` | `/api/content-calendar/generate` | Fill gaps (`businessId`, `days`, `startDate`); returns `created`/`skippedExisting`/`failed` |
-| `PATCH` | `/api/content-calendar/:id` | Edit title/body (re-validated, re-hashed) |
-| `POST` | `/api/content-calendar/:id/approve` | Mark approved |
-| `DELETE` | `/api/content-calendar/:id` | Remove a slot (regenerable) |
-
----
-
-## Project Structure
-
-```
-src/
-  main.tsx / App.tsx / index.css   React entry, routing, global styles
-  pages/                           Landing, Auth, Operator, Business, PublicResults
-  components/                      ContentCalendarView, Analytics, Connections, …
-  lib/api.ts                       typed API client (all backend calls)
-server/src/
-  index.ts                         Hono app + auth/tenant middleware wiring
-  routes/                          auth, businesses, whatsapp, social, ads,
-                                   tracking, analytics, automations, export-trade,
-                                   public, audit, content-calendar
-  services/                        platform integrations (whatsapp, social, ads,
-                                   searchConsole, connections, analytics,
-                                   automations, tracking, reports) + contentCalendar
-  middleware/                      auth (JWT), tenant isolation, audit logging
-  db/                              schema.ts + index.ts (connection + migration)
-```
-
----
-
-## Real Data vs. Simulated Data (Honesty Policy)
-
-- **Analytics:** the browser pixel ingests real events through `/api/tracking`. A clearly-labeled "Simulate traffic" button exists for demoing the UI; simulated events are stamped.
-- **Ads & SEO:** numbers come **only** from connected platform APIs. If a platform is not connected, the dashboard says "Not connected" — it never fabricates campaign or search numbers.
-- **Growth snapshots:** each report is labeled `Live data` (pulled from Analytics, CRM won-deals, and connected platforms) or `Self-reported` (numbers typed by the owner). The label is shown on the public poster.
-- **Content calendar:** all copy is rule-generated from real business data and validated — no invented prices, phones, percentages, or statistics.
-
----
-
-## Known Limitations
-
-1. **No OAuth redirect flow yet.** The Connections UI accepts tokens manually; server-side code exchange at `/api/oauth/callback/:platform` is documented but not implemented. Real "Connect Instagram/X" flows need per-platform OAuth apps plus review.
-2. **Snapchat organic and Google Business Profile have no public organic-posting APIs** — those integrations return an honest "no organic posting API" error. Snapchat Ads and Google search data are supported.
-3. **YouTube uploads require an OAuth access token**; TikTok publishing requires a published video URL.
-4. **Real API verification needs credentials.** WhatsApp requires Meta Business Verification; Meta/LinkedIn/Snapchat/Google Ads require their developer approvals. Until then sections show explicit "not connected" states.
-5. **Charts load as one bundle** — no code-splitting yet (Vite warns the main chunk exceeds 500 kB).
-6. **Supabase-managed session storage** — the supabase-js SDK keeps sessions in localStorage (its default storage). An httpOnly-cookie flow is future hardening.
-7. **Search Console requires a verified property** in the queried Google Search Console account.
-8. **No server deploy target wired yet** — the frontend ships as static Vite output (`dist/`); the Hono API + SQLite backend needs a VPS/container target before the public showcase goes fully live.
-
----
-
-## Branches
-
-- **master** — production-ready baseline.
-- **main** — active development (identical history to master, pushed in parallel).
-- **staging** — pre-production testing (use as needed).
-
----
-
-## Why Growth Network?
-
-Running 10 businesses should not require a 10-person ops team. Your clients deserve response times under 2 minutes, not "between now and never." Nigerian, Ghanaian, Kenyan, South African, and Ugandan entrepreneurs deserve software that understands their markets instead of forcing them into foreign workflows.
-
-**Iyamah Goodness** — Founder, Growth Network
-[GitHub](https://github.com/GoodnessFx) · IG @Youtube
+- Complete Supabase migration for remaining edge cases (e.g., removing remaining synchronous local storage fallbacks across the entire app)
+- Expand automation and AI tooling for client facing chat and quote systems
+- Expand historical charting capabilities with real platform data syncs

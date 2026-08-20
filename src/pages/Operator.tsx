@@ -31,9 +31,9 @@ import {
   type HealthStatus,
 } from '../data/mockData'
 import {
-  getBusinesses,
   formatCurrency,
 } from '../data/store'
+import { useBusinesses } from '../hooks/useBusinesses'
 import { MiniSparkline, ComparisonChart, RevenueChart, AdFunnel } from '../components/Charts'
 import ConnectionsView from '../components/ConnectionsView'
 import AnalyticsView from '../components/AnalyticsView'
@@ -150,7 +150,8 @@ function SectionHeader({ label, action }: { label: string; action?: React.ReactN
 
 function BusinessCard({ business, onClick }: { business: Business; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
-  const maxRevenue = Math.max(...getBusinesses().map((b) => b.revenue))
+  const { businesses: allBiz } = useBusinesses()
+  const maxRevenue = allBiz.length > 0 ? Math.max(...allBiz.map((b) => b.revenue || 0)) : 0
 
   return (
     <div
@@ -370,9 +371,6 @@ function PublicVisibilityPanel({ businesses, onRefresh }: { businesses: ApiBusin
         <span style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 1 }}>
           Public Showcase — Visibility
         </span>
-        <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
-          Hidden businesses (and their posters) are invisible to the public.
-        </span>
       </div>
       {businesses.length === 0 ? (
         <div style={{ padding: '24px 20px', fontSize: 13, color: 'var(--muted-foreground)' }}>
@@ -444,18 +442,8 @@ function PortfolioView({
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showAddModal, setShowAddModal] = useState(false)
   const [version, setVersion] = useState(0)
-  const [dbBusinesses, setDbBusinesses] = useState<ApiBusiness[]>([])
-
-  const refreshDbBusinesses = () => {
-    fetchBusinesses()
-      .then((res) => setDbBusinesses(res.businesses))
-      .catch(() => {})
-  }
-
-  useEffect(() => {
-    refreshDbBusinesses()
-  }, [])
-
+  const { businesses: dbBusinesses, refresh: refreshDbBusinesses, loading } = useBusinesses()
+  
   useEffect(() => {
     if (autoOpenAddBusiness && user) {
       setShowAddModal(true)
@@ -463,9 +451,22 @@ function PortfolioView({
     }
   }, [autoOpenAddBusiness, user, onAddBusinessHandled])
 
-  const allBiz = getBusinesses()
+  // TODO: Replace with actual analytics/projects data from API
+  const allBiz: any[] = dbBusinesses.map(b => ({
+    ...b,
+    revenue: 0,
+    revenueChange: 0,
+    clients: 0,
+    activeCampaigns: 0,
+    monthlyData: [],
+    city: 'Global',
+    industry: b.type,
+    avatar: b.name.slice(0, 2).toUpperCase(),
+    status: b.status === 'active' ? 'growing' : 'flat',
+  }))
+
   const filtered = allBiz.filter((b) => {
-    const matchSearch = b.name.toLowerCase().includes(search.toLowerCase()) || b.city.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = b.name.toLowerCase().includes(search.toLowerCase())
     const matchStatus = statusFilter === "all" || b.status === statusFilter
     return matchSearch && matchStatus
   })
@@ -738,7 +739,22 @@ function PortfolioView({
 // ─── Compare ──────────────────────────────────────────────────────────────────
 
 function CompareView() {
-  const sorted = [...getBusinesses()].sort((a, b) => b.revenue - a.revenue)
+  const { businesses: dbBusinesses } = useBusinesses()
+  
+  const allBiz: any[] = dbBusinesses.map(b => ({
+    ...b,
+    revenue: 0,
+    revenueChange: 0,
+    clients: 0,
+    activeCampaigns: 0,
+    monthlyData: [],
+    city: 'Global',
+    industry: b.type,
+    avatar: b.name.slice(0, 2).toUpperCase(),
+    status: b.status === 'active' ? 'growing' : 'flat',
+  }))
+
+  const sorted = [...allBiz].sort((a, b) => b.revenue - a.revenue)
   const chartData = sorted.map((b) => ({ name: b.name, revenue: b.revenue, clients: b.clients }))
 
   return (
