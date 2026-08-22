@@ -1,20 +1,60 @@
 import { useEffect, useState } from 'react'
+
+// Core layout + auth
 import Landing from './pages/Landing'
 import Auth from './pages/Auth'
-import Operator from './pages/Operator'
-import BusinessView from './pages/Business'
 import PublicResults from './pages/PublicResults'
 import AppLayout from './components/AppLayout'
 import { AuthProvider, useAuth } from './lib/AuthContext'
+
+// Existing operator views
+import Operator from './pages/Operator'
+import BusinessView from './pages/Business'
 import { type Business } from './data/mockData'
+
+// Shared feature pages
 import ClientDashboard from './pages/ClientDashboard'
 import ContentCalendar from './pages/ContentCalendar'
 import ServiceRequests from './pages/ServiceRequests'
 import LeadsPipeline from './pages/LeadsPipeline'
 import Settings from './pages/Settings'
 import Automations from './pages/Automations'
+import GrowthTools from './pages/GrowthTools'
+
+// Owner-only pages
+import OwnerOverview  from './pages/owner/OwnerOverview'
+import SetupWizard    from './pages/owner/SetupWizard'
+import IdeasPage      from './pages/owner/IdeasPage'
+import OwnerCRM       from './pages/owner/OwnerCRM'
+import OwnerAnalytics from './pages/owner/OwnerAnalytics'
+import OwnerInvoices  from './pages/owner/OwnerInvoices'
+
+// Unique feature pages (all authenticated users)
+import GrowthTwin         from './pages/features/GrowthTwin'
+import PortfolioExchange  from './pages/features/PortfolioExchange'
+import ComplianceTracker  from './pages/features/ComplianceTracker'
+import AIFrontDesk        from './pages/features/AIFrontDesk'
+import ProofEngine        from './pages/features/ProofEngine'
+import FinancialHealthScore from './pages/features/FinancialHealthScore'
+
+// Operator agency tools
+import AskGrowthNet       from './pages/operator/AskGrowthNet'
+import ProspectingEngine  from './pages/operator/ProspectingEngine'
+import ProposalGenerator  from './pages/operator/ProposalGenerator'
+import ChurnRadar         from './pages/operator/ChurnRadar'
+import ReferralEngine     from './pages/operator/ReferralEngine'
+import ResellerMode       from './pages/operator/ResellerMode'
+
+// Vertical config
+import { type ApiBusiness, fetchBusinesses } from './lib/api'
 
 type Page = 'landing' | 'login' | 'operator' | 'business'
+
+// ── Tabs handled by the legacy Operator component ─────────────────────────
+const OPERATOR_TABS = new Set([
+  'portfolio', 'compare', 'inbox', 'campaigns', 'pipeline',
+  'alerts', 'connections', 'analytics', 'results', 'content',
+])
 
 function AppInner() {
   const { user, loading, logout } = useAuth()
@@ -22,36 +62,36 @@ function AppInner() {
   const [operatorTab, setOperatorTab] = useState('portfolio')
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
   const [pendingAddBusiness, setPendingAddBusiness] = useState(false)
-  const [publicBusinessId, setPublicBusinessId] = useState<string | null>(() => {
+  const [apiBusinesses, setApiBusinesses] = useState<ApiBusiness[]>([])
+
+  const [publicBusinessId] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/public\/([^/]+)/)
     return match ? decodeURIComponent(match[1]) : null
   })
 
-  // Google OAuth lands back on this origin after a full-page redirect. Supabase
-  // restores the session, onAuthStateChange fires, and we move from the login
-  // page into the dashboard automatically.
+  // Role-based post-login routing
   useEffect(() => {
     if (user && page === 'login') {
-      const isOwner = user.role === 'owner' || user.role === 'admin'
-      setOperatorTab(isOwner ? 'portfolio' : 'client-dashboard')
+      const isOperator = user.role === 'owner' || user.role === 'admin'
+      setOperatorTab(isOperator ? 'portfolio' : 'owner-overview')
       setPage('operator')
     }
   }, [user, page])
+
+  // Pre-fetch business list for Ask GrowthNet selector
+  useEffect(() => {
+    if (user) {
+      fetchBusinesses().catch(() => []).then(list => { if (Array.isArray(list)) setApiBusinesses(list) })
+    }
+  }, [user])
 
   if (publicBusinessId) {
     return (
       <PublicResults
         businessId={publicBusinessId}
-        onBack={() => {
-          window.history.replaceState({}, '', '/')
-          setPublicBusinessId(null)
-        }}
+        onBack={() => { window.history.replaceState({}, '', '/') }}
       />
     )
-  }
-
-  const navigate = (p: Page) => {
-    setPage(p)
   }
 
   const handleLogout = () => {
@@ -61,88 +101,29 @@ function AppInner() {
     setPage('landing')
   }
 
-  const handleSelectBusiness = (b: Business) => {
-    setSelectedBusiness(b)
-    setPage('business')
-  }
-
-  const handleBackFromBusiness = () => {
-    setPage('operator')
-    setSelectedBusiness(null)
-  }
-
-  const handleRequireAuth = () => {
-    setPendingAddBusiness(true)
-    setPage('login')
-  }
-
-  const handleAddBusinessHandled = () => {
-    setPendingAddBusiness(false)
-  }
-
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#0a0a0b',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <div
-            style={{
-              width: 40, height: 40,
-              background: 'linear-gradient(135deg, #6d28d9, #8b5cf6)',
-              borderRadius: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <span className="font-display" style={{ color: '#fff', fontWeight: 900, fontSize: 16 }}>
-              GN
-            </span>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ffffff', gap: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 32, height: 32, background: '#0f0f0e', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontFamily: "'DM Serif Display', serif", color: '#fff', fontSize: 15 }}>G</span>
           </div>
-          <div
-            style={{
-              width: 24, height: 24,
-              border: '2px solid #1e1e24',
-              borderTopColor: '#8b5cf6',
-              borderRadius: '50%',
-            }}
-            className="spin"
-          />
+          <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f0f0e', letterSpacing: -0.3 }}>GrowthNet</span>
         </div>
+        <div style={{ width: 22, height: 22, border: '2px solid #e8e8e4', borderTopColor: '#16a34a', borderRadius: '50%' }} className="spin" />
+        <p style={{ fontSize: 13, color: '#9ca3af', fontFamily: "'Inter', sans-serif" }}>Loading your dashboard…</p>
       </div>
     )
   }
 
-  if (page === 'landing') {
-    return (
-      <Landing
-        onLogin={() => navigate('login')}
-        onDashboard={() => navigate('operator')}
-      />
-    )
-  }
+  if (page === 'landing') return <Landing onLogin={() => setPage('login')} onDashboard={() => setPage('operator')} />
+  if (page === 'login')   return <Auth onBack={() => { setPendingAddBusiness(false); setPage('landing') }} />
 
-  if (page === 'login') {
-    return (
-      <Auth
-        onBack={() => {
-          setPendingAddBusiness(false)
-          setPage('landing')
-        }}
-      />
-    )
-  }
-
-  // Dummy business object for feature pages when no real business is selected
-  const dummyBusiness = {
+  // ── Shared dummy business for feature pages ────────────────────────────
+  const dummyBusiness: ApiBusiness = {
     id: 'dummy-biz-1',
-    name: user?.name ?? 'My Company',
-    type: 'E-commerce',
+    name: user?.name ?? 'My Business',
+    type: 'Generic SME',
     status: 'active',
     owner_id: user?.id ?? '',
     domain: '',
@@ -151,64 +132,70 @@ function AppInner() {
     updated_at: '',
   }
 
-  // Determine which operator-level tabs use the original Operator component
-  const operatorTabs = ['portfolio', 'compare', 'inbox', 'campaigns', 'pipeline', 'alerts', 'connections', 'analytics', 'results', 'content']
-  const isOperatorTab = operatorTabs.includes(operatorTab)
+  const nav = (tab: string) => {
+    setOperatorTab(tab)
+    if (page === 'business') { setPage('operator'); setSelectedBusiness(null) }
+  }
+
+  const tab = operatorTab
 
   return (
     <AppLayout
       page={page}
-      operatorTab={operatorTab}
-      setOperatorTab={(tab) => {
-        setOperatorTab(tab)
-        if (page === 'business') {
-          setPage('operator')
-          setSelectedBusiness(null)
-        }
-      }}
-      setPage={(p) => navigate(p as Page)}
+      operatorTab={tab}
+      setOperatorTab={nav}
+      setPage={p => setPage(p as Page)}
       onLogout={handleLogout}
       businessName={selectedBusiness?.name}
     >
-      {/* Original operator views (portfolio, compare, inbox, etc.) */}
-      {page === 'operator' && isOperatorTab && (
+      {/* ── Legacy Operator tabs (portfolio, compare, inbox, etc.) ── */}
+      {page === 'operator' && OPERATOR_TABS.has(tab) && (
         <Operator
-          tab={operatorTab as any}
-          onSelectBusiness={handleSelectBusiness}
-          onRequireAuth={handleRequireAuth}
+          tab={tab as any}
+          onSelectBusiness={b => { setSelectedBusiness(b); setPage('business') }}
+          onRequireAuth={() => { setPendingAddBusiness(true); setPage('login') }}
           autoOpenAddBusiness={pendingAddBusiness}
-          onAddBusinessHandled={handleAddBusinessHandled}
+          onAddBusinessHandled={() => setPendingAddBusiness(false)}
         />
       )}
 
-      {/* New feature pages — accessible to ALL authenticated users */}
-      {page === 'operator' && operatorTab === 'client-dashboard' && (
-        <ClientDashboard business={dummyBusiness} />
-      )}
-      {page === 'operator' && operatorTab === 'client-calendar' && (
-        <ContentCalendar business={dummyBusiness} />
-      )}
-      {page === 'operator' && operatorTab === 'client-requests' && (
-        <ServiceRequests business={dummyBusiness} />
-      )}
-      {page === 'operator' && operatorTab === 'client-leads' && (
-        <LeadsPipeline business={dummyBusiness} />
-      )}
-
-      {/* Settings page */}
-      {page === 'operator' && operatorTab === 'settings' && (
-        <Settings />
-      )}
-
-      {/* Tools & Automations */}
-      {page === 'operator' && operatorTab === 'automations' && (
-        <Automations />
-      )}
-
-      {/* Business detail view */}
+      {/* ── Business detail view ── */}
       {page === 'business' && selectedBusiness && (
-        <BusinessView business={selectedBusiness} onBack={handleBackFromBusiness} />
+        <BusinessView business={selectedBusiness} onBack={() => { setPage('operator'); setSelectedBusiness(null) }} />
       )}
+
+      {/* ── Shared feature tabs ── */}
+      {page === 'operator' && tab === 'client-dashboard' && <ClientDashboard business={dummyBusiness} />}
+      {page === 'operator' && tab === 'client-calendar'  && <ContentCalendar business={dummyBusiness} />}
+      {page === 'operator' && tab === 'client-requests'  && <ServiceRequests business={dummyBusiness} />}
+      {page === 'operator' && tab === 'client-leads'     && <LeadsPipeline business={dummyBusiness} />}
+      {page === 'operator' && tab === 'automations'      && <Automations />}
+      {page === 'operator' && tab === 'growth-tools'     && <GrowthTools />}
+      {page === 'operator' && tab === 'settings'         && <Settings />}
+
+      {/* ── Owner-only pages ── */}
+      {page === 'operator' && tab === 'owner-overview'  && <OwnerOverview  business={dummyBusiness} onNavigate={nav} />}
+      {page === 'operator' && tab === 'owner-setup'     && <SetupWizard    business={dummyBusiness} onComplete={() => nav('owner-overview')} />}
+      {page === 'operator' && tab === 'owner-ideas'     && <IdeasPage      business={dummyBusiness} onNavigate={nav} />}
+      {page === 'operator' && tab === 'owner-crm'       && <OwnerCRM       business={dummyBusiness} />}
+      {page === 'operator' && tab === 'owner-analytics' && <OwnerAnalytics business={dummyBusiness} />}
+      {page === 'operator' && tab === 'owner-invoices'  && <OwnerInvoices  business={dummyBusiness} />}
+
+      {/* ── Unique feature pages ── */}
+      {page === 'operator' && tab === 'growth-twin'        && <GrowthTwin />}
+      {page === 'operator' && tab === 'portfolio-exchange' && <PortfolioExchange />}
+      {page === 'operator' && tab === 'compliance'         && <ComplianceTracker business={dummyBusiness} />}
+      {page === 'operator' && tab === 'ai-front-desk'      && <AIFrontDesk business={dummyBusiness} />}
+      {page === 'operator' && tab === 'proof-engine'       && <ProofEngine business={dummyBusiness} />}
+      {page === 'operator' && tab === 'health-score'       && <FinancialHealthScore business={dummyBusiness} />}
+
+      {/* ── Operator agency tools ── */}
+      {page === 'operator' && tab === 'ask'          && <AskGrowthNet businesses={apiBusinesses.length > 0 ? apiBusinesses : [dummyBusiness]} />}
+      {page === 'operator' && tab === 'prospecting'  && <ProspectingEngine />}
+      {page === 'operator' && tab === 'proposals'    && <ProposalGenerator />}
+      {page === 'operator' && tab === 'churn-radar'  && <ChurnRadar />}
+      {page === 'operator' && tab === 'referrals'    && <ReferralEngine />}
+      {page === 'operator' && tab === 'reseller'     && <ResellerMode />}
     </AppLayout>
   )
 }

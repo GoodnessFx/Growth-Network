@@ -65,6 +65,77 @@ Built on Supabase with row level security, so every client's data is fully isola
 
 AI and no code tooling have made it possible for a small, focused team to deliver what used to require a much larger agency. Growth Network is built to take advantage of that shift, offering businesses full stack growth support at a fraction of the traditional cost, while giving our own team the leverage to serve far more clients than a traditional agency structure would allow.
 
+## Two-Role Model
+
+As of August 2026, Growth Network operates a two-role, two-login system:
+
+| Role | Who | What they see |
+|------|-----|---------------|
+| **Operator** | The agency founder (Goodness Iyamah) | Full portfolio view — all businesses, analytics, agency tools. Read-only over business-level content. |
+| **Owner** | An individual client business | Their own business only — full read/write over their own data, never another business. |
+
+Both roles are routed correctly after login. The Operator dashboard surfaces the full portfolio and all agency tools. The Owner dashboard is scoped to a single business with vertical-aware terminology (Generic SME, Law Firm, Clinic/Hospital, School/University).
+
+---
+
+## Agency Growth Tools
+
+Six tools built exclusively for the Operator side to grow the agency itself:
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Ask GrowthNet** | In-app data assistant scoped to one business's data — answers revenue, lead, and client questions with cited sources. Refuses cross-business queries by design. | ✅ Built |
+| **Prospecting Engine** | Enter a target industry + location → ranked list of businesses with absent web presence, each with a pre-filled personalised pitch. Review-and-send queue via WhatsApp (`wa.me` links). Logs outcome per pitch. | ✅ Built |
+| **Proposal Generator** | Short form → client-ready proposal + contract in under a minute, pre-filled with your GTBank details (Goodness Iyamah, ****7763) and standard terms per deal type. Status tracking: sent → viewed → signed → paid. Shareable public link. | ✅ Built |
+| **Churn Radar** | Watches every managed client for early risk signals (login drop-off, invoice overdue, feature abandonment). Ranked at-risk list with explicit reasons. Read-only — flags risk, doesn't auto-message. | ✅ Built |
+| **Referral Engine** | Each client gets a unique trackable referral link. System queues referral prompts at the right moment (post-milestone), stops at a review step before anything sends. Leaderboard of top-referring clients. | ✅ Built |
+| **Reseller Mode** | White-label layer — other freelancers/agencies run GrowthNet under their own brand (logo, name, accent color). Platform owner earns a flat revenue share per reseller. Rollup view across all resellers. | ✅ Built |
+
+---
+
+## Owner Dashboard Pages
+
+Six pages available to every Owner-role user, vertical-aware throughout:
+
+| Page | Description | Status |
+|------|-------------|--------|
+| **Overview** | Business health at a glance — revenue trend, action items, quick links | ✅ Built |
+| **Setup Wizard** | 4-step guided onboarding: profile, offering, channel, done | ✅ Built |
+| **Ideas & Suggestions** | 8 data-signal suggestions categorised by revenue / automation / clients / savings | ✅ Built |
+| **Clients & Leads** | Full CRM with vertical-aware terminology, pipeline stages, contact profiles | ✅ Built |
+| **Analytics** | Revenue trend, KPIs, channel breakdown, month-on-month table | ✅ Built |
+| **Invoices** | Create, track, and mark invoices paid — with outstanding/overdue summary | ✅ Built |
+
+---
+
+## Unique Features (all authenticated users)
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Growth Twin** | "What if" simulator using real historical data — 4 scenarios (ads, hire, price, churn) with low/expected/high ranges and plain-English assumptions | ✅ Built |
+| **Portfolio Exchange** | Internal marketplace for businesses in the same portfolio to refer overflow work to each other | ✅ Built |
+| **Compliance Tracker** | Vertical-aware deadline tracker (court filings for law firms, NAFDAC for clinics, exam cycles for schools) | ✅ Built |
+| **AI Front Desk** | Owner-configured WhatsApp FAQ bot — answers questions, takes bookings, escalates to human when out of scope | ✅ Built |
+| **Proof Engine** | Auto-generated shareable case study from real growth data — "Revenue up 34% in 90 days" with chart, no manual writing | ✅ Built |
+| **Financial Health Score** | Explainable score (not a black box) from revenue trend, consistency, and receivables health — foundation for future lender integration | ✅ Built |
+
+---
+
+## Vertical Configuration
+
+Four starter verticals — each changes CRM terminology, pipeline stage names, KPI labels, and compliance deadline types:
+
+| Vertical | Contacts | Leads | Deals | Compliance |
+|----------|----------|-------|-------|------------|
+| Generic SME | Customers | Leads | Deals | Tax / licence |
+| Law Firm | Clients | Enquiries | Matters | Court deadlines |
+| Clinic / Hospital | Patients | New Patients | Appointments | NAFDAC / board |
+| School / University | Students | Applicants | Enrolments | Accreditation |
+
+Adding a 5th vertical is a data change in `src/lib/verticals.ts` — no page rewrites.
+
+---
+
 ## Current Status
 
 - Frontend built and live
