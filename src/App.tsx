@@ -44,6 +44,7 @@ import ProposalGenerator  from './pages/operator/ProposalGenerator'
 import ChurnRadar         from './pages/operator/ChurnRadar'
 import ReferralEngine     from './pages/operator/ReferralEngine'
 import ResellerMode       from './pages/operator/ResellerMode'
+import SocialPublisher    from './pages/operator/SocialPublisher'
 
 // Vertical config
 import { type ApiBusiness, fetchBusinesses } from './lib/api'
@@ -73,10 +74,26 @@ function AppInner() {
   useEffect(() => {
     if (user && page === 'login') {
       const isOperator = user.role === 'owner' || user.role === 'admin'
+      // Operator lands on portfolio, business owner lands on their overview
       setOperatorTab(isOperator ? 'portfolio' : 'owner-overview')
       setPage('operator')
     }
   }, [user, page])
+
+  // Tabs the operator can see — clients are blocked from these entirely
+  const OPERATOR_ONLY_TABS = new Set([
+    ...Array.from(OPERATOR_TABS),
+    'client-calendar', 'client-requests', 'client-leads',
+    'automations', 'growth-tools', 'client-dashboard',
+    'ask', 'prospecting', 'proposals', 'churn-radar', 'referrals', 'reseller',
+    'portfolio-exchange',
+  ])
+
+  const isOperator = user?.role === 'owner' || user?.role === 'admin'
+
+  // If a business owner somehow navigates to an operator-only tab, redirect them home
+  const activeTab = operatorTab
+  const effectiveTab = (!isOperator && OPERATOR_ONLY_TABS.has(activeTab)) ? 'owner-overview' : activeTab
 
   // Pre-fetch business list for Ask GrowthNet selector
   useEffect(() => {
@@ -133,11 +150,13 @@ function AppInner() {
   }
 
   const nav = (tab: string) => {
+    // Block client from navigating to operator-only tabs
+    if (!isOperator && OPERATOR_ONLY_TABS.has(tab)) return
     setOperatorTab(tab)
     if (page === 'business') { setPage('operator'); setSelectedBusiness(null) }
   }
 
-  const tab = operatorTab
+  const tab = effectiveTab
 
   return (
     <AppLayout
@@ -149,7 +168,7 @@ function AppInner() {
       businessName={selectedBusiness?.name}
     >
       {/* ── Legacy Operator tabs (portfolio, compare, inbox, etc.) ── */}
-      {page === 'operator' && OPERATOR_TABS.has(tab) && (
+      {page === 'operator' && isOperator && OPERATOR_TABS.has(tab) && (
         <Operator
           tab={tab as any}
           onSelectBusiness={b => { setSelectedBusiness(b); setPage('business') }}
@@ -164,16 +183,16 @@ function AppInner() {
         <BusinessView business={selectedBusiness} onBack={() => { setPage('operator'); setSelectedBusiness(null) }} />
       )}
 
-      {/* ── Shared feature tabs ── */}
-      {page === 'operator' && tab === 'client-dashboard' && <ClientDashboard business={dummyBusiness} />}
-      {page === 'operator' && tab === 'client-calendar'  && <ContentCalendar business={dummyBusiness} />}
-      {page === 'operator' && tab === 'client-requests'  && <ServiceRequests business={dummyBusiness} />}
-      {page === 'operator' && tab === 'client-leads'     && <LeadsPipeline business={dummyBusiness} />}
-      {page === 'operator' && tab === 'automations'      && <Automations />}
-      {page === 'operator' && tab === 'growth-tools'     && <GrowthTools />}
-      {page === 'operator' && tab === 'settings'         && <Settings />}
+      {/* ── Operator-only feature tabs ── */}
+      {page === 'operator' && isOperator && tab === 'client-dashboard' && <ClientDashboard business={dummyBusiness} />}
+      {page === 'operator' && isOperator && tab === 'client-calendar'  && <ContentCalendar business={dummyBusiness} />}
+      {page === 'operator' && isOperator && tab === 'client-requests'  && <ServiceRequests business={dummyBusiness} />}
+      {page === 'operator' && isOperator && tab === 'client-leads'     && <LeadsPipeline business={dummyBusiness} />}
+      {page === 'operator' && isOperator && tab === 'automations'      && <Automations />}
+      {page === 'operator' && isOperator && tab === 'growth-tools'     && <GrowthTools />}
+      {page === 'operator' && tab === 'settings' && <Settings />}
 
-      {/* ── Owner-only pages ── */}
+      {/* ── Owner pages (business owner sees ONLY these) ── */}
       {page === 'operator' && tab === 'owner-overview'  && <OwnerOverview  business={dummyBusiness} onNavigate={nav} />}
       {page === 'operator' && tab === 'owner-setup'     && <SetupWizard    business={dummyBusiness} onComplete={() => nav('owner-overview')} />}
       {page === 'operator' && tab === 'owner-ideas'     && <IdeasPage      business={dummyBusiness} onNavigate={nav} />}
@@ -181,21 +200,26 @@ function AppInner() {
       {page === 'operator' && tab === 'owner-analytics' && <OwnerAnalytics business={dummyBusiness} />}
       {page === 'operator' && tab === 'owner-invoices'  && <OwnerInvoices  business={dummyBusiness} />}
 
-      {/* ── Unique feature pages ── */}
-      {page === 'operator' && tab === 'growth-twin'        && <GrowthTwin />}
-      {page === 'operator' && tab === 'portfolio-exchange' && <PortfolioExchange />}
-      {page === 'operator' && tab === 'compliance'         && <ComplianceTracker business={dummyBusiness} />}
-      {page === 'operator' && tab === 'ai-front-desk'      && <AIFrontDesk business={dummyBusiness} />}
-      {page === 'operator' && tab === 'proof-engine'       && <ProofEngine business={dummyBusiness} />}
-      {page === 'operator' && tab === 'health-score'       && <FinancialHealthScore business={dummyBusiness} />}
+      {/* ── Business owner tools (accessible to business owners only) ── */}
+      {page === 'operator' && tab === 'growth-twin'   && <GrowthTwin />}
+      {page === 'operator' && tab === 'compliance'    && <ComplianceTracker business={dummyBusiness} />}
+      {page === 'operator' && tab === 'ai-front-desk' && <AIFrontDesk business={dummyBusiness} />}
+      {page === 'operator' && tab === 'proof-engine'  && <ProofEngine business={dummyBusiness} />}
+      {page === 'operator' && tab === 'health-score'  && <FinancialHealthScore business={dummyBusiness} />}
+
+      {/* ── Operator-only unique tools ── */}
+      {page === 'operator' && isOperator && tab === 'portfolio-exchange' && <PortfolioExchange />}
 
       {/* ── Operator agency tools ── */}
-      {page === 'operator' && tab === 'ask'          && <AskGrowthNet businesses={apiBusinesses.length > 0 ? apiBusinesses : [dummyBusiness]} />}
-      {page === 'operator' && tab === 'prospecting'  && <ProspectingEngine />}
-      {page === 'operator' && tab === 'proposals'    && <ProposalGenerator />}
-      {page === 'operator' && tab === 'churn-radar'  && <ChurnRadar />}
-      {page === 'operator' && tab === 'referrals'    && <ReferralEngine />}
-      {page === 'operator' && tab === 'reseller'     && <ResellerMode />}
+      {page === 'operator' && isOperator && tab === 'ask'            && <AskGrowthNet businesses={apiBusinesses.length > 0 ? apiBusinesses : [dummyBusiness]} />}
+      {page === 'operator' && isOperator && tab === 'prospecting'    && <ProspectingEngine />}
+      {page === 'operator' && isOperator && tab === 'proposals'      && <ProposalGenerator />}
+      {page === 'operator' && isOperator && tab === 'churn-radar'    && <ChurnRadar />}
+      {page === 'operator' && isOperator && tab === 'referrals'      && <ReferralEngine />}
+      {page === 'operator' && isOperator && tab === 'reseller'       && <ResellerMode />}
+      {page === 'operator' && isOperator && tab === 'social-publish' && (
+        <SocialPublisher businesses={apiBusinesses.length > 0 ? apiBusinesses : [dummyBusiness]} />
+      )}
     </AppLayout>
   )
 }

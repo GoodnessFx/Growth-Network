@@ -47,15 +47,16 @@ const OPS_NAV: NavItem[] = [
 
 // ── Operator-only: agency growth tools ───────────────────────────────────
 const AGENCY_NAV: NavItem[] = [
-  { id: 'churn-radar',   label: 'Churn Radar',     icon: TrendingDown,   section: 'agency' },
-  { id: 'ask',           label: 'Ask GrowthNet',   icon: MessageSquare,  section: 'agency' },
-  { id: 'prospecting',   label: 'Prospecting',     icon: Search,         section: 'agency' },
-  { id: 'proposals',     label: 'Proposals',       icon: FileSignature,  section: 'agency' },
-  { id: 'referrals',     label: 'Referral Engine', icon: Share2,         section: 'agency' },
-  { id: 'reseller',      label: 'Reseller Mode',   icon: Building2,      section: 'agency' },
+  { id: 'churn-radar',    label: 'Churn Radar',      icon: TrendingDown,  section: 'agency' },
+  { id: 'social-publish', label: 'Social Publisher', icon: Share2,        section: 'agency' },
+  { id: 'ask',            label: 'Ask GrowthNet',    icon: MessageSquare, section: 'agency' },
+  { id: 'prospecting',    label: 'Prospecting',      icon: Search,        section: 'agency' },
+  { id: 'proposals',      label: 'Proposals',        icon: FileSignature, section: 'agency' },
+  { id: 'referrals',      label: 'Referral Engine',  icon: Share2,        section: 'agency' },
+  { id: 'reseller',       label: 'Reseller Mode',    icon: Building2,     section: 'agency' },
 ]
 
-// ── Shared: feature tools (all authenticated users) ───────────────────────
+// ── Operator-only: internal feature/tool tabs (YOUR tools, not clients') ──
 const FEATURES_NAV: NavItem[] = [
   { id: 'client-dashboard',  label: 'Dashboard',           icon: BarChart3,    section: 'features' },
   { id: 'client-calendar',   label: 'Scheduling',          icon: CalendarDays, section: 'features' },
@@ -65,24 +66,34 @@ const FEATURES_NAV: NavItem[] = [
   { id: 'growth-tools',      label: 'Growth Tools',        icon: Wrench,       section: 'features' },
 ]
 
-// ── Owner-only: business management pages ────────────────────────────────
+// ── Business Owner nav — what the CLIENT (business owner) sees ────────────
+// Only their own business data. Nothing from the operator side.
 const OWNER_NAV: NavItem[] = [
-  { id: 'owner-overview',    label: 'Overview',            icon: Home,         section: 'owner' },
-  { id: 'owner-setup',       label: 'Setup Wizard',        icon: BookOpen,     section: 'owner' },
-  { id: 'owner-ideas',       label: 'Ideas & Suggestions', icon: Lightbulb,    section: 'owner' },
-  { id: 'owner-crm',         label: 'Clients & Leads',     icon: Users,        section: 'owner' },
-  { id: 'owner-analytics',   label: 'Analytics',           icon: BarChart3,    section: 'owner' },
-  { id: 'owner-invoices',    label: 'Invoices',            icon: DollarSign,   section: 'owner' },
+  { id: 'owner-overview',  label: 'Dashboard',            icon: Home,         section: 'owner' },
+  { id: 'owner-setup',     label: 'Business Setup',       icon: BookOpen,     section: 'owner' },
+  { id: 'owner-crm',       label: 'Clients & Leads',      icon: Users,        section: 'owner' },
+  { id: 'owner-analytics', label: 'My Analytics',         icon: BarChart3,    section: 'owner' },
+  { id: 'owner-invoices',  label: 'Invoices',             icon: DollarSign,   section: 'owner' },
+  { id: 'owner-ideas',     label: 'Growth Ideas',         icon: Lightbulb,    section: 'owner' },
 ]
 
-// ── Unique feature pages (accessible based on role) ───────────────────────
-const UNIQUE_NAV: NavItem[] = [
-  { id: 'growth-twin',        label: 'Growth Twin',         icon: TrendingUp,   section: 'unique' },
-  { id: 'portfolio-exchange', label: 'Portfolio Exchange',  icon: Share2,       section: 'unique' },
-  { id: 'compliance',         label: 'Compliance Tracker',  icon: AlertOctagon, section: 'unique' },
-  { id: 'ai-front-desk',      label: 'AI Front Desk',       icon: MessageSquare,section: 'unique' },
-  { id: 'proof-engine',       label: 'Proof Engine',        icon: FileText,     section: 'unique' },
-  { id: 'health-score',       label: 'Health Score',        icon: Activity,     section: 'unique' },
+// ── Business owner growth tools — relevant to THEIR business ─────────────
+const OWNER_TOOLS_NAV: NavItem[] = [
+  { id: 'ai-front-desk',  label: 'AI Front Desk',        icon: MessageSquare,section: 'owner-tools' },
+  { id: 'compliance',     label: 'Compliance Tracker',   icon: AlertOctagon, section: 'owner-tools' },
+  { id: 'proof-engine',   label: 'Growth Proof',         icon: FileText,     section: 'owner-tools' },
+  { id: 'health-score',   label: 'Financial Health',     icon: Activity,     section: 'owner-tools' },
+  { id: 'growth-twin',    label: 'Growth Twin',          icon: TrendingUp,   section: 'owner-tools' },
+]
+
+// ── Operator-only unique tools ─────────────────────────────────────────────
+const OPERATOR_UNIQUE_NAV: NavItem[] = [
+  { id: 'growth-twin',        label: 'Growth Twin',        icon: TrendingUp,   section: 'unique' },
+  { id: 'portfolio-exchange', label: 'Portfolio Exchange', icon: Share2,       section: 'unique' },
+  { id: 'compliance',         label: 'Compliance Tracker', icon: AlertOctagon, section: 'unique' },
+  { id: 'ai-front-desk',      label: 'AI Front Desk',      icon: MessageSquare,section: 'unique' },
+  { id: 'proof-engine',       label: 'Proof Engine',       icon: FileText,     section: 'unique' },
+  { id: 'health-score',       label: 'Health Score',       icon: Activity,     section: 'unique' },
 ]
 
 // Need Users for OWNER_NAV - already imported above
@@ -151,18 +162,18 @@ function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean 
 
 function MobileBottomBar({ tab, setTab, isOperator }: { tab: string; setTab: (t: string) => void; isOperator: boolean }) {
   const operatorItems = [
-    { id: 'portfolio',        label: 'Portfolio',  icon: LayoutGrid },
-    { id: 'churn-radar',      label: 'Radar',      icon: TrendingDown },
-    { id: 'prospecting',      label: 'Prospect',   icon: Search },
-    { id: 'proposals',        label: 'Proposals',  icon: FileSignature },
-    { id: 'settings',         label: 'Settings',   icon: Settings },
+    { id: 'portfolio',     label: 'Portfolio', icon: LayoutGrid },
+    { id: 'churn-radar',   label: 'Radar',     icon: TrendingDown },
+    { id: 'prospecting',   label: 'Prospect',  icon: Search },
+    { id: 'proposals',     label: 'Proposals', icon: FileSignature },
+    { id: 'settings',      label: 'Settings',  icon: Settings },
   ]
   const ownerItems = [
-    { id: 'owner-overview',   label: 'Home',       icon: Home },
-    { id: 'owner-crm',        label: 'Clients',    icon: UserPlus },
-    { id: 'client-calendar',  label: 'Schedule',   icon: CalendarDays },
-    { id: 'growth-tools',     label: 'Tools',      icon: Wrench },
-    { id: 'settings',         label: 'Settings',   icon: Settings },
+    { id: 'owner-overview',  label: 'Home',    icon: Home },
+    { id: 'owner-crm',       label: 'Clients', icon: UserPlus },
+    { id: 'owner-analytics', label: 'Analytics',icon: BarChart3 },
+    { id: 'ai-front-desk',   label: 'AI Desk', icon: MessageSquare },
+    { id: 'settings',        label: 'Settings', icon: Settings },
   ]
   const items = isOperator ? operatorItems : ownerItems
   return (
@@ -216,7 +227,7 @@ export default function AppLayout({ page, operatorTab, setOperatorTab, setPage, 
         {page === 'business' ? (
           <NavBtn item={{ id: 'back', label: 'All Businesses', icon: Layers, section: '' }} active={false} collapsed={collapsed} onClick={() => setPage('operator')} />
         ) : isOperator ? (
-          /* ── OPERATOR NAV ── */
+          /* ── OPERATOR NAV — you (the founder) ── */
           <>
             <SectionLabel label="Operations" collapsed={collapsed} />
             {OPS_NAV.map(item => (
@@ -228,18 +239,18 @@ export default function AppLayout({ page, operatorTab, setOperatorTab, setPage, 
               <NavBtn key={item.id} item={item} active={operatorTab === item.id} collapsed={collapsed} onClick={() => navigate(item.id)} />
             ))}
 
-            <SectionLabel label="Features" collapsed={collapsed} />
+            <SectionLabel label="My Features" collapsed={collapsed} />
             {FEATURES_NAV.map(item => (
               <NavBtn key={item.id} item={item} active={operatorTab === item.id} collapsed={collapsed} onClick={() => navigate(item.id)} />
             ))}
 
             <SectionLabel label="Unique Tools" collapsed={collapsed} />
-            {UNIQUE_NAV.map(item => (
+            {OPERATOR_UNIQUE_NAV.map(item => (
               <NavBtn key={item.id} item={item} active={operatorTab === item.id} collapsed={collapsed} onClick={() => navigate(item.id)} />
             ))}
           </>
         ) : (
-          /* ── OWNER NAV ── */
+          /* ── CLIENT/OWNER NAV — business owner sees ONLY their business ── */
           <>
             <SectionLabel label="My Business" collapsed={collapsed} />
             {OWNER_NAV.map(item => (
@@ -247,12 +258,7 @@ export default function AppLayout({ page, operatorTab, setOperatorTab, setPage, 
             ))}
 
             <SectionLabel label="Tools" collapsed={collapsed} />
-            {FEATURES_NAV.map(item => (
-              <NavBtn key={item.id} item={item} active={operatorTab === item.id} collapsed={collapsed} onClick={() => navigate(item.id)} />
-            ))}
-
-            <SectionLabel label="Unique Tools" collapsed={collapsed} />
-            {UNIQUE_NAV.map(item => (
+            {OWNER_TOOLS_NAV.map(item => (
               <NavBtn key={item.id} item={item} active={operatorTab === item.id} collapsed={collapsed} onClick={() => navigate(item.id)} />
             ))}
           </>
@@ -324,7 +330,7 @@ export default function AppLayout({ page, operatorTab, setOperatorTab, setPage, 
               </>
             ) : (
               <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif" }}>
-                {isOperator ? 'Operator' : 'My Business'}
+                {isOperator ? 'Operator Dashboard' : 'My Business Dashboard'}
               </span>
             )}
           </div>
