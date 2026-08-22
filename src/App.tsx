@@ -11,6 +11,7 @@ import ClientDashboard from './pages/ClientDashboard'
 import ContentCalendar from './pages/ContentCalendar'
 import ServiceRequests from './pages/ServiceRequests'
 import LeadsPipeline from './pages/LeadsPipeline'
+import Settings from './pages/Settings'
 
 type Page = 'landing' | 'login' | 'operator' | 'business'
 
@@ -86,23 +87,31 @@ function AppInner() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'var(--background)',
+          background: '#0a0a0b',
         }}
       >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            background: 'var(--primary)',
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <span className="font-display" style={{ color: '#111827', fontWeight: 900, fontSize: 14 }}>
-            GN
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div
+            style={{
+              width: 40, height: 40,
+              background: 'linear-gradient(135deg, #6d28d9, #8b5cf6)',
+              borderRadius: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <span className="font-display" style={{ color: '#fff', fontWeight: 900, fontSize: 16 }}>
+              GN
+            </span>
+          </div>
+          <div
+            style={{
+              width: 24, height: 24,
+              border: '2px solid #1e1e24',
+              borderTopColor: '#8b5cf6',
+              borderRadius: '50%',
+            }}
+            className="spin"
+          />
         </div>
       </div>
     )
@@ -183,6 +192,11 @@ function AppInner() {
       )}
       {page === 'operator' && operatorTab === 'client-leads' && (
         <LeadsPipeline business={dummyBusiness} />
+      )}
+
+      {/* Settings page */}
+      {page === 'operator' && operatorTab === 'settings' && (
+        <Settings />
       )}
 
       {/* Business detail view */}

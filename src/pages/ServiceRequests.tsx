@@ -1,30 +1,41 @@
 import { useState, useEffect } from 'react'
 import { type ApiBusiness } from '../lib/api'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
-import { Plus } from 'lucide-react'
+import { Plus, X, Clock, CheckCircle2, Circle, AlertCircle } from 'lucide-react'
 
 const DEMO_REQUESTS = [
   { id: '1', title: 'New Landing Page', category: 'software', description: 'Need a high-converting landing page for our summer campaign with lead capture form.', status: 'in-progress', created_at: '2026-08-01T10:00:00Z' },
   { id: '2', title: 'Logo Redesign', category: 'design', description: 'Modernize our logo to better reflect the new brand direction we discussed.', status: 'scoping', created_at: '2026-08-05T14:30:00Z' },
   { id: '3', title: 'Email Drip Campaign', category: 'automation', description: 'Set up automated welcome sequence for new subscribers, 5 emails over 14 days.', status: 'completed', created_at: '2026-07-15T09:00:00Z' },
   { id: '4', title: 'Instagram Content Package', category: 'marketing', description: '30 branded posts with captions for the next month, aligned with our tone of voice.', status: 'in-progress', created_at: '2026-08-10T11:00:00Z' },
-  { id: '5', title: 'Custom CRM Integration', category: 'custom', description: 'Need a custom tool integrated with our current CRM to auto-fetch leads.', status: 'scoping', created_at: '2026-08-18T10:00:00Z' }
+  { id: '5', title: 'Custom CRM Integration', category: 'custom', description: 'Need a custom tool integrated with our current CRM to auto-fetch leads.', status: 'scoping', created_at: '2026-08-18T10:00:00Z' },
 ]
 
-const CATEGORY_LABELS: Record<string, string> = {
+const CATEGORIES: Record<string, string> = {
   software: 'Software & Web',
   design: 'Design & Branding',
   automation: 'Automation & AI',
   operations: 'Business Operations',
   marketing: 'Growth & Marketing',
-  custom: 'Custom Tool Integration',
+  custom: 'Custom Integration',
 }
 
-const STATUS_STYLES: Record<string, { bg: string; color: string }> = {
-  'scoping': { bg: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning)' },
-  'in-progress': { bg: 'rgba(5, 150, 105, 0.1)', color: 'var(--accent)' },
-  'completed': { bg: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6' },
-  'cancelled': { bg: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)' },
+type RequestStatus = 'scoping' | 'in-progress' | 'completed' | 'cancelled'
+
+const STATUS_CONFIG: Record<RequestStatus, { label: string; bg: string; color: string; icon: React.ElementType }> = {
+  scoping: { label: 'Scoping', bg: 'rgba(245,158,11,0.08)', color: '#f59e0b', icon: Clock },
+  'in-progress': { label: 'In Progress', bg: 'rgba(139,92,246,0.08)', color: '#a78bfa', icon: Circle },
+  completed: { label: 'Completed', bg: 'rgba(16,185,129,0.08)', color: '#10b981', icon: CheckCircle2 },
+  cancelled: { label: 'Cancelled', bg: 'rgba(239,68,68,0.08)', color: '#f87171', icon: AlertCircle },
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  software: '#3b82f6',
+  design: '#ec4899',
+  automation: '#8b5cf6',
+  operations: '#f59e0b',
+  marketing: '#10b981',
+  custom: '#f97316',
 }
 
 export default function ServiceRequests({ business }: { business?: ApiBusiness }) {
@@ -34,7 +45,7 @@ export default function ServiceRequests({ business }: { business?: ApiBusiness }
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('custom')
   const [description, setDescription] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | RequestStatus>('all')
 
   useEffect(() => {
     let active = true
@@ -46,8 +57,7 @@ export default function ServiceRequests({ business }: { business?: ApiBusiness }
           if (business) query = query.eq('business_id', business.id)
           const { data } = await query
           if (!active) return
-          if (data && data.length > 0) setRequests(data)
-          else setRequests(DEMO_REQUESTS)
+          setRequests(data?.length ? data : DEMO_REQUESTS)
         } catch {
           if (active) setRequests(DEMO_REQUESTS)
         }
@@ -56,118 +66,94 @@ export default function ServiceRequests({ business }: { business?: ApiBusiness }
       }
       setLoading(false)
     }
-    
     fetchRequests()
-
     let sub: any = null
     if (isSupabaseConfigured && business) {
       sub = supabase.channel('service-updates')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'projects', filter: `business_id=eq.${business.id}` }, () => fetchRequests())
         .subscribe()
     }
-
-    return () => {
-      active = false
-      if (sub) supabase.removeChannel(sub)
-    }
-  }, [business])
+    return () => { active = false; if (sub) supabase.removeChannel(sub) }
+  }, [business?.id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title) return
-
-    const newReq = {
-      business_id: business?.id || 'dummy-biz-1',
-      title,
-      category,
-      description,
-      status: 'scoping',
-    }
-
+    const newReq = { business_id: business?.id ?? 'dummy-biz-1', title, category, description, status: 'scoping' }
     if (isSupabaseConfigured) {
       const { data, error } = await supabase.from('projects').insert([newReq]).select()
-      if (data && !error) setRequests(prev => [data[0], ...prev])
+      if (data && !error) setRequests((prev) => [data[0], ...prev])
     } else {
-      setRequests(prev => [{ id: `local-${Date.now()}`, ...newReq, created_at: new Date().toISOString() }, ...prev])
+      setRequests((prev) => [{ id: `local-${Date.now()}`, ...newReq, created_at: new Date().toISOString() }, ...prev])
     }
-    
-    setTitle('')
-    setDescription('')
-    setShowForm(false)
+    setTitle(''); setDescription(''); setShowForm(false)
   }
 
-  const filtered = statusFilter === 'all' ? requests : requests.filter(r => r.status === statusFilter)
-  const counts = {
+  const filtered = statusFilter === 'all' ? requests : requests.filter((r) => r.status === statusFilter)
+  const counts: Record<string, number> = {
     all: requests.length,
-    scoping: requests.filter(r => r.status === 'scoping').length,
-    'in-progress': requests.filter(r => r.status === 'in-progress').length,
-    completed: requests.filter(r => r.status === 'completed').length,
+    scoping: requests.filter((r) => r.status === 'scoping').length,
+    'in-progress': requests.filter((r) => r.status === 'in-progress').length,
+    completed: requests.filter((r) => r.status === 'completed').length,
   }
 
   return (
-    <div className="page-pad" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
-        <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, color: 'var(--foreground)' }}>
-          Service Requests
-        </h1>
+    <div className="page-pad" style={{ padding: 28 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <div style={{ fontFamily: 'JetBrains Mono', fontSize: 10, color: '#6b6b7b', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>
+            Work Tracker
+          </div>
+          <h1 className="font-display" style={{ fontSize: 28, fontWeight: 900, color: '#f0f0f0', margin: 0 }}>
+            Service Requests
+          </h1>
+        </div>
         <button
           onClick={() => setShowForm(!showForm)}
           style={{
-            background: 'var(--primary)', color: '#111827', border: 'none', padding: '10px 18px',
-            borderRadius: 3, fontWeight: 700, cursor: 'pointer', fontFamily: 'Barlow Condensed',
-            display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, letterSpacing: 0.5
+            background: '#8b5cf6', color: '#fff', border: 'none',
+            padding: '9px 18px', borderRadius: 8, fontWeight: 600,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13,
           }}
         >
-          <Plus size={16} /> NEW REQUEST
+          <Plus size={14} /> New Request
         </button>
       </div>
-      <p style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 24 }}>
-        Submit and track service requests, including custom integrations and tools.
-      </p>
 
       {/* New request form */}
       {showForm && (
-        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, padding: 20, marginBottom: 24 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Submit New Request</h2>
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ background: '#111114', border: '1px solid #1e1e24', borderRadius: 10, padding: 20, marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#f0f0f0', margin: 0 }}>Submit New Request</h2>
+            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b6b7b', padding: 4, minHeight: 'auto' }}>
+              <X size={16} />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, marginBottom: 4, fontFamily: 'JetBrains Mono', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--muted-foreground)' }}>Title</label>
-              <input
-                value={title} onChange={e => setTitle(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 3, color: 'var(--foreground)' }}
-                placeholder="e.g. Custom CRM Integration" required
-              />
+              <label style={{ display: 'block', fontSize: 11, color: '#9090a0', marginBottom: 6 }}>Title *</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} required className="gn-input" placeholder="e.g. Custom CRM Integration" />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, marginBottom: 4, fontFamily: 'JetBrains Mono', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--muted-foreground)' }}>Category</label>
-              <select
-                value={category} onChange={e => setCategory(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 3, color: 'var(--foreground)' }}
-              >
-                {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
-                ))}
+              <label style={{ display: 'block', fontSize: 11, color: '#9090a0', marginBottom: 6 }}>Category</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="gn-input">
+                {Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 600, marginBottom: 4, fontFamily: 'JetBrains Mono', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--muted-foreground)' }}>Description</label>
+              <label style={{ display: 'block', fontSize: 11, color: '#9090a0', marginBottom: 6 }}>Description</label>
               <textarea
-                value={description} onChange={e => setDescription(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: 3, minHeight: 80, color: 'var(--foreground)', resize: 'vertical' }}
-                placeholder="Describe what you need..."
+                value={description} onChange={(e) => setDescription(e.target.value)}
+                className="gn-input" style={{ height: 88, resize: 'vertical' }}
+                placeholder="Describe what you need in detail..."
               />
             </div>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12 }}>
-              <button type="submit" style={{
-                background: 'var(--primary)', color: '#111827', border: 'none', padding: '10px 24px',
-                borderRadius: 3, fontWeight: 700, cursor: 'pointer', fontFamily: 'Barlow Condensed'
-              }}>
-                SUBMIT REQUEST
+            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 10 }}>
+              <button type="submit" style={{ background: '#8b5cf6', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>
+                Submit Request
               </button>
-              <button type="button" onClick={() => setShowForm(false)} style={{
-                background: 'transparent', color: 'var(--muted-foreground)', border: '1px solid var(--border)', padding: '10px 24px',
-                borderRadius: 3, fontWeight: 600, cursor: 'pointer'
-              }}>
+              <button type="button" onClick={() => setShowForm(false)} style={{ background: 'transparent', color: '#6b6b7b', border: '1px solid #1e1e24', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', fontSize: 13 }}>
                 Cancel
               </button>
             </div>
@@ -175,61 +161,96 @@ export default function ServiceRequests({ business }: { business?: ApiBusiness }
         </div>
       )}
 
-      {/* Status filter */}
+      {/* Status filters */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-        {(['all', 'scoping', 'in-progress', 'completed'] as const).map(s => (
-          <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            style={{
-              padding: '6px 14px', borderRadius: 3, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'JetBrains Mono', letterSpacing: 0.5,
-              background: statusFilter === s ? 'var(--primary)' : 'var(--secondary)',
-              color: statusFilter === s ? '#111827' : 'var(--muted-foreground)',
-              border: statusFilter === s ? '1px solid var(--primary)' : '1px solid var(--border)',
-            }}
-          >
-            {s === 'all' ? 'ALL' : s.toUpperCase()} ({counts[s]})
-          </button>
-        ))}
+        {(['all', 'scoping', 'in-progress', 'completed'] as const).map((s) => {
+          const active = statusFilter === s
+          const cfg = s !== 'all' ? STATUS_CONFIG[s] : null
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              style={{
+                padding: '7px 14px', borderRadius: 8,
+                fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                background: active ? (cfg?.bg ?? 'rgba(139,92,246,0.1)') : 'transparent',
+                color: active ? (cfg?.color ?? '#a78bfa') : '#6b6b7b',
+                border: `1px solid ${active ? (cfg?.color ? cfg.color + '30' : 'rgba(139,92,246,0.3)') : '#1e1e24'}`,
+                transition: 'all 0.15s',
+              }}
+            >
+              {s === 'all' ? 'All' : STATUS_CONFIG[s].label} ({counts[s]})
+            </button>
+          )
+        })}
       </div>
 
       {/* Request list */}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 3, overflow: 'hidden' }}>
-        {loading ? (
-          <div style={{ padding: 20 }}>Loading requests...</div>
-        ) : filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted-foreground)' }}>No requests match your filter.</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {filtered.map(req => {
-              const style = STATUS_STYLES[req.status] || STATUS_STYLES['scoping']
-              return (
-                <div key={req.id} style={{ padding: '18px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4, color: 'var(--foreground)' }}>{req.title}</h3>
-                    <p style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 8, lineHeight: 1.5 }}>{req.description}</p>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <span style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                        {CATEGORY_LABELS[req.category] || req.category}
-                      </span>
-                      <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
-                        {new Date(req.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                  <span style={{
-                    padding: '4px 10px', borderRadius: 2, fontSize: 10, fontWeight: 700, fontFamily: 'JetBrains Mono',
-                    background: style.bg, color: style.color, letterSpacing: 0.5, flexShrink: 0,
-                  }}>
-                    {req.status.toUpperCase()}
-                  </span>
+      {loading ? (
+        <div style={{ padding: 48, textAlign: 'center', color: '#6b6b7b', fontSize: 13 }}>Loading requests...</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ padding: 48, textAlign: 'center', color: '#6b6b7b', fontSize: 13, background: '#111114', border: '1px solid #1e1e24', borderRadius: 10 }}>
+          No requests match this filter.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {filtered.map((req) => {
+            const status = (STATUS_CONFIG[req.status as RequestStatus] ?? STATUS_CONFIG.scoping)
+            const StatusIcon = status.icon
+            const catColor = CATEGORY_COLORS[req.category] ?? '#8b5cf6'
+            return (
+              <div
+                key={req.id}
+                style={{
+                  background: '#111114', border: '1px solid #1e1e24', borderRadius: 10,
+                  padding: '18px 20px', display: 'flex', gap: 16, alignItems: 'flex-start',
+                  transition: 'border-color 0.15s',
+                  borderLeft: `3px solid ${catColor}`,
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2a2a34')}
+                onMouseLeave={(e) => { (e.currentTarget.style.borderColor = '#1e1e24'); (e.currentTarget.style.borderLeftColor = catColor) }}
+              >
+                {/* Status icon */}
+                <div style={{ marginTop: 2, flexShrink: 0 }}>
+                  <StatusIcon size={16} color={status.color} />
                 </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 6, flexWrap: 'wrap' }}>
+                    <div>
+                      <h3 style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f0', margin: 0, lineHeight: 1.3 }}>
+                        {req.title}
+                      </h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: catColor, letterSpacing: 0.3 }}>
+                          {CATEGORIES[req.category] ?? req.category}
+                        </span>
+                        <span style={{ fontSize: 11, color: '#3a3a50' }}>·</span>
+                        <span style={{ fontSize: 11, color: '#6b6b7b' }}>
+                          {new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                        background: status.bg, color: status.color, flexShrink: 0,
+                      }}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+                  {req.description && (
+                    <p style={{ fontSize: 13, color: '#9090a0', margin: 0, lineHeight: 1.6 }}>
+                      {req.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

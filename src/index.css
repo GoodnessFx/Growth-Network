@@ -23,49 +23,54 @@
   --radius-lg: calc(var(--radius) + 2px);
 }
 
-/* ── Type scale ────────────────────────────────────────────────────────────────
-   One scale for the whole app:
-   Display (font-display / Barlow Condensed 900):
-     Landing hero 96px · Landing section titles 32px · CTA banner 36px
-     App page/section titles 22px · Metric values 32px · Stat strip values 28px
-   Body (Outfit): 14px default · Caption 12px · Small 11px
-   Mono (JetBrains Mono): labels/eyebrows 10-12px, uppercase, letter-spacing 1-3px
-   Buttons: Barlow Condensed, uppercase, letter-spacing 0.5-1.5px
-   ───────────────────────────────────────────────────────────────────────────── */
-
 :root {
-  --background: #FFFFFF;
-  --foreground: #111827;
-  --card: #FFFFFF;
-  --card-foreground: #111827;
-  --primary: #1B7A4A;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F3F4F6;
-  --secondary-foreground: #111827;
-  --muted: #F9FAFB;
-  --muted-foreground: #6B7280;
-  --accent: #C2A77D;
-  --accent-foreground: #111827;
-  --border: #E5E7EB;
-  --ring: #1B7A4A;
-  --radius: 3px;
+  /* Dark theme — entire app */
+  --background: #0a0a0b;
+  --foreground: #f0f0f0;
+  --card: #111114;
+  --card-foreground: #f0f0f0;
+  --primary: #8b5cf6;
+  --primary-foreground: #ffffff;
+  --primary-glow: rgba(139, 92, 246, 0.25);
+  --secondary: #1a1a1e;
+  --secondary-foreground: #f0f0f0;
+  --muted: #1a1a1e;
+  --muted-foreground: #6b6b7b;
+  --accent: #a78bfa;
+  --accent-foreground: #0a0a0b;
+  --border: #1e1e24;
+  --border-subtle: #161619;
+  --ring: #8b5cf6;
+  --radius: 6px;
 
-  --success: #1B7A4A;
-  --warning: #C2A77D;
-  --danger: #B91C1C;
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.1);
+  --info: #3b82f6;
+  --info-bg: rgba(59, 130, 246, 0.1);
+
+  /* Sidebar */
+  --sidebar-bg: #0d0d10;
+  --sidebar-border: #1a1a20;
+
+  /* Nav active */
+  --nav-active-bg: rgba(139, 92, 246, 0.12);
+  --nav-active-border: #8b5cf6;
 }
 
-/* Shared section-eyebrow treatment (mono label above a title) */
+/* ── Eyebrow / section labels ─────────────────────────────────────────────── */
 .eyebrow {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 12px;
+  color: var(--muted-foreground);
+  margin-bottom: 8px;
 }
 
-/* Shared landing section title */
 .section-title {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 32px;
@@ -74,6 +79,7 @@
   line-height: 1.05;
 }
 
+/* ── Reset ────────────────────────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
 }
@@ -87,19 +93,18 @@ html {
   text-size-adjust: 100%;
 }
 
-/* Prevent iOS auto-zoom when focusing inputs (Safari zooms when font-size < 16px).
-   Inline fontSize overrides everywhere in the app are 13–14px, so force 16px. */
-input,
-select,
-textarea {
-  font-size: 16px !important;
-}
-
 body {
   margin: 0;
 }
 
-/* Hide scrollbars by default, show on scroll */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -112,9 +117,10 @@ body {
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: #2a2a34;
 }
 
+/* ── Font utilities ───────────────────────────────────────────────────────── */
 .font-display {
   font-family: 'Barlow Condensed', sans-serif;
 }
@@ -123,96 +129,178 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Growth pulse bar */
+/* ── Focus ────────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ── Pulse bar ────────────────────────────────────────────────────────────── */
 .pulse-bar {
   height: 3px;
   border-radius: 1px;
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Focus ring */
-:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+/* ── Transitions ──────────────────────────────────────────────────────────── */
+button, a {
+  transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
-/* Tap targets — Apple HIG minimum 44x44px on touch */
+/* ── Mobile tap targets ───────────────────────────────────────────────────── */
 @media (pointer: coarse) {
-  button,
-  a {
-    min-height: 44px;
-  }
-  input,
-  select {
-    min-height: 44px;
-  }
+  button, a { min-height: 44px; }
+  input, select { min-height: 44px; }
 }
 
-/* Wide data tables: scroll horizontally instead of squeezing on small screens */
+/* ── Layout helpers ───────────────────────────────────────────────────────── */
 .table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
-.table-grid {
-  min-width: 640px;
-}
-.table-grid-narrow {
-  min-width: 540px;
-}
+.table-grid { min-width: 640px; }
+.table-grid-narrow { min-width: 540px; }
 
-/* Two-column form fields stack on small screens */
 .field-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* Modal: full-width sheet on small screens, scrollable if tall */
 .modal-content {
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
 }
 
-/* Compact page gutters on phones */
-.page-pad {
-  padding: 24px;
+.page-pad { padding: 28px 32px; }
+
+/* ── Auth page ────────────────────────────────────────────────────────────── */
+.auth-grid { grid-template-columns: 1fr 1fr; }
+.auth-form-panel { padding: 48px; }
+
+/* ── Sidebar mobile ───────────────────────────────────────────────────────── */
+.mobile-sidebar-overlay {
+  display: none;
 }
 
-/* Auth: split-screen becomes single column on mobile */
-.auth-grid {
-  grid-template-columns: 1fr 1fr;
-}
-.auth-form-panel {
-  padding: 48px;
-}
-
-/* Auth: refined sign-in card interactions (base styles live inline in Auth.tsx) */
-.auth-google-btn:hover:not(:disabled) {
-  background-color: #14613B;
-  border-color: #14613B;
-}
-.auth-google-btn:active:not(:disabled) {
-  background-color: #105232;
-  border-color: #105232;
-}
-.auth-google-btn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(27, 122, 74, 0.35);
-}
-.auth-back-link:hover {
-  color: var(--foreground);
-}
-.auth-back-link:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(27, 122, 74, 0.25);
+/* ── Input styles (shared) ────────────────────────────────────────────────── */
+.gn-input {
+  width: 100%;
+  padding: 11px 14px;
+  background: #0f0f13;
+  border: 1px solid var(--border);
   border-radius: 6px;
+  color: var(--foreground);
+  font-size: 14px;
+  font-family: 'Outfit', sans-serif;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.gn-input::placeholder {
+  color: var(--muted-foreground);
+}
+.gn-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
-/* Smooth transitions for interactive elements */
-button, a {
-  transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
+/* ── Button variants ──────────────────────────────────────────────────────── */
+.gn-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.gn-btn-primary:hover:not(:disabled) {
+  background: #7c3aed;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.35);
+}
+.gn-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
+.gn-btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.gn-btn-ghost:hover:not(:disabled) {
+  background: var(--secondary);
+  color: var(--foreground);
+  border-color: #2a2a34;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+.gn-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ── Stat card ────────────────────────────────────────────────────────────── */
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  transition: border-color 0.2s;
+}
+.stat-card:hover {
+  border-color: #2a2a34;
+}
+
+/* ── Badge ────────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ── Topbar ───────────────────────────────────────────────────────────────── */
+.app-topbar {
+  height: 56px;
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--sidebar-border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
 @keyframes gn-spin {
   to { transform: rotate(360deg); }
 }
@@ -220,18 +308,35 @@ button, a {
   animation: gn-spin 0.9s linear infinite;
 }
 
+@keyframes gn-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: gn-fade-in 0.25s ease forwards;
+}
+
+@keyframes gn-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse-dot {
+  animation: gn-pulse 2s ease infinite;
+}
+
+/* ── Mobile ───────────────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .mobile-sidebar {
     position: fixed !important;
     top: 0; left: 0; bottom: 0;
     z-index: 50;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.6);
   }
   .mobile-sidebar-overlay {
     display: block !important;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.6);
     z-index: 40;
   }
   .hide-mobile { display: none !important; }
@@ -252,7 +357,7 @@ button, a {
   .page-pad { padding: 16px !important; }
   .table-grid { min-width: 520px; }
   .auth-grid { grid-template-columns: 1fr !important; }
-  .auth-form-panel { padding: 24px 16px !important; }
+  .auth-form-panel { padding: 24px 20px !important; }
 }
 
 @media (max-width: 480px) {
@@ -262,26 +367,15 @@ button, a {
   .hide-xs { display: none !important; }
   .p-4-mobile { padding-left: 16px !important; padding-right: 16px !important; }
   .app-topbar { padding-left: 12px !important; padding-right: 12px !important; }
-  .summary-strip .font-display {
-    font-size: 22px !important;
-    letter-spacing: -0.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 }
 
 @media print {
-  .print-hide {
-    display: none !important;
-  }
+  .print-hide { display: none !important; }
   .poster {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  body {
-    background: #0b0f0a !important;
-  }
+  body { background: #0a0a0b !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
