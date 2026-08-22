@@ -1,250 +1,177 @@
 import { useState, useEffect } from 'react'
 import { type ApiBusiness } from '../lib/api'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
-import { Plus, X, Clock, CheckCircle2, Circle, AlertCircle } from 'lucide-react'
+import { Plus, X, Clock, CheckCircle2, Circle, AlertCircle, Check } from 'lucide-react'
 
-const DEMO_REQUESTS = [
-  { id: '1', title: 'New Landing Page', category: 'software', description: 'Need a high-converting landing page for our summer campaign with lead capture form.', status: 'in-progress', created_at: '2026-08-01T10:00:00Z' },
-  { id: '2', title: 'Logo Redesign', category: 'design', description: 'Modernize our logo to better reflect the new brand direction we discussed.', status: 'scoping', created_at: '2026-08-05T14:30:00Z' },
-  { id: '3', title: 'Email Drip Campaign', category: 'automation', description: 'Set up automated welcome sequence for new subscribers, 5 emails over 14 days.', status: 'completed', created_at: '2026-07-15T09:00:00Z' },
-  { id: '4', title: 'Instagram Content Package', category: 'marketing', description: '30 branded posts with captions for the next month, aligned with our tone of voice.', status: 'in-progress', created_at: '2026-08-10T11:00:00Z' },
-  { id: '5', title: 'Custom CRM Integration', category: 'custom', description: 'Need a custom tool integrated with our current CRM to auto-fetch leads.', status: 'scoping', created_at: '2026-08-18T10:00:00Z' },
+const DEMO = [
+  { id: '1', title: 'New Landing Page',         category: 'software',   description: 'High-converting landing page for our summer campaign with lead capture form.', status: 'in-progress', created_at: '2026-08-01T10:00:00Z' },
+  { id: '2', title: 'Logo Redesign',             category: 'design',     description: 'Modernize our logo to reflect the new brand direction.', status: 'scoping', created_at: '2026-08-05T14:30:00Z' },
+  { id: '3', title: 'Email Drip Campaign',       category: 'automation', description: 'Automated welcome sequence for new subscribers — 5 emails over 14 days.', status: 'completed', created_at: '2026-07-15T09:00:00Z' },
+  { id: '4', title: 'Instagram Content Package', category: 'marketing',  description: '30 branded posts with captions for next month, aligned with our tone.', status: 'in-progress', created_at: '2026-08-10T11:00:00Z' },
+  { id: '5', title: 'Custom CRM Integration',    category: 'custom',     description: 'Custom tool to auto-fetch leads from our existing CRM.', status: 'scoping', created_at: '2026-08-18T10:00:00Z' },
 ]
 
-const CATEGORIES: Record<string, string> = {
-  software: 'Software & Web',
-  design: 'Design & Branding',
-  automation: 'Automation & AI',
-  operations: 'Business Operations',
-  marketing: 'Growth & Marketing',
-  custom: 'Custom Integration',
+const CATS: Record<string, string> = {
+  software: 'Software & Web', design: 'Design & Branding',
+  automation: 'Automation & AI', operations: 'Business Operations',
+  marketing: 'Growth & Marketing', custom: 'Custom Integration',
 }
 
-type RequestStatus = 'scoping' | 'in-progress' | 'completed' | 'cancelled'
+type RStatus = 'scoping' | 'in-progress' | 'completed' | 'cancelled'
 
-const STATUS_CONFIG: Record<RequestStatus, { label: string; bg: string; color: string; icon: React.ElementType }> = {
-  scoping: { label: 'Scoping', bg: 'rgba(245,158,11,0.08)', color: '#f59e0b', icon: Clock },
-  'in-progress': { label: 'In Progress', bg: 'rgba(139,92,246,0.08)', color: '#a78bfa', icon: Circle },
-  completed: { label: 'Completed', bg: 'rgba(16,185,129,0.08)', color: '#10b981', icon: CheckCircle2 },
-  cancelled: { label: 'Cancelled', bg: 'rgba(239,68,68,0.08)', color: '#f87171', icon: AlertCircle },
+const STATUS: Record<RStatus, { label: string; bg: string; color: string; icon: React.ElementType }> = {
+  scoping:      { label: 'Scoping',     bg: '#fffbeb', color: '#d97706', icon: Clock },
+  'in-progress':{ label: 'In Progress', bg: '#eff6ff', color: '#2563eb', icon: Circle },
+  completed:    { label: 'Done',        bg: '#f0fdf4', color: '#16a34a', icon: CheckCircle2 },
+  cancelled:    { label: 'Cancelled',   bg: '#fef2f2', color: '#dc2626', icon: AlertCircle },
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  software: '#3b82f6',
-  design: '#ec4899',
-  automation: '#8b5cf6',
-  operations: '#f59e0b',
-  marketing: '#10b981',
-  custom: '#f97316',
+const CAT_COLORS: Record<string, string> = {
+  software: '#2563eb', design: '#ec4899', automation: '#7c3aed',
+  operations: '#d97706', marketing: '#16a34a', custom: '#f97316',
 }
 
 export default function ServiceRequests({ business }: { business?: ApiBusiness }) {
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading]   = useState(true)
   const [requests, setRequests] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
-  const [title, setTitle] = useState('')
-  const [category, setCategory] = useState('custom')
-  const [description, setDescription] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | RequestStatus>('all')
+  const [title, setTitle]       = useState('')
+  const [category, setCat]      = useState('custom')
+  const [description, setDesc]  = useState('')
+  const [filter, setFilter]     = useState<'all' | RStatus>('all')
 
   useEffect(() => {
     let active = true
-    const fetchRequests = async () => {
-      setLoading(true)
+    setLoading(true)
+    const load = async () => {
       if (isSupabaseConfigured) {
         try {
-          let query = supabase.from('projects').select('*').order('created_at', { ascending: false })
-          if (business) query = query.eq('business_id', business.id)
-          const { data } = await query
+          let q = supabase.from('projects').select('*').order('created_at', { ascending: false })
+          if (business) q = q.eq('business_id', business.id)
+          const { data } = await q
           if (!active) return
-          setRequests(data?.length ? data : DEMO_REQUESTS)
-        } catch {
-          if (active) setRequests(DEMO_REQUESTS)
-        }
-      } else {
-        setRequests(DEMO_REQUESTS)
-      }
+          setRequests(data?.length ? data : DEMO)
+        } catch { if (active) setRequests(DEMO) }
+      } else { setRequests(DEMO) }
       setLoading(false)
     }
-    fetchRequests()
+    load()
     let sub: any = null
     if (isSupabaseConfigured && business) {
-      sub = supabase.channel('service-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'projects', filter: `business_id=eq.${business.id}` }, () => fetchRequests())
-        .subscribe()
+      sub = supabase.channel('svc-updates').on('postgres_changes', { event: '*', schema: 'public', table: 'projects', filter: `business_id=eq.${business.id}` }, load).subscribe()
     }
     return () => { active = false; if (sub) supabase.removeChannel(sub) }
   }, [business?.id])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title) return
-    const newReq = { business_id: business?.id ?? 'dummy-biz-1', title, category, description, status: 'scoping' }
+    const obj = { business_id: business?.id ?? 'dummy-biz-1', title, category, description, status: 'scoping' }
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase.from('projects').insert([newReq]).select()
-      if (data && !error) setRequests((prev) => [data[0], ...prev])
-    } else {
-      setRequests((prev) => [{ id: `local-${Date.now()}`, ...newReq, created_at: new Date().toISOString() }, ...prev])
-    }
-    setTitle(''); setDescription(''); setShowForm(false)
+      const { data, error } = await supabase.from('projects').insert([obj]).select()
+      if (data && !error) setRequests(p => [data[0], ...p])
+    } else { setRequests(p => [{ id: `local-${Date.now()}`, ...obj, created_at: new Date().toISOString() }, ...p]) }
+    setTitle(''); setDesc(''); setShowForm(false)
   }
 
-  const filtered = statusFilter === 'all' ? requests : requests.filter((r) => r.status === statusFilter)
+  const filtered = filter === 'all' ? requests : requests.filter(r => r.status === filter)
   const counts: Record<string, number> = {
     all: requests.length,
-    scoping: requests.filter((r) => r.status === 'scoping').length,
-    'in-progress': requests.filter((r) => r.status === 'in-progress').length,
-    completed: requests.filter((r) => r.status === 'completed').length,
+    scoping: requests.filter(r => r.status === 'scoping').length,
+    'in-progress': requests.filter(r => r.status === 'in-progress').length,
+    completed: requests.filter(r => r.status === 'completed').length,
   }
 
+  const card: React.CSSProperties = { background: '#ffffff', border: '1.5px solid #e8e8e4', borderRadius: 12 }
+
   return (
-    <div className="page-pad" style={{ padding: 28 }}>
+    <div style={{ padding: 28, maxWidth: 900 }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontFamily: 'JetBrains Mono', fontSize: 10, color: '#6b6b7b', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>
-            Work Tracker
-          </div>
-          <h1 className="font-display" style={{ fontSize: 28, fontWeight: 900, color: '#f0f0f0', margin: 0 }}>
-            Service Requests
-          </h1>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Work Tracker</p>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: '#0f0f0e', lineHeight: 1.1, letterSpacing: '-0.02em', margin: 0 }}>Service Requests</h1>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          style={{
-            background: '#8b5cf6', color: '#fff', border: 'none',
-            padding: '9px 18px', borderRadius: 8, fontWeight: 600,
-            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13,
-          }}
-        >
-          <Plus size={14} /> New Request
+        <button onClick={() => setShowForm(s => !s)} className="btn btn-primary btn-sm" style={{ gap: 6 }}>
+          <Plus size={13} /> New Request
         </button>
       </div>
 
-      {/* New request form */}
+      {/* New form */}
       {showForm && (
-        <div style={{ background: '#111114', border: '1px solid #1e1e24', borderRadius: 10, padding: 20, marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#f0f0f0', margin: 0 }}>Submit New Request</h2>
-            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b6b7b', padding: 4, minHeight: 'auto' }}>
-              <X size={16} />
-            </button>
+        <div style={{ ...card, padding: 20, marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f0f0e', margin: 0 }}>Submit New Request</h2>
+            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={15} /></button>
           </div>
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 11, color: '#9090a0', marginBottom: 6 }}>Title *</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} required className="gn-input" placeholder="e.g. Custom CRM Integration" />
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Title *</label>
+              <input value={title} onChange={e => setTitle(e.target.value)} required className="gn-input" placeholder="e.g. Custom CRM Integration" />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 11, color: '#9090a0', marginBottom: 6 }}>Category</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} className="gn-input">
-                {Object.entries(CATEGORIES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Category</label>
+              <select value={category} onChange={e => setCat(e.target.value)} className="gn-input">
+                {Object.entries(CATS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#9090a0', marginBottom: 6 }}>Description</label>
-              <textarea
-                value={description} onChange={(e) => setDescription(e.target.value)}
-                className="gn-input" style={{ height: 88, resize: 'vertical' }}
-                placeholder="Describe what you need in detail..."
-              />
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Description</label>
+              <textarea value={description} onChange={e => setDesc(e.target.value)} className="gn-input" style={{ height: 80, resize: 'vertical' }} placeholder="Describe what you need in detail…" />
             </div>
             <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 10 }}>
-              <button type="submit" style={{ background: '#8b5cf6', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>
-                Submit Request
-              </button>
-              <button type="button" onClick={() => setShowForm(false)} style={{ background: 'transparent', color: '#6b6b7b', border: '1px solid #1e1e24', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', fontSize: 13 }}>
-                Cancel
-              </button>
+              <button type="submit" className="btn btn-primary btn-sm" style={{ gap: 6 }}><Check size={12} /> Submit</button>
+              <button type="button" onClick={() => setShowForm(false)} className="btn btn-ghost btn-sm">Cancel</button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Status filters */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-        {(['all', 'scoping', 'in-progress', 'completed'] as const).map((s) => {
-          const active = statusFilter === s
-          const cfg = s !== 'all' ? STATUS_CONFIG[s] : null
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: 7, marginBottom: 20, flexWrap: 'wrap' }}>
+        {(['all', 'scoping', 'in-progress', 'completed'] as const).map(s => {
+          const active = filter === s
+          const cfg    = s !== 'all' ? STATUS[s] : null
           return (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              style={{
-                padding: '7px 14px', borderRadius: 8,
-                fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                background: active ? (cfg?.bg ?? 'rgba(139,92,246,0.1)') : 'transparent',
-                color: active ? (cfg?.color ?? '#a78bfa') : '#6b6b7b',
-                border: `1px solid ${active ? (cfg?.color ? cfg.color + '30' : 'rgba(139,92,246,0.3)') : '#1e1e24'}`,
-                transition: 'all 0.15s',
-              }}
-            >
-              {s === 'all' ? 'All' : STATUS_CONFIG[s].label} ({counts[s]})
+            <button key={s} onClick={() => setFilter(s)} style={{ padding: '6px 14px', borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: active ? (cfg?.bg ?? '#f1f0ed') : '#fff', color: active ? (cfg?.color ?? '#374151') : '#6b7280', border: `1.5px solid ${active ? (cfg?.color ? cfg.color + '40' : '#e8e8e4') : '#e8e8e4'}`, transition: 'all 0.15s', fontFamily: "'Inter', sans-serif" }}>
+              {s === 'all' ? 'All' : STATUS[s].label} ({counts[s]})
             </button>
           )
         })}
       </div>
 
-      {/* Request list */}
+      {/* List */}
       {loading ? (
-        <div style={{ padding: 48, textAlign: 'center', color: '#6b6b7b', fontSize: 13 }}>Loading requests...</div>
+        <div style={{ padding: 48, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Loading…</div>
       ) : filtered.length === 0 ? (
-        <div style={{ padding: 48, textAlign: 'center', color: '#6b6b7b', fontSize: 13, background: '#111114', border: '1px solid #1e1e24', borderRadius: 10 }}>
-          No requests match this filter.
-        </div>
+        <div style={{ padding: 48, textAlign: 'center', color: '#9ca3af', fontSize: 13, background: '#fff', border: '1.5px dashed #e8e8e4', borderRadius: 12 }}>No requests match this filter.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {filtered.map((req) => {
-            const status = (STATUS_CONFIG[req.status as RequestStatus] ?? STATUS_CONFIG.scoping)
-            const StatusIcon = status.icon
-            const catColor = CATEGORY_COLORS[req.category] ?? '#8b5cf6'
+          {filtered.map(req => {
+            const st     = STATUS[req.status as RStatus] ?? STATUS.scoping
+            const SI     = st.icon
+            const cc     = CAT_COLORS[req.category] ?? '#16a34a'
             return (
-              <div
-                key={req.id}
-                style={{
-                  background: '#111114', border: '1px solid #1e1e24', borderRadius: 10,
-                  padding: '18px 20px', display: 'flex', gap: 16, alignItems: 'flex-start',
-                  transition: 'border-color 0.15s',
-                  borderLeft: `3px solid ${catColor}`,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2a2a34')}
-                onMouseLeave={(e) => { (e.currentTarget.style.borderColor = '#1e1e24'); (e.currentTarget.style.borderLeftColor = catColor) }}
+              <div key={req.id} style={{ background: '#fff', border: '1.5px solid #e8e8e4', borderRadius: 12, padding: '18px 20px', display: 'flex', gap: 14, alignItems: 'flex-start', borderLeft: `3px solid ${cc}`, transition: 'box-shadow 0.15s' }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.07)')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
               >
-                {/* Status icon */}
-                <div style={{ marginTop: 2, flexShrink: 0 }}>
-                  <StatusIcon size={16} color={status.color} />
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: `${cc}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                  <SI size={14} color={cc} />
                 </div>
-
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 6, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 5, flexWrap: 'wrap' }}>
                     <div>
-                      <h3 style={{ fontSize: 15, fontWeight: 600, color: '#f0f0f0', margin: 0, lineHeight: 1.3 }}>
-                        {req.title}
-                      </h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, fontFamily: 'JetBrains Mono', color: catColor, letterSpacing: 0.3 }}>
-                          {CATEGORIES[req.category] ?? req.category}
-                        </span>
-                        <span style={{ fontSize: 11, color: '#3a3a50' }}>·</span>
-                        <span style={{ fontSize: 11, color: '#6b6b7b' }}>
-                          {new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0f0f0e', margin: 0, lineHeight: 1.3 }}>{req.title}</h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: cc }}>{CATS[req.category] ?? req.category}</span>
+                        <span style={{ fontSize: 11, color: '#9ca3af' }}>·</span>
+                        <span style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                     </div>
-                    <span
-                      style={{
-                        padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-                        background: status.bg, color: status.color, flexShrink: 0,
-                      }}
-                    >
-                      {status.label}
-                    </span>
+                    <span style={{ padding: '4px 10px', borderRadius: 99, fontSize: 11, fontWeight: 600, background: st.bg, color: st.color, flexShrink: 0 }}>{st.label}</span>
                   </div>
-                  {req.description && (
-                    <p style={{ fontSize: 13, color: '#9090a0', margin: 0, lineHeight: 1.6 }}>
-                      {req.description}
-                    </p>
-                  )}
+                  {req.description && <p style={{ fontSize: 13, color: '#6b7280', margin: 0, lineHeight: 1.65 }}>{req.description}</p>}
                 </div>
               </div>
             )
