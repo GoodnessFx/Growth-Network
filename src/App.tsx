@@ -12,6 +12,7 @@ import ContentCalendar from './pages/ContentCalendar'
 import ServiceRequests from './pages/ServiceRequests'
 import LeadsPipeline from './pages/LeadsPipeline'
 import Settings from './pages/Settings'
+import Automations from './pages/Automations'
 
 type Page = 'landing' | 'login' | 'operator' | 'business'
 
@@ -197,6 +198,11 @@ function AppInner() {
       {/* Settings page */}
       {page === 'operator' && operatorTab === 'settings' && (
         <Settings />
+      )}
+
+      {/* Tools & Automations */}
+      {page === 'operator' && operatorTab === 'automations' && (
+        <Automations />
       )}
 
       {/* Business detail view */}
