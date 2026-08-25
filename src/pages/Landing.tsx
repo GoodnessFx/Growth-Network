@@ -666,30 +666,7 @@ export default function Landing({ onLogin, onDashboard }: LandingProps) {
       <Navbar onLogin={onLogin} onDashboard={onDashboard} />
       <Hero onDashboard={onDashboard} onLogin={onLogin} />
 
-      {/* Stats strip */}
-      <div style={{ background: '#f8f8f6', borderTop: '1px solid #e8e8e4', borderBottom: '1px solid #e8e8e4' }}>
-        <div
-            className="stat-grid grid-mobile-2"
-            style={{ maxWidth: 1140, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}
-          >
-            {[
-              { v: '10+', l: 'Businesses managed' },
-              { v: '1', l: 'Country (Nigeria)' },
-              { v: '34%', l: 'Avg revenue growth' },
-            ].map((s, i) => (
-              <div
-                key={s.l}
-                style={{
-                  padding: '28px 24px',
-                  borderRight: i < 2 ? '1px solid #e8e8e4' : 'none',
-                }}
-              >
-                <div className="serif" style={{ fontSize: 36, color: '#0f0f0e', lineHeight: 1 }}>{s.v}</div>
-                <div style={{ fontSize: 12, color: '#8a8a82', marginTop: 5, fontWeight: 500 }}>{s.l}</div>
-              </div>
-            ))}
-          </div>
-      </div>
+      
 
       <Features />
       <LivePortfolio />
