@@ -74,12 +74,18 @@ function BuilderPanel({ onSave, onClose }: { onSave: (a: Partial<Automation>) =>
         {[
           ['Name *', name, setName, 'text', 'e.g. Weekly Report'],
           ['Description', desc, setDesc, 'text', 'What does this do?'],
-        ].map(([lbl, val, set, , ph]) => (
-          <div key={lbl as string}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{lbl}</label>
-            <input value={val as string} onChange={e => (set as any)(e.target.value)} className="gn-input" placeholder={ph as string} />
-          </div>
-        ))}
+        ].map((tuple) => {
+          const lbl = tuple[0] as string
+          const val = tuple[1] as string
+          const set = tuple[2] as any
+          const ph = tuple[4] as string
+          return (
+            <div key={lbl}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{lbl}</label>
+              <input value={val} onChange={e => set(e.target.value)} className="gn-input" placeholder={ph} />
+            </div>
+          )
+        })}
         <div>
           <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Trigger *</label>
           <select value={trigger} onChange={e => setTrigger(e.target.value)} className="gn-input">

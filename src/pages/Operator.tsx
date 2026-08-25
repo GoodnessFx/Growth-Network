@@ -396,10 +396,10 @@ function PortfolioView({ onSelectBusiness, onRequireAuth, autoOpenAddBusiness, o
         {(['all', 'growing', 'flat', 'declining'] as const).map((s) => {
           const active = statusFilter === s
           const col = s === 'growing' ? '#16a34a' : s === 'flat' ? '#d97706' : s === 'declining' ? '#dc2626' : TEXT
-          return (
-            <button key={s} onClick={() => setStatusFilter(s)} style={{
+              return (
+              <button key={s} onClick={() => setStatusFilter(s)} style={{
               background: active ? (s === 'all' ? '#f1f0ed' : STATUS_CONFIG[s as HealthStatus]?.bgColor ?? '#f1f0ed') : 'transparent',
-              border: `1.5px solid ${active ? (s === 'all' ? BORDER : STATUS_CONFIG[s as HealthStatus]?.color + '50' ?? BORDER) : BORDER}`,
+              border: `1.5px solid ${active ? (s === 'all' ? BORDER : ((STATUS_CONFIG[s as HealthStatus]?.color ?? BORDER) + '50')) : BORDER}`,
               borderRadius: 99, padding: '7px 14px', fontSize: 12,
               color: active ? (s === 'all' ? TEXT : STATUS_CONFIG[s as HealthStatus]?.color) : MUTED,
               cursor: 'pointer', fontFamily: "'Inter', sans-serif", fontWeight: active ? 600 : 400,

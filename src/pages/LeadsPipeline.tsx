@@ -48,7 +48,7 @@ export default function LeadsPipeline({ business }: { business?: ApiBusiness }) 
     if (isSupabaseConfigured) {
       let q = supabase.from('leads').select('*').order('created_at', { ascending: false })
       if (business) q = q.eq('business_id', business.id)
-      q.then(({ data }) => setLeads(data?.length ? data : DEMO_LEADS)).catch(() => setLeads(DEMO_LEADS)).finally(() => setLoading(false))
+      ;(q as any).then(({ data }: any) => setLeads(data?.length ? data : DEMO_LEADS)).catch(() => setLeads(DEMO_LEADS)).finally(() => setLoading(false))
     } else { setLeads(DEMO_LEADS); setLoading(false) }
   }, [business?.id])
 
@@ -108,12 +108,23 @@ export default function LeadsPipeline({ business }: { business?: ApiBusiness }) 
             <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={15} /></button>
           </div>
           <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            {[['Name *', formName, setFormName, 'Full name', 'text'], ['Email', formEmail, setFormEmail, 'email@example.com', 'email'], ['Phone', formPhone, setFormPhone, '+234 800 000 0000', 'text']].map(([lbl, val, set, ph, type]) => (
-              <div key={lbl as string}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{lbl}</label>
-                <input value={val as string} onChange={e => (set as any)(e.target.value)} type={type as string} className="gn-input" placeholder={ph as string} />
-              </div>
-            ))}
+            {[
+              ['Name *', formName, setFormName, 'Full name', 'text'],
+              ['Email', formEmail, setFormEmail, 'email@example.com', 'email'],
+              ['Phone', formPhone, setFormPhone, '+234 800 000 0000', 'text']
+            ].map((tuple) => {
+              const lbl = tuple[0] as string
+              const val = tuple[1] as string
+              const set = tuple[2] as any
+              const ph = tuple[3] as string
+              const type = tuple[4] as string
+              return (
+                <div key={lbl}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{lbl}</label>
+                  <input value={val} onChange={e => set(e.target.value)} type={type} className="gn-input" placeholder={ph} />
+                </div>
+              )
+            })}
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Source</label>
               <select value={formSource} onChange={e => setFormSource(e.target.value)} className="gn-input">
