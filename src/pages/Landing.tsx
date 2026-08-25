@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react'
-import { TrendingUp, CheckCircle2, ChevronRight, ArrowRight, BarChart3, Users, Globe, Zap, Menu, X, LayoutGrid, ExternalLink, Loader2 } from 'lucide-react'
+import {
+  ArrowRight, Menu, X, BarChart3, Users, Zap, Globe,
+  CheckCircle, TrendingUp, Calendar, Shield, ChevronDown,
+  ExternalLink, Loader2,
+} from 'lucide-react'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { fetchPublicBusinesses } from '../lib/api'
 
@@ -8,515 +12,410 @@ interface LandingProps {
   onDashboard: () => void
 }
 
-const NAV_HEIGHT = 64
-
+// ── Navbar ─────────────────────────────────────────────────────────────────
 function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: () => void }) {
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const isMobile = useIsMobile(768)
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 8)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+
   return (
-    <nav
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: NAV_HEIGHT,
-        background: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 16px',
-        zIndex: 100,
-        gap: 16,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-        <img
-          src="/gnlogo.jpg"
-          alt="GrowthNet logo"
-          style={{ width: 30, height: 30, borderRadius: 2, objectFit: 'contain', flexShrink: 0 }}
-        />
-        <span
-          className="font-display"
-          style={{ fontSize: 20, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)', whiteSpace: 'nowrap' }}
-        >
-          GROWTH<span style={{ color: 'var(--primary)' }}>NET</span>
-        </span>
-      </div>
-
-      <div className="hide-mobile" style={{ display: 'flex', gap: 28, alignItems: 'center' }}>
-        {['Product', 'Industries', 'Pricing', 'About'].map((item) => (
-          <a
-            key={item}
-            href="#"
-            style={{ color: 'var(--muted-foreground)', fontSize: 14, textDecoration: 'none', fontWeight: 500 }}
-          >
-            {item}
+    <>
+      <header
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+          height: 60,
+          background: scrolled ? 'rgba(255,255,255,0.95)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(12px)' : 'none',
+          borderBottom: scrolled ? '1px solid #e8e8e4' : '1px solid transparent',
+          transition: 'background 0.2s, border-color 0.2s, backdrop-filter 0.2s',
+        }}
+      >
+        <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 24px', height: '100%', display: 'flex', alignItems: 'center', gap: 32 }}>
+          {/* Logo */}
+          <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', flexShrink: 0 }}>
+            <div style={{ width: 28, height: 28, background: '#0f0f0e', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: "'DM Serif Display', serif", color: '#fff', fontSize: 13, fontWeight: 400, letterSpacing: -0.5 }}>G</span>
+            </div>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, color: '#0f0f0e', letterSpacing: -0.3 }}>
+              GrowthNet
+            </span>
           </a>
-        ))}
-      </div>
 
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        {isMobile ? (
-          <button
-            onClick={() => setMobileOpen((o) => !o)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--foreground)',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: 44,
-              minHeight: 44,
-            }}
-          >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        ) : (
-          <>
-            <button
-              onClick={onLogin}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                color: 'var(--foreground)',
-                padding: '8px 18px',
-                minHeight: 44,
-                borderRadius: 3,
-                fontSize: 13,
-                cursor: 'pointer',
-                fontWeight: 500,
-              }}
-            >
-              Sign in
-            </button>
-            <button
-              onClick={onDashboard}
-              style={{
-                background: 'var(--primary)',
-                border: 'none',
-                color: 'var(--primary-foreground)',
-                padding: '8px 18px',
-                minHeight: 44,
-                borderRadius: 3,
-                fontSize: 13,
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontFamily: 'Barlow Condensed',
-                letterSpacing: 0.5,
-              }}
-            >
-              OPEN DASHBOARD →
-            </button>
-          </>
-        )}
-      </div>
+          {/* Desktop nav */}
+          <nav className="hide-mobile" style={{ display: 'flex', gap: 6, alignItems: 'center', flex: 1 }}>
+            {['Product', 'Pricing', 'Industries', 'About'].map(link => (
+              <a
+                key={link}
+                href={`#${link.toLowerCase()}`}
+                style={{ fontSize: 14, color: '#4a4a45', padding: '6px 12px', borderRadius: 6, fontWeight: 500, transition: 'background 0.15s, color 0.15s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#f1f0ed'; (e.currentTarget as HTMLAnchorElement).style.color = '#0f0f0e' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = '#4a4a45' }}
+              >
+                {link}
+              </a>
+            ))}
+          </nav>
 
-      {/* Mobile menu panel */}
-      {isMobile && mobileOpen && (
+          <div className="hide-mobile" style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+            <button onClick={onLogin} className="btn btn-ghost btn-sm">Sign in</button>
+            <button onClick={onDashboard} className="btn btn-primary btn-sm">
+              Open dashboard <ArrowRight size={13} />
+            </button>
+          </div>
+
+          {/* Mobile hamburger */}
+          <div className="show-mobile" style={{ display: 'none', marginLeft: 'auto' }}>
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, color: '#0f0f0e', display: 'flex', alignItems: 'center' }}
+            >
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile menu */}
+      {menuOpen && (
         <div
           style={{
-            position: 'fixed',
-            top: NAV_HEIGHT,
-            left: 0,
-            right: 0,
-            background: '#FFFFFF',
-            borderBottom: '1px solid var(--border)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-            padding: '16px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
+            position: 'fixed', top: 60, left: 0, right: 0, zIndex: 99,
+            background: '#fff', borderBottom: '1px solid #e8e8e4',
+            padding: '12px 24px 20px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
           }}
         >
-          {['Product', 'Industries', 'Pricing', 'About'].map((item) => (
+          {['Product', 'Pricing', 'Industries', 'About'].map(link => (
             <a
-              key={item}
-              href="#"
-              style={{
-                color: 'var(--foreground)',
-                fontSize: 15,
-                textDecoration: 'none',
-                fontWeight: 500,
-                padding: '4px 0',
-                display: 'flex',
-                alignItems: 'center',
-                minHeight: 44,
-              }}
+              key={link}
+              href={`#${link.toLowerCase()}`}
+              onClick={() => setMenuOpen(false)}
+              style={{ display: 'block', padding: '12px 4px', fontSize: 16, color: '#0f0f0e', fontWeight: 500, borderBottom: '1px solid #f1f0ed' }}
             >
-              {item}
+              {link}
             </a>
           ))}
-          <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-            <button
-              onClick={onLogin}
-              style={{
-                flex: 1,
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                color: 'var(--foreground)',
-                padding: '10px 18px',
-                minHeight: 44,
-                borderRadius: 3,
-                fontSize: 13,
-                cursor: 'pointer',
-                fontWeight: 500,
-              }}
-            >
-              Sign in
-            </button>
-            <button
-              onClick={onDashboard}
-              style={{
-                flex: 1,
-                background: 'var(--primary)',
-                border: 'none',
-                color: '#FFFFFF',
-                padding: '10px 18px',
-                minHeight: 44,
-                borderRadius: 3,
-                fontSize: 13,
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontFamily: 'Barlow Condensed',
-                letterSpacing: 0.5,
-              }}
-            >
-              OPEN DASHBOARD →
-            </button>
+          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+            <button onClick={() => { setMenuOpen(false); onLogin() }} className="btn btn-ghost" style={{ flex: 1 }}>Sign in</button>
+            <button onClick={() => { setMenuOpen(false); onDashboard() }} className="btn btn-primary" style={{ flex: 1 }}>Dashboard</button>
           </div>
         </div>
       )}
-    </nav>
+    </>
   )
 }
 
-function StatBar() {
-  const stats = [
-    { label: 'Businesses Managed', value: '1,240+' },
-    { label: 'Pipeline Tracked', value: '₦48B+' },
-    { label: 'Countries', value: '14' },
-    { label: 'Avg Revenue Growth', value: '34%' },
-  ]
+// ── Hero ───────────────────────────────────────────────────────────────────
+function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () => void }) {
   return (
-    <div
-      className="stat-grid"
+    <section
       style={{
-        borderTop: '1px solid var(--border)',
-        borderBottom: '1px solid var(--border)',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 0,
-      }}
-    >
-      {stats.map((s, i) => (
-        <div
-          key={s.label}
-          style={{
-            padding: '28px 16px',
-            borderRight: i < stats.length - 1 ? '1px solid var(--border)' : 'none',
-            borderBottom: 'none',
-          }}
-        >
-          <div
-            className="font-display stat-value"
-            style={{ fontSize: 42, fontWeight: 900, color: 'var(--primary)', letterSpacing: -1, lineHeight: 1 }}
-          >
-            {s.value}
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: 'var(--muted-foreground)',
-              marginTop: 4,
-              fontFamily: 'JetBrains Mono',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}
-          >
-            {s.label}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-  accent,
-}: {
-  icon: React.ElementType
-  title: string
-  description: string
-  accent?: boolean
-}) {
-  return (
-    <div
-      style={{
-        background: accent ? 'var(--primary)' : 'var(--card)',
-        border: `1px solid ${accent ? 'var(--primary)' : 'var(--border)'}`,
-        borderRadius: 3,
-        padding: '32px',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        gap: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '120px 24px 80px',
+        background: '#ffffff',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      {/* Subtle grid background */}
       <div
         style={{
-          width: 44,
-          height: 44,
-          background: accent ? 'rgba(17,24,39,0.1)' : 'var(--secondary)',
-          borderRadius: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          position: 'absolute', inset: 0, opacity: 0.4,
+          backgroundImage: 'linear-gradient(#e8e8e4 1px, transparent 1px), linear-gradient(90deg, #e8e8e4 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 80%)',
         }}
-      >
-        <Icon size={22} color={accent ? '#FFFFFF' : 'var(--primary)'} strokeWidth={2} />
-      </div>
-      <div>
-        <h3
-          className="font-display"
+      />
+
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, textAlign: 'center' }}>
+        {/* Pill label */}
+        <div
           style={{
-            fontSize: 22,
-            fontWeight: 800,
-            color: accent ? '#FFFFFF' : 'var(--foreground)',
-            margin: 0,
-            letterSpacing: 0.3,
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: '#f1f0ed', border: '1px solid #e8e8e4',
+            borderRadius: 99, padding: '5px 14px',
+            marginBottom: 32,
           }}
         >
-          {title}
-        </h3>
+          <span
+            style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: '#16a34a',
+              flexShrink: 0,
+            }}
+            className="pulse"
+          />
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#4a4a45', letterSpacing: 0.2 }}>
+            Built for African operators &amp; growth agencies
+          </span>
+        </div>
+
+        {/* Headline */}
+        <h1
+          className="hero-title serif"
+          style={{
+            fontSize: 'clamp(52px, 8vw, 96px)',
+            color: '#0f0f0e',
+            marginBottom: 24,
+            lineHeight: 0.95,
+          }}
+        >
+          Every business.<br />
+          <span className="serif-italic" style={{ color: '#2d6a4f' }}>One screen.</span>
+        </h1>
+
+        {/* Sub */}
         <p
           style={{
-            fontSize: 14,
-            color: accent ? 'rgba(255,255,255,0.75)' : 'var(--muted-foreground)',
-            margin: '10px 0 0',
+            fontSize: 'clamp(16px, 2.5vw, 20px)',
+            color: '#4a4a45',
+            maxWidth: 540,
+            margin: '0 auto 40px',
             lineHeight: 1.65,
+            fontWeight: 400,
           }}
         >
-          {description}
+          GrowthNet is the command center for agencies and operators managing African SMEs.
+          CRM, social, pipeline, analytics, and automations — unified.
         </p>
-      </div>
-    </div>
-  )
-}
 
-function PricingCard({
-  name,
-  price,
-  currency,
-  period,
-  description,
-  features,
-  highlight,
-  cta,
-  onCta,
-}: {
-  name: string
-  price: string
-  currency: string
-  period: string
-  description: string
-  features: string[]
-  highlight?: boolean
-  cta: string
-  onCta: () => void
-}) {
-  return (
-    <div
-      style={{
-        background: highlight ? 'var(--card)' : 'transparent',
-        border: `1px solid ${highlight ? 'var(--primary)' : 'var(--border)'}`,
-        borderRadius: 3,
-        padding: 32,
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 24,
-      }}
-    >
-      {highlight && (
+        {/* CTAs */}
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={onDashboard}
+            className="btn btn-primary btn-lg"
+            style={{ gap: 10, minWidth: 180 }}
+          >
+            Open dashboard <ArrowRight size={16} />
+          </button>
+          <button
+            onClick={onLogin}
+            className="btn btn-ghost btn-lg"
+          >
+            Sign in as owner
+          </button>
+        </div>
+
+        {/* Social proof */}
         <div
           style={{
-            position: 'absolute',
-            top: -12,
-            left: 32,
-            background: 'var(--primary)',
-            color: '#FFFFFF',
-            fontSize: 10,
-            fontFamily: 'JetBrains Mono',
-            fontWeight: 700,
-            letterSpacing: 2,
-            padding: '3px 10px',
-            borderRadius: 2,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 24, marginTop: 56, flexWrap: 'wrap',
           }}
         >
-          MOST POPULAR
+          {[
+            { value: '1,240+', label: 'Businesses' },
+            { value: '₦48B+', label: 'Pipeline tracked' },
+            { value: '14', label: 'Countries' },
+          ].map(s => (
+            <div key={s.label} style={{ textAlign: 'center' }}>
+              <div
+                className="serif"
+                style={{ fontSize: 28, color: '#0f0f0e', lineHeight: 1 }}
+              >
+                {s.value}
+              </div>
+              <div style={{ fontSize: 12, color: '#8a8a82', marginTop: 3, fontWeight: 500 }}>
+                {s.label}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-      <div>
-        <div
-          className="font-display"
-          style={{ fontSize: 13, fontWeight: 700, letterSpacing: 2, color: 'var(--muted-foreground)', textTransform: 'uppercase' }}
-        >
-          {name}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 8 }}>
-          <span style={{ fontSize: 13, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>{currency}</span>
-          <span className="font-display" style={{ fontSize: 52, fontWeight: 900, color: 'var(--foreground)', lineHeight: 1 }}>
-            {price}
-          </span>
-          <span style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>/{period}</span>
-        </div>
-        <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: '8px 0 0', lineHeight: 1.5 }}>{description}</p>
       </div>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {features.map((f) => (
-          <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'var(--foreground)' }}>
-            <CheckCircle2 size={15} color="var(--accent)" style={{ flexShrink: 0, marginTop: 1 }} />
-            {f}
-          </li>
-        ))}
-      </ul>
-      <button
-        onClick={onCta}
+
+      {/* Scroll hint */}
+      <div
         style={{
-          background: highlight ? 'var(--primary)' : 'transparent',
-          border: `1px solid ${highlight ? 'var(--primary)' : 'var(--border)'}`,
-          color: highlight ? '#111827' : 'var(--foreground)',
-          padding: '12px 24px',
-          borderRadius: 3,
-          fontSize: 13,
-          fontWeight: 700,
-          cursor: 'pointer',
-          fontFamily: 'Barlow Condensed',
-          letterSpacing: 1,
-          textTransform: 'uppercase',
+          position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+          color: '#b4b4ad',
         }}
       >
-        {cta}
-      </button>
-    </div>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.1, textTransform: 'uppercase' }}>Scroll</span>
+        <ChevronDown size={14} className="pulse" />
+      </div>
+    </section>
   )
 }
 
-const industries = [
-  'Logistics & Delivery',
-  'Fashion & Retail',
-  'Food & Catering',
-  'Digital Agencies',
-  'Beauty & Wellness',
-  'Tech & Repair',
-  'Events & Entertainment',
-  'Transport & Mobility',
-  'Construction',
-  'Healthcare',
-  'Finance & Microfinance',
-  'Agriculture & Agro-processing',
+// ── Features ───────────────────────────────────────────────────────────────
+const FEATURES = [
+  {
+    icon: BarChart3,
+    title: 'Portfolio Analytics',
+    desc: 'Track every business in your portfolio. Revenue trends, social growth, campaign performance — one view, no context switching.',
+  },
+  {
+    icon: Users,
+    title: 'CRM & Pipeline',
+    desc: 'Full client management with notes, timelines, and a sales kanban that reflects how African B2B deals actually close.',
+  },
+  {
+    icon: Calendar,
+    title: 'Content Calendar',
+    desc: 'Plan and schedule content across Instagram, TikTok, Facebook, X, and LinkedIn. AI-powered suggestions tailored per business.',
+  },
+  {
+    icon: Zap,
+    title: 'Tools & Automations',
+    desc: 'Build automations that run your operations: auto-reports, lead routing, follow-up sequences, webhook triggers, and more.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Ad Campaigns',
+    desc: 'Manage ad spend and track ROAS across all platforms and all clients from one campaign table. No more tab switching.',
+  },
+  {
+    icon: Shield,
+    title: 'Role-Based Access',
+    desc: 'Clients see only their data. You see everything. Granular permissions with a clean client-facing dashboard.',
+  },
+  {
+    icon: Globe,
+    title: 'Multi-Currency Finance',
+    desc: 'Issue invoices, track revenue, and report in NGN, GHS, KES, ZAR, or USD. Auto-conversion for portfolio reporting.',
+  },
+  {
+    icon: CheckCircle,
+    title: 'Service Requests',
+    desc: 'A clean work tracker for every deliverable. Clients submit requests, you manage status — no email chains.',
+  },
 ]
 
-// ─── Live portfolio (public read-only showcase) ──────────────────────────────
+function Features() {
+  return (
+    <section id="product" style={{ background: '#f8f8f6', padding: '96px 24px', borderTop: '1px solid #e8e8e4' }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+        <div style={{ marginBottom: 56, maxWidth: 560 }}>
+          <p className="label" style={{ marginBottom: 12 }}>Product</p>
+          <h2 className="serif" style={{ fontSize: 'clamp(32px, 5vw, 52px)', color: '#0f0f0e', marginBottom: 16 }}>
+            Everything your<br />
+            <span className="serif-italic">portfolio needs.</span>
+          </h2>
+          <p style={{ fontSize: 16, color: '#4a4a45', lineHeight: 1.7 }}>
+            Built for operators who manage multiple businesses — not just one.
+            Every tool talks to every other tool.
+          </p>
+        </div>
 
+        <div
+          className="grid-mobile-1"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 1, border: '1px solid #e8e8e4', borderRadius: 16, overflow: 'hidden' }}
+        >
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon
+            return (
+              <div
+                key={f.title}
+                style={{
+                  padding: '28px 28px',
+                  background: '#ffffff',
+                  borderRight: '1px solid #e8e8e4',
+                  borderBottom: '1px solid #e8e8e4',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#fafaf8')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#ffffff')}
+              >
+                <div
+                  style={{
+                    width: 40, height: 40, background: '#f1f0ed',
+                    borderRadius: 10, display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', marginBottom: 16,
+                  }}
+                >
+                  <Icon size={18} color="#2d6a4f" strokeWidth={2} />
+                </div>
+                <h3
+                  style={{ fontFamily: "'Inter', sans-serif", fontSize: 15, fontWeight: 700, color: '#0f0f0e', marginBottom: 8, lineHeight: 1.3 }}
+                >
+                  {f.title}
+                </h3>
+                <p style={{ fontSize: 14, color: '#6a6a62', lineHeight: 1.65 }}>{f.desc}</p>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ── Live Portfolio ─────────────────────────────────────────────────────────
 function LivePortfolio() {
-  const [businesses, setBusinesses] = useState<Array<{ id: string; name: string; type: string; status: string; domain: string | null }>>([])
+  const [businesses, setBusinesses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchPublicBusinesses()
-      .then((res) => setBusinesses(res.businesses))
+      .then(r => setBusinesses(r.businesses))
       .catch(() => setBusinesses([]))
       .finally(() => setLoading(false))
   }, [])
 
   return (
-    <section
-      style={{
-        borderTop: '1px solid var(--border)',
-        borderBottom: '1px solid var(--border)',
-        padding: '72px 32px',
-        background: 'var(--card)',
-      }}
-    >
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div className="eyebrow">LIVE PORTFOLIO</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 32 }}>
-          <h2 className="section-title" style={{ margin: 0 }}>
-            GROWTH, PUBLICLY PROVEN.
-            <br />
-            <span style={{ color: 'var(--muted-foreground)', fontWeight: 600 }}>LIVE RESULTS FROM REAL BUSINESSES.</span>
-          </h2>
+    <section style={{ background: '#ffffff', padding: '96px 24px', borderTop: '1px solid #e8e8e4' }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 40 }}>
+          <div>
+            <p className="label" style={{ marginBottom: 12 }}>Live portfolio</p>
+            <h2 className="serif" style={{ fontSize: 'clamp(28px, 4vw, 44px)', color: '#0f0f0e' }}>
+              Real businesses.<br />
+              <span className="serif-italic">Real growth.</span>
+            </h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 99 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#16a34a', flexShrink: 0 }} className="pulse" />
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>Live data</span>
+          </div>
         </div>
 
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--muted-foreground)', fontSize: 13, padding: '24px 0' }}>
-            <Loader2 size={15} className="spin" /> Loading live portfolio...
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#8a8a82', fontSize: 14, padding: '40px 0' }}>
+            <Loader2 size={16} className="spin" /> Loading...
           </div>
         ) : businesses.length === 0 ? (
-          <div style={{ border: '1px dashed var(--border)', borderRadius: 3, padding: '40px', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
-            No businesses published yet. The owner can publish results from the dashboard.
+          <div
+            style={{
+              padding: '56px 40px', textAlign: 'center',
+              border: '1.5px dashed #e8e8e4', borderRadius: 16,
+              color: '#8a8a82', fontSize: 14,
+            }}
+          >
+            No businesses published yet. The owner publishes results from the dashboard.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 2 }}>
-            {businesses.map((b) => (
+          <div
+            className="grid-mobile-1"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}
+          >
+            {businesses.map(b => (
               <a
                 key={b.id}
                 href={`/public/${encodeURIComponent(b.id)}`}
-                style={{
-                  background: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 3,
-                  padding: '24px',
-                  textDecoration: 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 14,
-                  transition: 'border-color 0.15s, transform 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--primary)'
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border)'
-                  e.currentTarget.style.transform = 'translateY(0)'
-                }}
+                className="card card-hover"
+                style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, textDecoration: 'none' }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div
-                    style={{
-                      fontSize: 9,
-                      fontFamily: 'JetBrains Mono',
-                      color: 'var(--accent)',
-                      border: '1px solid rgba(5,150,105,0.3)',
-                      borderRadius: 2,
-                      padding: '3px 8px',
-                      letterSpacing: 1,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {b.status}
-                  </div>
-                  <ExternalLink size={14} color="var(--muted-foreground)" />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="badge badge-green">{b.status}</span>
+                  <ExternalLink size={13} color="#8a8a82" />
                 </div>
                 <div>
-                  <div className="font-display" style={{ fontSize: 22, fontWeight: 800, color: 'var(--foreground)', lineHeight: 1.15 }}>
-                    {b.name}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono', marginTop: 4 }}>
-                    {b.type}
-                  </div>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: '#0f0f0e', lineHeight: 1.2, marginBottom: 4 }}>{b.name}</div>
+                  <div className="label" style={{ color: '#8a8a82' }}>{b.type}</div>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  View growth snapshot <ArrowRight size={13} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#2d6a4f', fontWeight: 600 }}>
+                  View snapshot <ArrowRight size={12} />
                 </div>
               </a>
             ))}
@@ -527,229 +426,288 @@ function LivePortfolio() {
   )
 }
 
-export default function Landing({ onLogin, onDashboard }: LandingProps) {
-  return (
-    <div style={{ background: 'var(--background)', minHeight: '100vh', color: 'var(--foreground)' }}>
-      <Navbar onLogin={onLogin} onDashboard={onDashboard} />
+// ── Pricing ────────────────────────────────────────────────────────────────
+const PLANS = [
+  {
+    name: 'Solo',
+    price: '₦12,000',
+    period: '/mo',
+    desc: 'For solo operators managing up to 3 businesses.',
+    features: ['Up to 3 businesses', 'CRM & pipeline', 'Social scheduler (3 platforms)', 'Basic analytics', 'Invoice management', 'Email support'],
+    highlight: false,
+    cta: 'Get started',
+  },
+  {
+    name: 'Agency',
+    price: '₦45,000',
+    period: '/mo',
+    desc: 'For agencies managing 5–20 client businesses with full analytics.',
+    features: ['Up to 20 businesses', 'Everything in Solo', 'Cross-business analytics', 'Tools & Automations', 'Multi-platform ad campaigns', 'Bulk actions', 'Leads pipeline', 'Priority support'],
+    highlight: true,
+    cta: 'Get started',
+  },
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    period: '',
+    desc: 'For holding companies and large networks with 20+ businesses.',
+    features: ['Unlimited businesses', 'Everything in Agency', 'Dedicated account manager', 'API access + webhooks', 'White-label options', 'SLA guarantee', 'Custom onboarding'],
+    highlight: false,
+    cta: 'Contact us',
+  },
+]
 
-      {/* Hero — full-bleed background image */}
-      <section
-        style={{
-          position: 'relative',
-          minHeight: '90vh',
-          display: 'flex',
-          alignItems: 'center',
-          overflow: 'hidden',
-        }}
-      >
+function Pricing({ onCta }: { onCta: () => void }) {
+  return (
+    <section id="pricing" style={{ background: '#f8f8f6', padding: '96px 24px', borderTop: '1px solid #e8e8e4' }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+        <div style={{ marginBottom: 52, maxWidth: 480 }}>
+          <p className="label" style={{ marginBottom: 12 }}>Pricing</p>
+          <h2 className="serif" style={{ fontSize: 'clamp(28px, 4vw, 48px)', color: '#0f0f0e', marginBottom: 12 }}>
+            Straightforward.<br />
+            <span className="serif-italic">No surprises.</span>
+          </h2>
+          <p style={{ fontSize: 14, color: '#6a6a62' }}>Pay in NGN, GHS, KES, ZAR, or USD. Cancel any time.</p>
+        </div>
+
         <div
+          className="grid-mobile-1"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, alignItems: 'start' }}
+        >
+          {PLANS.map(plan => (
+            <div
+              key={plan.name}
+              style={{
+                background: plan.highlight ? '#0f0f0e' : '#ffffff',
+                border: plan.highlight ? 'none' : '1.5px solid #e8e8e4',
+                borderRadius: 16,
+                padding: 28,
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 20,
+              }}
+            >
+              {plan.highlight && (
+                <div
+                  style={{
+                    position: 'absolute', top: -11, left: 20,
+                    background: '#2d6a4f', color: '#fff',
+                    fontSize: 10, fontWeight: 700, letterSpacing: 0.8,
+                    padding: '3px 10px', borderRadius: 99,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Most popular
+                </div>
+              )}
+
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: plan.highlight ? '#6a6a62' : '#8a8a82', marginBottom: 10 }}>
+                  {plan.name}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
+                  <span className="serif" style={{ fontSize: 40, color: plan.highlight ? '#fff' : '#0f0f0e', lineHeight: 1 }}>{plan.price}</span>
+                  {plan.period && <span style={{ fontSize: 14, color: plan.highlight ? '#6a6a62' : '#8a8a82' }}>{plan.period}</span>}
+                </div>
+                <p style={{ fontSize: 13, color: plan.highlight ? '#8a8a82' : '#6a6a62', lineHeight: 1.6 }}>{plan.desc}</p>
+              </div>
+
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 9 }}>
+                {plan.features.map(f => (
+                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 13, color: plan.highlight ? '#d0d0d0' : '#4a4a45' }}>
+                    <CheckCircle size={13} color={plan.highlight ? '#4ade80' : '#16a34a'} style={{ flexShrink: 0, marginTop: 2 }} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                onClick={onCta}
+                className="btn"
+                style={{
+                  background: plan.highlight ? '#fff' : '#0f0f0e',
+                  color: plan.highlight ? '#0f0f0e' : '#fff',
+                  borderRadius: 8,
+                  width: '100%',
+                  justifyContent: 'center',
+                  padding: '11px 24px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                }}
+              >
+                {plan.cta}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ── Industries ─────────────────────────────────────────────────────────────
+const INDUSTRIES = [
+  'Logistics & Delivery', 'Fashion & Retail', 'Food & Catering',
+  'Digital Agencies', 'Beauty & Wellness', 'Tech & Repair',
+  'Events & Entertainment', 'Transport', 'Construction',
+  'Healthcare', 'Finance & Microfinance', 'Agriculture',
+]
+
+// ── FAQ ────────────────────────────────────────────────────────────────────
+const FAQS = [
+  { q: 'Does it work for businesses that only operate in local currency?', a: 'Yes. Set the currency per business — NGN, GHS, KES, ZAR, XOF, or USD. The portfolio dashboard converts everything to your preferred reporting currency.' },
+  { q: "Can my clients see their own data without seeing other clients' data?", a: "Yes. Each business has its own limited-access view. Clients see their dashboard, pipeline, and social data only — never your full portfolio." },
+  { q: 'What tools and automations are available?', a: 'Pre-built automations include weekly report delivery, lead routing, follow-up sequences, milestone alerts, and content suggestions. You can also build custom automations with triggers, conditions, and actions.' },
+  { q: 'Is my data stored in Africa?', a: 'Primary storage is in Lagos, backup in Johannesburg. Everything is encrypted in transit and at rest.' },
+]
+
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(null)
+  return (
+    <section style={{ background: '#ffffff', padding: '96px 24px', borderTop: '1px solid #e8e8e4' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto' }}>
+        <h2 className="serif" style={{ fontSize: 'clamp(28px, 4vw, 44px)', color: '#0f0f0e', marginBottom: 40 }}>
+          Questions &amp; answers
+        </h2>
+        {FAQS.map((faq, i) => (
+          <div key={i} style={{ borderBottom: '1px solid #e8e8e4' }}>
+            <button
+              onClick={() => setOpen(open === i ? null : i)}
+              style={{
+                width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '20px 0', gap: 16, textAlign: 'left',
+              }}
+            >
+              <span style={{ fontSize: 15, fontWeight: 600, color: '#0f0f0e', lineHeight: 1.4 }}>{faq.q}</span>
+              <ChevronDown
+                size={18}
+                color="#8a8a82"
+                style={{ flexShrink: 0, transform: open === i ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+              />
+            </button>
+            {open === i && (
+              <p style={{ fontSize: 14, color: '#6a6a62', lineHeight: 1.75, paddingBottom: 20 }}>{faq.a}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ── CTA Banner ─────────────────────────────────────────────────────────────
+function CTABanner({ onDashboard }: { onDashboard: () => void }) {
+  return (
+    <section
+      style={{
+        background: '#0f0f0e',
+        padding: '80px 24px',
+        textAlign: 'center',
+      }}
+    >
+      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+        <h2 className="serif" style={{ fontSize: 'clamp(32px, 5vw, 56px)', color: '#ffffff', marginBottom: 16 }}>
+          Your businesses are<br />
+          <span className="serif-italic" style={{ color: '#4ade80' }}>waiting.</span>
+        </h2>
+        <p style={{ fontSize: 16, color: '#8a8a82', marginBottom: 32, lineHeight: 1.65 }}>
+          Sign in as the owner to manage your portfolio, or explore the live showcase.
+        </p>
+        <button
+          onClick={onDashboard}
+          className="btn btn-lg"
           style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: 'url(https://images.unsplash.com/photo-1649502913092-fb7f0e8fc632?w=1600&h=900&fit=crop&auto=format)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.35) saturate(0.8)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(135deg, rgba(27,122,74,0.25) 0%, rgba(0,0,0,0.6) 100%)',
-          }}
-        />
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            maxWidth: 900,
-            margin: '0 auto',
-            padding: `${NAV_HEIGHT + 60}px 16px 100px`,
-            textAlign: 'center',
+            background: '#ffffff', color: '#0f0f0e',
+            borderRadius: 10, gap: 10,
+            boxShadow: '0 0 0 1px rgba(255,255,255,0.1)',
           }}
         >
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: 20,
-              padding: '5px 14px 5px 8px',
-              marginBottom: 32,
-            }}
-          >
-            <span
-              style={{
-                background: 'var(--accent)',
-                color: '#111827',
-                fontSize: 10,
-                fontFamily: 'JetBrains Mono',
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: 10,
-                letterSpacing: 1,
-              }}
-            >
-              NEW
-            </span>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-              Cross-business analytics now live
-            </span>
+          Open dashboard <ArrowRight size={16} />
+        </button>
+      </div>
+    </section>
+  )
+}
+
+// ── Footer ─────────────────────────────────────────────────────────────────
+function Footer() {
+  return (
+    <footer style={{ background: '#0f0f0e', borderTop: '1px solid #1a1a18', padding: '40px 24px' }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <div style={{ width: 24, height: 24, background: '#fff', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: "'DM Serif Display', serif", color: '#0f0f0e', fontSize: 11 }}>G</span>
           </div>
-
-          <h1
-            className="font-display hero-title"
-            style={{
-              fontSize: 96,
-              fontWeight: 900,
-              lineHeight: 0.92,
-              margin: '0 0 28px',
-              letterSpacing: -2,
-              color: '#FFFFFF',
-            }}
-          >
-            ONE SCREEN.
-            <br />
-            <span style={{ color: '#C2A77D' }}>EVERY</span>
-            <br />
-            BUSINESS.
-          </h1>
-
-          <p
-            style={{
-              fontSize: 19,
-              lineHeight: 1.7,
-              color: 'rgba(255,255,255,0.75)',
-              margin: '0 auto 40px',
-              maxWidth: 580,
-            }}
-          >
-            GrowthNet is the command center for operators and agencies managing African SMEs. CRM, social, pipeline, finance, and analytics — unified.
-          </p>
-
-          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={onDashboard}
-              style={{
-                background: '#1B7A4A',
-                border: 'none',
-                color: '#FFFFFF',
-                padding: '16px 32px',
-                borderRadius: 3,
-                fontSize: 15,
-                fontWeight: 900,
-                cursor: 'pointer',
-                fontFamily: 'Barlow Condensed',
-                letterSpacing: 1,
-                textTransform: 'uppercase',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              SEE THE DASHBOARD <ArrowRight size={16} />
-            </button>
-            <button
-              onClick={onLogin}
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                color: '#FFFFFF',
-                padding: '16px 32px',
-                borderRadius: 3,
-                fontSize: 14,
-                cursor: 'pointer',
-                fontWeight: 500,
-              }}
-            >
-              Sign in as owner
-            </button>
-          </div>
+          <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 14, color: '#fff', letterSpacing: -0.3 }}>GrowthNet</span>
         </div>
-      </section>
+        <div style={{ fontSize: 12, color: '#4a4a45', fontWeight: 500 }}>
+          © 2026 GrowthNet Technologies Ltd · Lagos · Accra · Nairobi · Cape Town
+        </div>
+        <div style={{ display: 'flex', gap: 20 }}>
+          {['Privacy', 'Terms', 'Status', 'Contact'].map(l => (
+            <a key={l} href="#" style={{ fontSize: 13, color: '#4a4a45', transition: 'color 0.15s' }}
+              onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#fff')}
+              onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#4a4a45')}
+            >
+              {l}
+            </a>
+          ))}
+        </div>
+      </div>
+    </footer>
+  )
+}
 
-      {/* Stats */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
-        <StatBar />
+// ── Root ───────────────────────────────────────────────────────────────────
+export default function Landing({ onLogin, onDashboard }: LandingProps) {
+  return (
+    <div style={{ background: '#ffffff', minHeight: '100vh', color: '#0f0f0e' }}>
+      <Navbar onLogin={onLogin} onDashboard={onDashboard} />
+      <Hero onDashboard={onDashboard} onLogin={onLogin} />
+
+      {/* Stats strip */}
+      <div style={{ background: '#f8f8f6', borderTop: '1px solid #e8e8e4', borderBottom: '1px solid #e8e8e4' }}>
+        <div
+          className="stat-grid grid-mobile-2"
+          style={{ maxWidth: 1140, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}
+        >
+          {[
+            { v: '1,240+', l: 'Businesses managed' },
+            { v: '₦48B+', l: 'Pipeline tracked' },
+            { v: '14', l: 'Countries' },
+            { v: '34%', l: 'Avg revenue growth' },
+          ].map((s, i) => (
+            <div
+              key={s.l}
+              style={{
+                padding: '28px 24px',
+                borderRight: i < 3 ? '1px solid #e8e8e4' : 'none',
+              }}
+            >
+              <div className="serif" style={{ fontSize: 36, color: '#0f0f0e', lineHeight: 1 }}>{s.v}</div>
+              <div style={{ fontSize: 12, color: '#8a8a82', marginTop: 5, fontWeight: 500 }}>{s.l}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Live portfolio — public read-only showcase */}
+      <Features />
       <LivePortfolio />
 
-      {/* Features */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 32px' }}>
-        <div style={{ marginBottom: 48 }}>
-          <div className="eyebrow">PRODUCT</div>
-          <h2 className="section-title" style={{ margin: 0 }}>
-            EVERYTHING YOUR PORTFOLIO NEEDS.
-            <br />
-            <span style={{ color: 'var(--muted-foreground)', fontWeight: 600 }}>NOTHING IT DOESN&apos;T.</span>
-          </h2>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
-          <FeatureCard
-            icon={LayoutGrid}
-            title="Portfolio Command Center"
-            description="Every business you manage in one grid. Health status, revenue trends, pipeline value, and open tasks — visible at a glance without clicking through ten tabs."
-          />
-          <FeatureCard
-            icon={BarChart3}
-            title="Visual Growth Analytics"
-            description="Real charts, real numbers. Track revenue growth, social following, campaign ROAS, and client acquisition across any time range. Export shareable before/after snapshots."
-            accent
-          />
-          <FeatureCard
-            icon={Globe}
-            title="Unified Social & Campaigns"
-            description="Schedule content, manage inboxes, and run ad campaigns across Instagram, TikTok, Facebook, X, LinkedIn, and YouTube — for all your clients from one calendar."
-          />
-          <FeatureCard
-            icon={Users}
-            title="CRM & Client Pipeline"
-            description="Full contact management with notes, documents, and activity timelines. A sales kanban that actually reflects how African B2B deals move — not Silicon Valley fiction."
-          />
-          <FeatureCard
-            icon={Zap}
-            title="Bulk Actions"
-            description="Apply a pricing update, post an announcement, or run a campaign across multiple businesses at once. Stop repeating yourself."
-          />
-          <FeatureCard
-            icon={TrendingUp}
-            title="Finance & Invoicing"
-            description="Track revenue, issue invoices, and monitor cash flow per business. Simple enough for a shop owner, complete enough for your agency's reporting."
-          />
-        </div>
-      </section>
-
       {/* Industries */}
-      <section
-        style={{
-          borderTop: '1px solid var(--border)',
-          borderBottom: '1px solid var(--border)',
-          padding: '64px 32px',
-          background: 'var(--card)',
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div className="eyebrow">INDUSTRIES SERVED</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            {industries.map((ind) => (
+      <section id="industries" style={{ background: '#f8f8f6', padding: '80px 24px', borderTop: '1px solid #e8e8e4' }}>
+        <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+          <p className="label" style={{ marginBottom: 16 }}>Industries served</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {INDUSTRIES.map(ind => (
               <span
                 key={ind}
                 style={{
-                  background: 'var(--secondary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 2,
-                  padding: '6px 14px',
-                  fontSize: 13,
-                  color: 'var(--foreground)',
-                  fontWeight: 500,
+                  background: '#fff', border: '1px solid #e8e8e4',
+                  borderRadius: 99, padding: '7px 16px',
+                  fontSize: 13, color: '#4a4a45', fontWeight: 500,
                 }}
               >
                 {ind}
@@ -759,202 +717,10 @@ export default function Landing({ onLogin, onDashboard }: LandingProps) {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section
-        style={{
-          borderTop: '1px solid var(--border)',
-          padding: '80px 32px',
-          background: 'var(--card)',
-        }}
-      >
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div className="eyebrow">PRICING</div>
-          <h2 className="section-title" style={{ margin: '0 0 8px' }}>
-            STRAIGHTFORWARD. NO SURPRISES.
-          </h2>
-          <p style={{ fontSize: 14, color: 'var(--muted-foreground)', margin: '0 0 48px' }}>
-            Pay in NGN, GHS, KES, ZAR, or USD. Cancel any time.
-          </p>
-        <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
-            <PricingCard
-              name="Solo"
-              price="12,000"
-              currency="₦"
-              period="mo"
-              description="For solo operators managing up to 3 businesses."
-              features={[
-                'Up to 3 businesses',
-                'CRM & pipeline',
-                'Social scheduler (3 platforms)',
-                'Basic analytics',
-                'Invoice management',
-                'Email support',
-              ]}
-              cta="Get started"
-              onCta={onLogin}
-            />
-            <PricingCard
-              name="Agency"
-              price="45,000"
-              currency="₦"
-              period="mo"
-              description="For agencies managing 5–20 client businesses with full analytics."
-              features={[
-                'Up to 20 businesses',
-                'All Solo features',
-                'Cross-business analytics',
-                'Unified social inbox',
-                'Multi-platform ad campaigns',
-                'Bulk actions',
-                'Client onboarding pipeline',
-                'Priority support',
-              ]}
-              highlight
-              cta="Get started"
-              onCta={onLogin}
-            />
-            <PricingCard
-              name="Enterprise"
-              price="Custom"
-              currency=""
-              period="quote"
-              description="For holding companies and large networks with 20+ businesses."
-              features={[
-                'Unlimited businesses',
-                'All Agency features',
-                'Dedicated account manager',
-                'Custom onboarding',
-                'API access',
-                'White-label options',
-                'SLA guarantee',
-              ]}
-              cta="Contact us"
-              onCta={onLogin}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section style={{ maxWidth: 800, margin: '0 auto', padding: '80px 32px' }}>
-        <h2 className="section-title" style={{ margin: '0 0 24px' }}>
-          FAQ
-        </h2>
-        {[
-          {
-            q: 'Does it work for businesses that only operate in local currency?',
-            a: "Yes. GrowthNet supports NGN, GHS, KES, ZAR, XOF, and USD. You set the currency per business — your portfolio dashboard converts to your preferred reporting currency.",
-          },
-          {
-            q: "Can my clients see their own data without seeing other clients' data?",
-            a: "Yes. Each business gets its own limited-access view. They see their dashboard, pipeline, and social data — not your portfolio or other clients.",
-          },
-          {
-            q: 'How does the social scheduler handle platform rate limits?',
-            a: "We queue posts and auto-retry within safe limits per platform. TikTok, Instagram, Facebook, X, LinkedIn, and YouTube are all supported. Threads and YouTube Shorts are in beta.",
-          },
-          {
-            q: 'Is my data stored in Africa?',
-            a: 'Data is stored in Lagos (primary) and Johannesburg (backup) with end-to-end encryption at rest and in transit.',
-          },
-        ].map((faq, i) => (
-          <div
-            key={i}
-            style={{
-              borderBottom: '1px solid var(--border)',
-              padding: '24px 0',
-            }}
-          >
-            <div className="font-display" style={{ fontSize: 18, fontWeight: 700, color: 'var(--foreground)', marginBottom: 10 }}>
-              {faq.q}
-            </div>
-            <p style={{ fontSize: 14, color: 'var(--muted-foreground)', margin: 0, lineHeight: 1.65 }}>{faq.a}</p>
-          </div>
-        ))}
-      </section>
-
-      {/* CTA Banner */}
-      <section
-        style={{
-          background: 'var(--primary)',
-          padding: '64px 32px',
-          textAlign: 'center',
-        }}
-      >
-          <h2
-            className="font-display"
-            style={{ fontSize: 36, fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px', letterSpacing: -1, lineHeight: 1 }}
-          >
-            YOUR BUSINESSES ARE WAITING.
-          </h2>
-        <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.75)', margin: '0 0 32px' }}>
-          Explore the live portfolio above, or sign in as the owner to manage the showcase.
-        </p>
-        <button
-          onClick={onDashboard}
-          style={{
-            background: '#111827',
-            border: 'none',
-            color: '#FFFFFF',
-            padding: '16px 40px',
-            borderRadius: 3,
-            fontSize: 16,
-            fontWeight: 900,
-            cursor: 'pointer',
-            fontFamily: 'Barlow Condensed',
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 10,
-          }}
-        >
-          OPEN DASHBOARD <ChevronRight size={18} />
-        </button>
-      </section>
-
-      {/* Footer */}
-      <footer
-        style={{
-          borderTop: '1px solid var(--border)',
-          padding: '40px 32px',
-          maxWidth: 1200,
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img
-            src="/gnlogo.jpg"
-            alt="GrowthNet logo"
-            style={{ width: 24, height: 24, borderRadius: 2, objectFit: 'contain' }}
-          />
-          <span
-            className="font-display"
-            style={{ fontSize: 16, fontWeight: 800, letterSpacing: 1, color: 'var(--foreground)' }}
-          >
-            GROWTHNET
-          </span>
-        </div>
-        <div style={{ fontSize: 12, color: 'var(--muted-foreground)', fontFamily: 'JetBrains Mono' }}>
-          © 2026 GrowthNet Technologies Ltd. Lagos · Accra · Nairobi · Cape Town
-        </div>
-        <div style={{ display: 'flex', gap: 20 }}>
-          {['Privacy', 'Terms', 'Status', 'Contact'].map((link) => (
-            <a
-              key={link}
-              href="#"
-              style={{ fontSize: 12, color: 'var(--muted-foreground)', textDecoration: 'none' }}
-            >
-              {link}
-            </a>
-          ))}
-        </div>
-      </footer>
+      <Pricing onCta={onLogin} />
+      <FAQ />
+      <CTABanner onDashboard={onDashboard} />
+      <Footer />
     </div>
   )
 }

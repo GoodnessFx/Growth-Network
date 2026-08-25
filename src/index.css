@@ -1,267 +1,423 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import 'tailwindcss';
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-border: var(--border);
-  --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
-}
-
-/* ── Type scale ────────────────────────────────────────────────────────────────
-   One scale for the whole app:
-   Display (font-display / Barlow Condensed 900):
-     Landing hero 96px · Landing section titles 32px · CTA banner 36px
-     App page/section titles 22px · Metric values 32px · Stat strip values 28px
-   Body (Outfit): 14px default · Caption 12px · Small 11px
-   Mono (JetBrains Mono): labels/eyebrows 10-12px, uppercase, letter-spacing 1-3px
-   Buttons: Barlow Condensed, uppercase, letter-spacing 0.5-1.5px
-   ───────────────────────────────────────────────────────────────────────────── */
-
+/* ─────────────────────────────────────────────────────────────────────────────
+   LIGHT theme — Landing page, Auth page, public pages
+   Applied via .light-theme wrapper or directly on html for marketing pages
+───────────────────────────────────────────────────────────────────────────── */
 :root {
-  --background: #FFFFFF;
-  --foreground: #111827;
-  --card: #FFFFFF;
-  --card-foreground: #111827;
-  --primary: #1B7A4A;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F3F4F6;
-  --secondary-foreground: #111827;
-  --muted: #F9FAFB;
-  --muted-foreground: #6B7280;
-  --accent: #C2A77D;
-  --accent-foreground: #111827;
-  --border: #E5E7EB;
-  --ring: #1B7A4A;
-  --radius: 3px;
+  /* Core */
+  --bg: #ffffff;
+  --bg-subtle: #f8f8f6;
+  --bg-muted: #f1f0ed;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
 
-  --success: #1B7A4A;
-  --warning: #C2A77D;
-  --danger: #B91C1C;
+  /* Text */
+  --text-primary: #0f0f0e;
+  --text-secondary: #4a4a45;
+  --text-muted: #8a8a82;
+  --text-placeholder: #b4b4ad;
+
+  /* Brand */
+  --brand: #1a1a18;
+  --brand-fg: #ffffff;
+  --accent: #2d6a4f;
+  --accent-light: #e8f4ee;
+  --accent-fg: #ffffff;
+
+  /* Borders */
+  --border: #e8e8e4;
+  --border-strong: #d0d0ca;
+
+  /* Status */
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --amber: #d97706;
+  --amber-bg: #fffbeb;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --blue: #2563eb;
+  --blue-bg: #eff6ff;
+
+  /* Radius */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.04);
 }
 
-/* Shared section-eyebrow treatment (mono label above a title) */
-.eyebrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 12px;
+/* ─────────────────────────────────────────────────────────────────────────────
+   DARK theme — Dashboard (applied via .dash-theme on AppLayout wrapper)
+───────────────────────────────────────────────────────────────────────────── */
+.dash-theme {
+  --bg: #0c0c0c;
+  --bg-subtle: #111111;
+  --bg-muted: #161616;
+  --surface: #141414;
+  --surface-raised: #1a1a1a;
+
+  --text-primary: #efefef;
+  --text-secondary: #a0a0a0;
+  --text-muted: #606060;
+  --text-placeholder: #404040;
+
+  --brand: #ffffff;
+  --brand-fg: #0c0c0c;
+  --accent: #22c55e;
+  --accent-light: rgba(34,197,94,0.08);
+  --accent-fg: #0c0c0c;
+
+  --border: #232323;
+  --border-strong: #2e2e2e;
+
+  --green: #22c55e;
+  --green-bg: rgba(34,197,94,0.08);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245,158,11,0.08);
+  --red: #ef4444;
+  --red-bg: rgba(239,68,68,0.08);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59,130,246,0.08);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
 }
 
-/* Shared landing section title */
-.section-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 32px;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-  line-height: 1.05;
-}
-
-* {
-  box-sizing: border-box;
-}
+/* ─────────────────────────────────────────────────────────────────────────────
+   Base reset
+───────────────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
-  font-family: 'Outfit', sans-serif;
-  background-color: var(--background);
-  color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  background: var(--bg);
+  color: var(--text-primary);
 }
 
-/* Prevent iOS auto-zoom when focusing inputs (Safari zooms when font-size < 16px).
-   Inline fontSize overrides everywhere in the app are 13–14px, so force 16px. */
-input,
+body { margin: 0; }
+
+input, select, textarea, button {
+  font-family: inherit;
+  font-size: 15px;
+}
+
+/* iOS zoom prevention */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
 select,
 textarea {
-  font-size: 16px !important;
+  font-size: max(16px, 1em) !important;
 }
 
-body {
-  margin: 0;
+a { color: inherit; text-decoration: none; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Typography
+───────────────────────────────────────────────────────────────────────────── */
+.serif {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
-/* Hide scrollbars by default, show on scroll */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+.serif-italic {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-style: italic;
+  line-height: 1.1;
 }
 
-.font-display {
-  font-family: 'Barlow Condensed', sans-serif;
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-.font-mono {
-  font-family: 'JetBrains Mono', monospace;
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
 }
 
-/* Growth pulse bar */
-.pulse-bar {
-  height: 3px;
-  border-radius: 1px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* ─────────────────────────────────────────────────────────────────────────────
+   Scrollbars
+───────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
-/* Focus ring */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Focus
+───────────────────────────────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--ring);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
+  border-radius: var(--r-sm);
 }
 
-/* Tap targets — Apple HIG minimum 44x44px on touch */
-@media (pointer: coarse) {
-  button,
-  a {
-    min-height: 44px;
-  }
-  input,
-  select {
-    min-height: 44px;
-  }
+/* ─────────────────────────────────────────────────────────────────────────────
+   Shared inputs
+───────────────────────────────────────────────────────────────────────────── */
+.gn-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.gn-input::placeholder { color: var(--text-placeholder); }
+.gn-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(45,106,79,0.12);
+  background: var(--surface);
+}
+.dash-theme .gn-input {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.dash-theme .gn-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+  background: var(--surface);
 }
 
-/* Wide data tables: scroll horizontally instead of squeezing on small screens */
-.table-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+/* ─────────────────────────────────────────────────────────────────────────────
+   Shared buttons
+───────────────────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  padding: 9px 18px;
+  transition: background 0.15s, box-shadow 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  line-height: 1;
+  text-decoration: none;
 }
-.table-grid {
-  min-width: 640px;
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--text-primary);
+  color: var(--bg);
 }
-.table-grid-narrow {
-  min-width: 540px;
+.btn-primary:hover:not(:disabled) {
+  background: #2a2a28;
+  box-shadow: var(--shadow-md);
+}
+.dash-theme .btn-primary {
+  background: var(--text-primary);
+  color: var(--bg);
+}
+.dash-theme .btn-primary:hover:not(:disabled) {
+  background: #e0e0e0;
 }
 
-/* Two-column form fields stack on small screens */
+.btn-accent {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.btn-accent:hover:not(:disabled) {
+  filter: brightness(0.92);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.dash-theme .btn-ghost {
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+.dash-theme .btn-ghost:hover:not(:disabled) {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+}
+
+.btn-sm { padding: 6px 12px; font-size: 13px; }
+.btn-lg { padding: 13px 28px; font-size: 15px; }
+
+/* full-width */
+.btn-full { width: 100%; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Cards
+───────────────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.card-hover {
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  cursor: pointer;
+}
+.card-hover:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.dash-theme .card-hover:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Badges
+───────────────────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-red   { background: var(--red-bg);   color: var(--red); }
+.badge-blue  { background: var(--blue-bg);  color: var(--blue); }
+.badge-neutral { background: var(--bg-muted); color: var(--text-secondary); }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Layout helpers
+───────────────────────────────────────────────────────────────────────────── */
+.page-pad { padding: 28px 28px; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-min { min-width: 640px; }
+.modal-content { max-height: calc(100dvh - 32px); overflow-y: auto; }
+
 .field-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* Modal: full-width sheet on small screens, scrollable if tall */
-.modal-content {
-  max-height: calc(100dvh - 24px);
-  overflow-y: auto;
+/* ─────────────────────────────────────────────────────────────────────────────
+   Divider
+───────────────────────────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  border: none;
+  margin: 0;
 }
 
-/* Compact page gutters on phones */
-.page-pad {
-  padding: 24px;
+/* ─────────────────────────────────────────────────────────────────────────────
+   Animations
+───────────────────────────────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.8s linear infinite; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 0.3s ease forwards; }
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.pulse { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Mobile sidebar
+───────────────────────────────────────────────────────────────────────────── */
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 40;
+  backdrop-filter: blur(2px);
 }
 
-/* Auth: split-screen becomes single column on mobile */
-.auth-grid {
-  grid-template-columns: 1fr 1fr;
-}
-.auth-form-panel {
-  padding: 48px;
-}
-
-/* Smooth transitions for interactive elements */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Transitions
+───────────────────────────────────────────────────────────────────────────── */
 button, a {
-  transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
 }
 
-@keyframes gn-spin {
-  to { transform: rotate(360deg); }
-}
-.spin {
-  animation: gn-spin 0.9s linear infinite;
-}
-
-@media (max-width: 767px) {
-  .mobile-sidebar {
-    position: fixed !important;
-    top: 0; left: 0; bottom: 0;
-    z-index: 50;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.15);
-  }
-  .mobile-sidebar-overlay {
-    display: block !important;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 40;
-  }
+/* ─────────────────────────────────────────────────────────────────────────────
+   Mobile — ≤ 768px
+───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
   .hide-mobile { display: none !important; }
   .show-mobile { display: flex !important; }
-  .hero-title { font-size: 48px !important; }
-  .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
-  .feature-grid { grid-template-columns: 1fr !important; }
-  .testimonial-grid { grid-template-columns: 1fr !important; }
-  .pricing-grid { grid-template-columns: 1fr !important; }
-  .full-width-mobile { width: 100% !important; }
-  .stack-mobile {
-    flex-direction: column !important;
-    grid-template-columns: 1fr !important;
-  }
-  .filter-row { flex-wrap: wrap; gap: 8px; }
-  .summary-strip { grid-template-columns: repeat(2, 1fr) !important; }
-  .field-grid { grid-template-columns: 1fr !important; }
+  .stack-mobile { flex-direction: column !important; }
+  .grid-mobile-1 { grid-template-columns: 1fr !important; }
+  .grid-mobile-2 { grid-template-columns: 1fr 1fr !important; }
   .page-pad { padding: 16px !important; }
-  .table-grid { min-width: 520px; }
-  .auth-grid { grid-template-columns: 1fr !important; }
-  .auth-form-panel { padding: 24px 16px !important; }
+  .field-grid { grid-template-columns: 1fr !important; }
+  .hero-title { font-size: clamp(40px, 10vw, 72px) !important; }
+  .auth-panel { padding: 24px 20px !important; }
+  .mobile-overlay { display: block; }
 }
 
 @media (max-width: 480px) {
-  .hero-title { font-size: 36px !important; }
-  .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
-  .stat-value { font-size: 28px !important; }
   .hide-xs { display: none !important; }
-  .p-4-mobile { padding-left: 16px !important; padding-right: 16px !important; }
-  .app-topbar { padding-left: 12px !important; padding-right: 12px !important; }
-  .summary-strip .font-display {
-    font-size: 22px !important;
-    letter-spacing: -0.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  .hero-title { font-size: clamp(32px, 9vw, 52px) !important; }
+  .stat-grid { grid-template-columns: 1fr 1fr !important; }
 }
 
+/* Touch targets */
+@media (pointer: coarse) {
+  .btn, button, a[role="button"] { min-height: 44px; }
+  input, select, textarea { min-height: 44px; }
+}
+
+/* Print */
 @media print {
-  .print-hide {
-    display: none !important;
-  }
-  .poster {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  body {
-    background: #0b0f0a !important;
-  }
+  .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
 }
 
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

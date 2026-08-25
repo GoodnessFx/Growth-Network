@@ -18,7 +18,7 @@ export interface User {
   email: string
   name: string
   passwordHash: string
-  role: "admin" | "operator"
+  role: "owner" | "admin" | "client"
   createdAt: string
 }
 

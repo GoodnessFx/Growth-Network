@@ -1,0 +1,29 @@
+# Render blueprint — persistent Node service for the Growth Network API.
+# The SQLite database lives on the mounted disk at /data, so data persists
+# across deploys/restarts. Health check hits GET /api/health.
+services:
+  - type: web
+    name: growth-network-api
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      # Supabase Google sign-in — the only identity system. Set in Render's
+      # dashboard (same project URL + anon key as the frontend).
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: DB_PATH
+        value: /data/growth-network.db
+      - key: ENABLE_DEMO_DATA
+        value: "0"
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1

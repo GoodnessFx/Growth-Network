@@ -1,4 +1,13 @@
-const TOKEN_KEY = "gn_token"
+import { getAccessToken } from "./supabase"
+
+/**
+ * API base URL. In dev, Vite proxies `/api/*` to the local backend, so the
+ * relative default just works. In production, set VITE_API_URL to the deployed
+ * API origin (e.g. https://growth-network-api.up.railway.app) — the trailing
+ * /api is appended here so callers keep using path-only routes.
+ */
+const API_ORIGIN = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? ""
+const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api"
 
 export interface AuthUser {
   id: string
@@ -16,25 +25,11 @@ export class ApiError extends Error {
   }
 }
 
-export function getToken(): string | null {
-  try {
-    return localStorage.getItem(TOKEN_KEY)
-  } catch {
-    return null
-  }
-}
-
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token)
-}
-
-export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY)
-}
-
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = getToken()
-  const res = await fetch(`/api${path}`, {
+  // Auth is Supabase-only: the access token lives in the SDK's own session
+  // storage and is attached here as a Bearer token for the backend to verify.
+  const token = await getAccessToken()
+  const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -54,22 +49,6 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
 
   return body as T
-}
-
-export interface AuthResponse {
-  token: string
-  user: AuthUser
-}
-
-export function login(email: string, password: string): Promise<AuthResponse> {
-  return apiFetch<AuthResponse>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  })
-}
-
-export function fetchMe(): Promise<{ user: AuthUser }> {
-  return apiFetch<{ user: AuthUser }>("/auth/me")
 }
 
 export interface ApiBusiness {
@@ -279,4 +258,212 @@ export function fetchSeo(businessId: string): Promise<{ connected: boolean; demo
 
 export function fetchTrackingSnippet(businessId: string): Promise<{ snippet: string; businessId: string }> {
   return apiFetch<{ snippet: string; businessId: string }>(`/tracking/snippet/${encodeURIComponent(businessId)}`)
+}
+
+// ─── Content calendar (owner-only) ───────────────────────────────────────────
+
+export interface CalendarEntry {
+  id: string
+  business_id: string
+  scheduled_date: string
+  slot: number
+  platform: string
+  title: string | null
+  body: string
+  status: string
+  is_ai_generated: number
+  source: string
+  content_hash: string
+  created_at: string
+}
+
+export interface CalendarCoverage {
+  id: string
+  name: string
+  filledDays: number
+  totalDays: number
+  filledSlots: number
+  slotsPerDay: number
+}
+
+export function fetchCalendarEntries(params?: {
+  businessId?: string
+  from?: string
+  to?: string
+  status?: string
+}): Promise<{ entries: CalendarEntry[] }> {
+  const q = new URLSearchParams()
+  if (params?.businessId) q.set("businessId", params.businessId)
+  if (params?.from) q.set("from", params.from)
+  if (params?.to) q.set("to", params.to)
+  if (params?.status) q.set("status", params.status)
+  const qs = q.toString()
+  return apiFetch<{ entries: CalendarEntry[] }>(`/content-calendar${qs ? `?${qs}` : ""}`)
+}
+
+export function fetchCalendarCoverage(): Promise<{ coverage: CalendarCoverage[]; startDate: string; endDate: string }> {
+  return apiFetch<{ coverage: CalendarCoverage[]; startDate: string; endDate: string }>("/content-calendar/coverage")
+}
+
+export function generateCalendar(
+  businessId: string,
+  days?: number,
+  startDate?: string,
+): Promise<{ created: number; skippedExisting: number; failed: number; startDate: string; days: number }> {
+  return apiFetch<{ created: number; skippedExisting: number; failed: number; startDate: string; days: number }>(
+    "/content-calendar/generate",
+    {
+      method: "POST",
+      body: JSON.stringify({ businessId, days, startDate }),
+    },
+  )
+}
+
+export function updateCalendarEntry(
+  id: string,
+  patch: { title?: string; body?: string; status?: string },
+): Promise<{ entry: CalendarEntry }> {
+  return apiFetch<{ entry: CalendarEntry }>(`/content-calendar/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  })
+}
+
+export function approveCalendarEntry(id: string): Promise<{ success: boolean; status: string }> {
+  return apiFetch<{ success: boolean; status: string }>(`/content-calendar/${encodeURIComponent(id)}/approve`, {
+    method: "POST",
+  })
+}
+
+export function deleteCalendarEntry(id: string): Promise<{ success: boolean }> {
+  return apiFetch<{ success: boolean }>(`/content-calendar/${encodeURIComponent(id)}`, { method: "DELETE" })
+}
+
+// ─── Review queue (approve & post) ───────────────────────────────────────────
+
+export interface QueueEntry {
+  id: string
+  business_id: string
+  business_name: string
+  scheduled_date: string
+  slot: number
+  platform: string
+  title: string | null
+  body: string
+  status: string
+  publish_status: "pending" | "in_flight" | "published" | "failed"
+  published_at: string | null
+  publish_error: string | null
+  media_asset_id: string | null
+  media_url: string | null
+  content_hash: string
+  created_at: string
+}
+
+export interface QueueResponse {
+  entries: QueueEntry[]
+  pendingCount: number
+}
+
+export function fetchReviewQueue(params?: {
+  businessId?: string
+  platform?: string
+  status?: string
+  limit?: number
+}): Promise<QueueResponse> {
+  const q = new URLSearchParams()
+  if (params?.businessId) q.set("businessId", params.businessId)
+  if (params?.platform) q.set("platform", params.platform)
+  if (params?.status) q.set("status", params.status)
+  if (params?.limit) q.set("limit", String(params.limit))
+  const qs = q.toString()
+  return apiFetch<QueueResponse>(`/review-queue${qs ? `?${qs}` : ""}`)
+}
+
+export function editQueueEntry(
+  id: string,
+  patch: { title?: string; body?: string; mediaAssetId?: string | null },
+): Promise<{ entry: QueueEntry }> {
+  return apiFetch<{ entry: QueueEntry }>(`/review-queue/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  })
+}
+
+export interface PublishResult {
+  success: boolean
+  demo?: boolean
+  status: string
+  postId?: string | null
+  publishError?: string
+  retryAfterSeconds?: number
+}
+
+export function publishQueueEntry(id: string): Promise<PublishResult> {
+  return apiFetch<PublishResult>(`/review-queue/${encodeURIComponent(id)}/post`, { method: "POST" })
+}
+
+// ─── Assets (per-business library) ───────────────────────────────────────────
+
+export interface Asset {
+  id: string
+  business_id: string
+  file_name: string
+  file_url: string
+  mime_type: string | null
+  size: number
+  category: string
+  uploaded_by: string
+  created_at: string
+}
+
+export function fetchAssets(businessId: string, category?: string): Promise<{ assets: Asset[] }> {
+  const q = new URLSearchParams({ businessId })
+  if (category) q.set("category", category)
+  return apiFetch<{ assets: Asset[] }>(`/assets?${q.toString()}`)
+}
+
+export async function uploadAsset(businessId: string, file: File, category = "post-image"): Promise<{ asset: Asset }> {
+  const token = await getAccessToken()
+  const fd = new FormData()
+  fd.append("file", file)
+  fd.append("category", category)
+  const res = await fetch(`${API_BASE}/assets?businessId=${encodeURIComponent(businessId)}`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: fd,
+  })
+  const body = await res.json().catch(() => null)
+  if (!res.ok) {
+    const message =
+      body && typeof body === "object" && "error" in body && typeof (body as { error: unknown }).error === "string"
+        ? (body as { error: string }).error
+        : "Upload failed"
+    throw new ApiError(message, res.status)
+  }
+  return body as { asset: Asset }
+}
+
+export function deleteAsset(id: string): Promise<{ success: boolean }> {
+  return apiFetch<{ success: boolean }>(`/assets/${encodeURIComponent(id)}`, { method: "DELETE" })
+}
+
+// ─── Error log (owner-only monitoring) ───────────────────────────────────────
+
+export interface ErrorLogEntry {
+  id: string
+  business_id: string | null
+  platform: string | null
+  operation: string
+  message: string
+  details: string
+  created_at: string
+}
+
+export function fetchErrorLogs(params?: { businessId?: string; limit?: number }): Promise<{ errors: ErrorLogEntry[] }> {
+  const q = new URLSearchParams()
+  if (params?.businessId) q.set("businessId", params.businessId)
+  if (params?.limit) q.set("limit", String(params.limit))
+  const qs = q.toString()
+  return apiFetch<{ errors: ErrorLogEntry[] }>(`/audit/errors${qs ? `?${qs}` : ""}`)
 }

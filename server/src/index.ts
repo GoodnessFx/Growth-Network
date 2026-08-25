@@ -1,9 +1,9 @@
+import "dotenv/config"
 import { serve } from "@hono/node-server"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { authMiddleware, requireOwner } from "./middleware/auth.js"
 import { tenantMiddleware } from "./middleware/tenant.js"
-import { auth } from "./routes/auth.js"
 import { businesses } from "./routes/businesses.js"
 import { whatsapp } from "./routes/whatsapp.js"
 import { social } from "./routes/social.js"
@@ -14,6 +14,9 @@ import { automations } from "./routes/automations.js"
 import { exportTrade } from "./routes/export-trade.js"
 import { publicApi } from "./routes/public.js"
 import { audit } from "./routes/audit.js"
+import { contentCalendar } from "./routes/content-calendar.js"
+import { assets } from "./routes/assets.js"
+import { reviewQueue } from "./routes/review-queue.js"
 import { processScheduledAutomations } from "./services/automations.js"
 
 const app = new Hono()
@@ -47,8 +50,6 @@ app.use(
 
 app.get("/api/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }))
 
-app.route("/api/auth", auth)
-
 app.use("/api/businesses/*", authMiddleware, tenantMiddleware)
 app.route("/api/businesses", businesses)
 
@@ -76,6 +77,23 @@ app.route("/api/export-trade", exportTrade)
 
 app.use("/api/audit/*", authMiddleware, requireOwner)
 app.route("/api/audit", audit)
+
+app.use("/api/content-calendar/*", authMiddleware, tenantMiddleware, requireOwner)
+app.route("/api/content-calendar", contentCalendar)
+
+// Asset storage: authenticated list/upload/delete, but file streaming must stay
+// public so <img> tags and platform embed links work without a Bearer header.
+const guardAssets = async (c: import("hono").Context, next: import("hono").Next) => {
+  if (c.req.path.startsWith("/api/assets/file/")) return next()
+  return authMiddleware(c, async () => {
+    await tenantMiddleware(c, next)
+  })
+}
+app.use("/api/assets/*", guardAssets)
+app.route("/api/assets", assets)
+
+app.use("/api/review-queue/*", authMiddleware, tenantMiddleware)
+app.route("/api/review-queue", reviewQueue)
 
 const PORT = parseInt(process.env.PORT || "3001")
 

@@ -34,7 +34,7 @@ Frontend dev server: `:8443`. Backend: `:3001`. Vite proxies `/api/*` → backen
 | `pnpm build` | Production frontend build → `dist/` |
 | `pnpm build:server` | Compile/run backend (starts server) |
 | `pnpm db:init` | Initialize SQLite schema |
-| `pnpm db:seed` | Seed owner account + demo businesses (idempotent) |
+| `pnpm db:seed` | Seed demo businesses + clear content (idempotent) |
 | `pnpm format` | oxfmt formatting |
 
 ## Environment variables
@@ -43,7 +43,7 @@ Read at backend startup (see each service for exact names). `.env.example` is th
 canonical reference and documents the OAuth-app credential model per platform —
 client IDs/secrets for the production OAuth flow, plus long-lived token fallbacks:
 
-- `JWT_SECRET` — signing secret (default `dev-secret-change-in-production`)
+- `SUPABASE_URL` / `SUPABASE_ANON_KEY` — Supabase project for Google sign-in (the only identity system; the server verifies access tokens via `supabase.auth.getUser`). Falls back to the `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` values.
 - `PORT` — backend port (default `3001`)
 - `API_PORT` — used by Vite proxy target (default `3001`)
 - `DB_PATH` — SQLite file path (default `data/growth-network.db`)
@@ -82,19 +82,10 @@ Fallbacks only activate when a live call is impossible or fails; a working conne
 
 ## API reference
 
-### Auth (`/api/auth`) — owner-only login
-- `POST /login` — `{ email, password }` → `{ token, user }`; rate-limited (10 attempts / 15 min per IP+email, `429` + `Retry-After`)
-- `GET /me` — protected, returns current user
-- Registration is **removed**: there is no `POST /register`. Accounts are created by the seed (`pnpm db:seed`) and carry the `owner` role. All write routes require `requireOwner` (`role === 'owner'` or `'admin'`).
-
-Session handling: the JWT is stored in `localStorage` (`src/lib/AuthContext.tsx`) and sent as
-`Authorization: Bearer <token>` on every request via `src/lib/api.ts`. An httpOnly cookie was
-considered but not used: the backend has no CSRF middleware, the cookie path would add
-SameSite/CSRF wiring for a single-origin Vite proxy with no third-party clients, and the token
-already lives behind a 7-day expiry. The token is cleared from `localStorage` on logout, and
-`GET /auth/me` restores the session on page reload. Password reset is deliberately not exposed in
-the UI until a real email-token backend exists — the old "forgot password" screen was a dead end
-and was removed.
+### Auth — Google-only via Supabase
+- No `POST /login`, no `GET /me`, no self-issued JWT, no local `users` table. The `/api/auth` route was removed.
+- The frontend signs in with `supabase.auth.signInWithOAuth({ provider: 'google' })` (`src/lib/AuthContext.tsx`); `onAuthStateChange` is the single source of truth and the SDK owns session storage.
+- The backend verifies the Supabase access token with `supabase.auth.getUser(token)` in `server/src/middleware/auth.ts` and treats the signed-in Google user as the owner (full access). All write routes require `requireOwner`.
 
 ### Businesses (`/api/businesses`) — auth + tenant (writes owner-checked)
 - `GET /` — list businesses for the tenant (admin sees all; rows include `visible`)

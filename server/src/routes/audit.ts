@@ -50,4 +50,33 @@ audit.get("/stats", (c) => {
   return c.json({ stats: db.prepare(sql).all(...params) })
 })
 
+// Error log reader (monitoring dashboard). Reads the durable error_logs table
+// written by the error logger during failed operations (publishes, webhooks).
+audit.get("/errors", (c) => {
+  const businessId = c.req.query("businessId")
+  const limit = Math.min(parseInt(c.req.query("limit") || "50", 10) || 50, 200)
+
+  const db = getDb()
+  const conditions: string[] = []
+  const params: unknown[] = []
+  if (businessId) {
+    conditions.push("business_id = ?")
+    params.push(businessId)
+  }
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""
+  const rows = db
+    .prepare(`SELECT * FROM error_logs ${where} ORDER BY created_at DESC LIMIT ?`)
+    .all(...params, limit) as Array<{
+    id: string
+    business_id: string | null
+    platform: string | null
+    operation: string
+    message: string
+    details: string
+    created_at: string
+  }>
+  const total = db.prepare("SELECT COUNT(*) AS n FROM error_logs").get() as { n: number }
+  return c.json({ errors: rows, total: total.n })
+})
+
 export { audit }

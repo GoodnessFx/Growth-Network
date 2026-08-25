@@ -1,11 +1,5 @@
 import type { Context, Next } from "hono"
-import jwt from "jsonwebtoken"
-
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-in-production"
-
-if (!process.env.JWT_SECRET) {
-  console.warn("[GN] WARNING: JWT_SECRET not set - using the insecure default. Set JWT_SECRET in production.")
-}
+import { supabase } from "../services/supabase.js"
 
 export interface AuthUser {
   id: string
@@ -14,6 +8,12 @@ export interface AuthUser {
   role: string
 }
 
+/**
+ * Verifies the Supabase access token from the Authorization header against the
+ * Supabase Auth API. There is no local users table and no self-issued JWT —
+ * identity comes entirely from the Supabase project (Google OAuth). Every
+ * signed-in user is treated as the platform owner (full access).
+ */
 export async function authMiddleware(c: Context, next: Next): Promise<Response | undefined> {
   const authHeader = c.req.header("Authorization")
   if (!authHeader?.startsWith("Bearer ")) {
@@ -23,18 +23,24 @@ export async function authMiddleware(c: Context, next: Next): Promise<Response |
 
   const token = authHeader.slice(7)
 
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as AuthUser
-    c.set("user", payload)
-    await next()
-  } catch {
+  const { data, error } = await supabase.auth.getUser(token)
+  if (error || !data.user) {
     c.status(401)
-    return c.json({ error: "Invalid or expired token" })
+    return c.json({ error: "Invalid or expired session" })
   }
-}
 
-export function generateToken(user: AuthUser): string {
-  return jwt.sign(user, JWT_SECRET, { expiresIn: "7d" })
+  const su = data.user
+  const metadata = (su.user_metadata ?? {}) as Record<string, unknown>
+  const fullName = metadata.full_name
+  const user: AuthUser = {
+    id: su.id,
+    email: su.email ?? "",
+    name: typeof fullName === "string" && fullName ? fullName : (su.email ?? "Owner"),
+    role: "owner",
+  }
+
+  c.set("user", user)
+  await next()
 }
 
 /**

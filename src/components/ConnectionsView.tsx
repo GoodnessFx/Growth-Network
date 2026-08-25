@@ -38,6 +38,43 @@ function platformColor(p: string): string {
   return PLATFORM_META[p]?.color ?? 'var(--muted-foreground)'
 }
 
+// Token expiry status. Surfaces expiring/expired tokens so re-auth isn't a
+// silent failure when a publish goes through the review queue.
+function renderExpiry(expiresAt: string | null): React.ReactNode {
+  if (!expiresAt) return null
+  const t = expiresAt.includes('T') ? expiresAt : `${expiresAt}T00:00:00`
+  const expiry = new Date(t)
+  if (isNaN(expiry.getTime())) return null
+  const days = Math.ceil((expiry.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+  const style = {
+    fontSize: 11,
+    fontFamily: 'JetBrains Mono' as const,
+    padding: '1px 6px',
+    borderRadius: 2,
+    marginLeft: 6,
+    display: 'inline-block',
+  }
+  if (days < 0) {
+    return (
+      <span style={{ ...style, color: 'var(--danger)', background: 'rgba(239,68,68,0.12)' }}>
+        · token expired {Math.abs(days)}d ago — re-connect
+      </span>
+    )
+  }
+  if (days <= 7) {
+    return (
+      <span style={{ ...style, color: 'var(--warning)', background: 'rgba(245,158,11,0.12)' }}>
+        · token expires in {days}d
+      </span>
+    )
+  }
+  return (
+    <span style={{ ...style, color: 'var(--accent)', background: 'rgba(5,150,105,0.1)' }}>
+      · expires {expiry.toLocaleDateString()}
+    </span>
+  )
+}
+
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -462,7 +499,7 @@ export default function ConnectionsView() {
                               {conn.access_token ? `Token ${conn.access_token.slice(0, 8)}…` : 'No token'}
                               {conn.access_token && conn.account_id ? ' · ' : ''}
                               Connected {new Date(conn.created_at.replace(' ', 'T') + 'Z').toLocaleDateString()}
-                              {conn.expires_at ? ` · expires ${conn.expires_at.slice(0, 10)}` : ''}
+                              {renderExpiry(conn.expires_at)}
                             </div>
                             {result && (
                               <div
