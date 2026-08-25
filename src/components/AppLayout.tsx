@@ -350,7 +350,9 @@ export default function AppLayout({ page, operatorTab, setOperatorTab, setPage, 
         </div>
 
         <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', background: '#f8f8f6', paddingBottom: isMobile ? 64 : 0 }}>
-          {children}
+          <div className="container page-pad" style={{ minHeight: '100%' }}>
+            {children}
+          </div>
         </main>
       </div>
 
