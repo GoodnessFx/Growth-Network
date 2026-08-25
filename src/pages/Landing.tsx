@@ -214,9 +214,8 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
           }}
         >
           {[
-            { value: '1,240+', label: 'Businesses' },
-            { value: '₦48B+', label: 'Pipeline tracked' },
-            { value: '14', label: 'Countries' },
+            { value: '10+', label: 'Businesses managed' },
+            { value: '1', label: 'Country (Nigeria)' },
           ].map(s => (
             <div key={s.label} style={{ textAlign: 'center' }}>
               <div
