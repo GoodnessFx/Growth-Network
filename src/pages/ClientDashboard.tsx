@@ -235,7 +235,7 @@ export default function ClientDashboard({ business }: { business: ApiBusiness })
       </div>
 
       {/* ── Main two-column ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 16, marginBottom: 16 }}
         className="stack-mobile">
 
         {/* Growth chart */}
@@ -307,7 +307,7 @@ export default function ClientDashboard({ business }: { business: ApiBusiness })
       </div>
 
       {/* ── Bottom two-column ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }} className="stack-mobile">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16 }} className="stack-mobile">
 
         {/* Active services */}
         <div style={{ background: '#ffffff', border: '1.5px solid #e8e8e4', borderRadius: 12, padding: 22 }}>

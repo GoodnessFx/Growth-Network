@@ -107,8 +107,10 @@ function Navbar({ onLogin, onDashboard }: { onLogin: () => void; onDashboard: ()
   )
 }
 
-// ── Hero ───────────────────────────────────────────────────────────────────
+// ── Hero — Nigerian city video background ─────────────────────────────────
 function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () => void }) {
+  const WA_LINK = 'https://wa.me/2348072027335?text=Hi%20Goodness%2C%20I%27d%20like%20to%20get%20a%20quote%20for%20Growth%20Network'
+
   return (
     <section
       style={{
@@ -117,27 +119,38 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 'clamp(100px, 16vw, 160px) 0 clamp(60px, 8vw, 80px)',
-        background: '#ffffff',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Grid texture */}
-      <div style={{
-        position: 'absolute', inset: 0, opacity: 0.35,
-        backgroundImage: 'linear-gradient(#eaeae6 1px, transparent 1px), linear-gradient(90deg, #eaeae6 1px, transparent 1px)',
-        backgroundSize: '52px 52px',
-        maskImage: 'radial-gradient(ellipse 90% 70% at 50% 40%, black 0%, transparent 80%)',
-        WebkitMaskImage: 'radial-gradient(ellipse 90% 70% at 50% 40%, black 0%, transparent 80%)',
-        pointerEvents: 'none',
-      }} />
+      {/* ── Video background — Lagos skyline / Nigerian cityscape ── */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
+        }}
+        poster="https://images.unsplash.com/photo-1580117587260-3a0c9ccad4c7?w=1600&q=80&auto=format&fit=crop"
+      >
+        {/* Pexels free Lagos/Nigeria aerial footage */}
+        <source src="https://videos.pexels.com/video-files/3265287/3265287-uhd_2560_1440_25fps.mp4" type="video/mp4" />
+        {/* Fallback: still image of Lagos */}
+      </video>
 
-      <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 820 }}>
-        {/* Live badge */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#f2f1ee', border: '1px solid #eaeae6', borderRadius: 99, padding: '5px 14px', marginBottom: 32 }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a', flexShrink: 0 }} className="pulse" />
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#4a4a45' }}>
+      {/* Dark overlay — clean, not too heavy */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.7) 100%)', zIndex: 1 }} />
+
+      {/* Content */}
+      <div className="container" style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: 820, padding: 'clamp(100px, 14vw, 160px) 20px clamp(60px, 8vw, 80px)' }}>
+        {/* Badge */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 99, padding: '5px 16px', marginBottom: 32 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#86efac', flexShrink: 0 }} className="pulse" />
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
             Managing 13 businesses across Nigeria
           </span>
         </div>
@@ -146,58 +159,87 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
         <h1
           className="serif"
           style={{
-            fontSize: 'clamp(44px, 9vw, 96px)',
-            color: '#0f0f0e',
+            fontSize: 'clamp(42px, 9vw, 92px)',
+            color: '#ffffff',
             marginBottom: 20,
+            textShadow: '0 2px 20px rgba(0,0,0,0.3)',
           }}
         >
           Every business.
           <br />
-          <span className="serif-italic" style={{ color: '#1a5c42' }}>One screen.</span>
+          <span className="serif-italic" style={{ color: '#d1fae5' }}>One screen.</span>
         </h1>
 
-        {/* Subheadline */}
+        {/* Sub */}
         <p style={{
-          fontSize: 'clamp(15px, 2.5vw, 19px)',
-          color: '#4a4a45',
-          maxWidth: 520,
+          fontSize: 'clamp(15px, 2.5vw, 18px)',
+          color: 'rgba(255,255,255,0.82)',
+          maxWidth: 500,
           margin: '0 auto 36px',
-          lineHeight: 1.7,
+          lineHeight: 1.75,
           fontWeight: 400,
           padding: '0 8px',
         }}>
-          Growth Network is the operating system for growth agencies and operators
-          managing African businesses. CRM, social, pipeline, analytics — unified.
+          Growth Network is the operating system for agencies managing African businesses.
+          CRM, social, pipeline, analytics — unified.
         </p>
 
         {/* CTAs */}
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', padding: '0 8px' }}>
-          <button onClick={onDashboard} className="btn btn-primary btn-xl" style={{ gap: 10 }}>
+          <button
+            onClick={onDashboard}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 9,
+              background: '#ffffff', color: '#0f0f0e',
+              fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15,
+              padding: '14px 28px', borderRadius: 10, border: 'none', cursor: 'pointer',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 24px rgba(0,0,0,0.25)' }}
+          >
             Open dashboard <ArrowRight size={16} />
           </button>
-          <button onClick={onLogin} className="btn btn-ghost btn-lg">
-            Sign in as owner
-          </button>
+          <a
+            href={WA_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 9,
+              background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
+              color: '#ffffff',
+              fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15,
+              padding: '14px 28px', borderRadius: 10,
+              border: '1.5px solid rgba(255,255,255,0.3)', cursor: 'pointer',
+              textDecoration: 'none',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.2)')}
+            onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.12)')}
+          >
+            Get a quote
+          </a>
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(20px, 5vw, 48px)', marginTop: 56, flexWrap: 'wrap', padding: '0 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(24px, 6vw, 56px)', marginTop: 56, flexWrap: 'wrap', padding: '0 8px' }}>
           {[
-            { value: '13', label: 'Businesses managed' },
-            { value: '0', label: 'Revenue tracked (building)' },
-            { value: '1', label: 'Country active' },
+            { value: '13', label: 'Businesses' },
+            { value: '₦0→', label: 'Building from zero' },
+            { value: 'NG', label: 'Lagos, Nigeria' },
           ].map(s => (
             <div key={s.label} style={{ textAlign: 'center' }}>
-              <div className="serif" style={{ fontSize: 'clamp(24px, 4vw, 32px)', color: '#0f0f0e', lineHeight: 1 }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: '#888880', marginTop: 4, fontWeight: 500 }}>{s.label}</div>
+              <div className="serif" style={{ fontSize: 'clamp(26px, 4vw, 34px)', color: '#ffffff', lineHeight: 1, textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 5, fontWeight: 500 }}>{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Scroll indicator */}
-      <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, color: '#b8b8b0' }}>
-        <ChevronDown size={14} className="pulse" />
+      <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, color: 'rgba(255,255,255,0.5)' }}>
+        <ChevronDown size={16} className="pulse" />
       </div>
     </section>
   )
@@ -374,28 +416,33 @@ function AuthorSection() {
   return (
     <section id="about" style={{ background: '#ffffff', borderTop: '1px solid #eaeae6' }}>
       <div className="container section">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: 'clamp(32px, 6vw, 72px)', alignItems: 'center' }}>
-          {/* Image placeholder — replace src with your actual photo */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 'clamp(32px, 6vw, 72px)', alignItems: 'center' }}>
+          {/* Founder photo */}
           <div style={{ order: 0 }}>
-            <div
-              style={{
-                width: '100%',
-                maxWidth: 380,
-                aspectRatio: '4/5',
-                background: 'linear-gradient(135deg, #f2f1ee 0%, #e8ede9 100%)',
-                borderRadius: 20,
-                overflow: 'hidden',
-                position: 'relative',
-                border: '1.5px solid #eaeae6',
-              }}
-            >
-              {/* Replace this div with an <img> tag when you have your photo */}
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-                <div style={{ width: 64, height: 64, background: '#0f0f0e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: "'DM Serif Display', serif", color: '#fff', fontSize: 28 }}>G</span>
-                </div>
-                <p style={{ fontSize: 12, color: '#888880', textAlign: 'center', padding: '0 24px' }}>Add your photo here — builds trust with potential clients</p>
-              </div>
+            <div style={{ width: '100%', maxWidth: 360, borderRadius: 20, overflow: 'hidden', position: 'relative', border: '1.5px solid #eaeae6', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
+              <img
+                src="/goodness.jpg"
+                alt="Goodness Iyamah — Founder of Growth Network"
+                style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover', aspectRatio: '4/5' }}
+                onError={e => {
+                  /* Fallback if local image isn't found */
+                  const img = e.currentTarget
+                  img.style.display = 'none'
+                  const parent = img.parentElement
+                  if (parent) {
+                    parent.style.background = 'linear-gradient(135deg, #f2f1ee 0%, #e8ede9 100%)'
+                    parent.style.aspectRatio = '4/5'
+                    parent.style.display = 'flex'
+                    parent.style.alignItems = 'center'
+                    parent.style.justifyContent = 'center'
+                    parent.style.minHeight = '320px'
+                    const div = document.createElement('div')
+                    div.style.cssText = 'text-align:center; padding:24px;'
+                    div.innerHTML = '<div style="width:64px;height:64px;background:#0f0f0e;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-family:serif;color:#fff;font-size:28px;">G</div><p style="font-size:13px;color:#888880;">Goodness Iyamah</p>'
+                    parent.appendChild(div)
+                  }
+                }}
+              />
             </div>
           </div>
 
@@ -408,19 +455,18 @@ function AuthorSection() {
               <span className="serif-italic">runs agencies.</span>
             </h2>
             <p style={{ fontSize: 15, color: '#4a4a45', lineHeight: 1.75, marginBottom: 20 }}>
-              Growth Network was built by Goodness Iyamah — a growth operator who manages businesses across procurement, tech, food, fashion, and events.
-              Every feature in this product came from a real problem managing real clients.
+              Growth Network was built by Goodness Iyamah — a growth operator managing businesses across procurement, tech, food, fashion, and events in Nigeria.
+              Every feature came from a real problem managing real clients.
             </p>
             <p style={{ fontSize: 15, color: '#4a4a45', lineHeight: 1.75, marginBottom: 28 }}>
-              This is not a product built by engineers guessing what agencies need. It's built by the person using it, for people doing the same work.
+              Not built by engineers guessing what agencies need. Built by the person doing the work — for people doing the same.
             </p>
 
-            {/* Trust signals */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
               {[
                 '13 businesses actively managed on the platform',
-                'Built across procurement, tech, food, fashion & events',
-                'Based in Lagos — built for Africa, scales globally',
+                'Procurement, tech, food, fashion, events & more',
+                'Based in Lagos — built for Africa',
               ].map(t => (
                 <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
@@ -430,6 +476,23 @@ function AuthorSection() {
                 </div>
               ))}
             </div>
+
+            <a
+              href="https://wa.me/2348072027335?text=Hi%20Goodness%2C%20I%27d%20like%20to%20talk%20about%20Growth%20Network"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 9,
+                background: '#0f0f0e', color: '#fff',
+                fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14,
+                padding: '12px 22px', borderRadius: 9, textDecoration: 'none',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = '#2a2a28')}
+              onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = '#0f0f0e')}
+            >
+              Message Goodness on WhatsApp <ArrowRight size={14} />
+            </a>
           </div>
         </div>
       </div>
@@ -466,6 +529,8 @@ const PLANS = [
 ]
 
 function Pricing({ onCta }: { onCta: () => void }) {
+  const WA_QUOTE = 'https://wa.me/2348072027335?text=Hi%20Goodness%2C%20I%27d%20like%20to%20get%20a%20quote%20for%20Growth%20Network'
+
   return (
     <section id="pricing" style={{ background: '#f9f9f7', borderTop: '1px solid #eaeae6' }}>
       <div className="container section">
@@ -519,9 +584,15 @@ function Pricing({ onCta }: { onCta: () => void }) {
                   </li>
                 ))}
               </ul>
-              <button onClick={onCta} className="btn" style={{ background: plan.highlight ? '#fff' : '#0f0f0e', color: plan.highlight ? '#0f0f0e' : '#fff', borderRadius: 8, width: '100%', justifyContent: 'center', padding: '12px 24px', fontSize: 14, fontWeight: 600 }}>
+              <a
+                href={WA_QUOTE}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn"
+                style={{ background: plan.highlight ? '#fff' : '#0f0f0e', color: plan.highlight ? '#0f0f0e' : '#fff', borderRadius: 8, width: '100%', justifyContent: 'center', padding: '12px 24px', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+              >
                 {plan.cta}
-              </button>
+              </a>
             </div>
           ))}
         </div>

@@ -87,9 +87,6 @@ export default function OwnerOverview({ business, onNavigate }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>{v.label}</span>
           <span style={{ fontSize: 10, background: '#f0fdf4', color: '#16a34a', padding: '2px 8px', borderRadius: 99, fontWeight: 600 }}>● Live</span>
-          <span style={{ fontSize: 11, color: '#9ca3af', background: '#fffbeb', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: 4 }}>
-            Demo data — connect your accounts to see real numbers
-          </span>
         </div>
       </div>
 
@@ -101,7 +98,8 @@ export default function OwnerOverview({ business, onNavigate }: Props) {
         <StatCard label="Outstanding"             value="₦82k"  delta={undefined} icon={AlertCircle}  accent="#dc2626" onClick={() => onNavigate('owner-invoices')} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 16, marginBottom: 16 }}
+        className="stack-mobile">
         {/* Revenue chart */}
         <div style={{ background: '#fff', border: '1.5px solid #e8e8e4', borderRadius: 12, padding: 22 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -123,7 +121,7 @@ export default function OwnerOverview({ business, onNavigate }: Props) {
               )
             })}
           </div>
-          <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>Demo data — connect your payment account to see real revenue</p>
+          <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>Connect your payment account to see live revenue</p>
         </div>
 
         {/* Top action items */}
