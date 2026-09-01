@@ -123,24 +123,48 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
         overflow: 'hidden',
       }}
     >
-      {/* ── Video background — Lagos skyline / Nigerian cityscape ── */}
+      {/* ── Background: Video with reliable image fallback ── */}
+      {/*
+        Video sources (tried in order):
+        1. Pexels Lagos aerial footage (free, no attribution required for commercial)
+        2. Static high-quality Lagos/Nigeria photo as poster fallback
+        The poster image shows instantly while video loads, so the hero
+        always has a visual regardless of network speed.
+      */}
       <video
         autoPlay
         muted
         loop
         playsInline
+        crossOrigin="anonymous"
         style={{
           position: 'absolute', inset: 0,
           width: '100%', height: '100%',
           objectFit: 'cover',
           zIndex: 0,
         }}
-        poster="https://images.unsplash.com/photo-1580117587260-3a0c9ccad4c7?w=1600&q=80&auto=format&fit=crop"
+        poster="https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=1800&q=85&auto=format&fit=crop"
       >
-        {/* Pexels free Lagos/Nigeria aerial footage */}
-        <source src="https://videos.pexels.com/video-files/3265287/3265287-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-        {/* Fallback: still image of Lagos */}
+        <source
+          src="https://videos.pexels.com/video-files/3265287/3265287-hd_1920_1080_25fps.mp4"
+          type="video/mp4"
+        />
+        <source
+          src="https://videos.pexels.com/video-files/3265287/3265287-uhd_2560_1440_25fps.mp4"
+          type="video/mp4"
+        />
+        {/* If video fails entirely, the poster image remains visible */}
       </video>
+
+      {/* Invisible img tag forces the poster to load as a true fallback */}
+      <div
+        style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          backgroundImage: 'url(https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=1800&q=85&auto=format&fit=crop)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
 
       {/* Dark overlay — clean, not too heavy */}
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.7) 100%)', zIndex: 1 }} />
@@ -647,6 +671,7 @@ function FAQ() {
 
 // ── CTA Banner ─────────────────────────────────────────────────────────────
 function CTABanner({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () => void }) {
+  const WA = 'https://wa.me/2348072027335?text=Hi%20Goodness%2C%20I%27d%20like%20to%20get%20started%20with%20Growth%20Network'
   return (
     <section style={{ background: '#0f0f0e', padding: 'clamp(60px, 8vw, 96px) 0', textAlign: 'center' }}>
       <div className="container" style={{ maxWidth: 600 }}>
@@ -662,9 +687,15 @@ function CTABanner({ onDashboard, onLogin }: { onDashboard: () => void; onLogin:
           <button onClick={onDashboard} className="btn btn-lg" style={{ background: '#fff', color: '#0f0f0e', gap: 8 }}>
             Open dashboard <ArrowRight size={15} />
           </button>
-          <button onClick={onLogin} className="btn btn-ghost btn-lg" style={{ color: '#6a6a62', borderColor: '#2a2a28' }}>
-            Sign in
-          </button>
+          <a
+            href={WA}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-lg"
+            style={{ background: '#25D366', color: '#fff', gap: 8, textDecoration: 'none' }}
+          >
+            WhatsApp us
+          </a>
         </div>
       </div>
     </section>
@@ -687,12 +718,20 @@ function Footer() {
             © 2026 Growth Network · Lagos, Nigeria
           </div>
           <div style={{ display: 'flex', gap: 'clamp(14px, 3vw, 24px)', flexWrap: 'wrap' }}>
-            {['Privacy', 'Terms', 'Contact'].map(l => (
+            {['Privacy', 'Terms'].map(l => (
               <a key={l} href="#" style={{ fontSize: 13, color: '#4a4a45', transition: 'color 0.15s' }}
                 onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#fff')}
                 onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#4a4a45')}
               >{l}</a>
             ))}
+            <a
+              href="https://wa.me/2348072027335?text=Hi%20Goodness%2C%20I%27d%20like%20to%20get%20in%20touch%20about%20Growth%20Network"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 13, color: '#4a4a45', transition: 'color 0.15s' }}
+              onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#fff')}
+              onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#4a4a45')}
+            >Contact</a>
           </div>
         </div>
       </div>
