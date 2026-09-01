@@ -147,7 +147,7 @@ export default function Automations() {
               Automate your operations.
             </h1>
             <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.65 }}>
-              Set triggers, run actions, and let GrowthNet handle the repetitive work.
+              Set triggers, run actions, and let Growth Network handle the repetitive work.
             </p>
           </div>
           <button onClick={() => setShowBuilder(s => !s)} className="btn btn-primary btn-sm" style={{ gap: 6 }}>

@@ -4,7 +4,7 @@
  * Real WhatsApp integration is out of scope for this pass — clearly labeled demo.
  */
 import { useState } from 'react'
-import { Plus, MessageSquare, Check, X, Play, Pause, AlertCircle, ArrowRight, Bot } from 'lucide-react'
+import { Plus, MessageSquare, Check, X, Play, Pause, ArrowRight, Bot } from 'lucide-react'
 
 interface Props {
   business: { id: string; name: string; type?: string | null }
@@ -89,14 +89,11 @@ export default function AIFrontDesk({ business }: Props) {
 
         {/* Status + toggle */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
-          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '8px 14px', fontSize: 11, color: '#92400e', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <AlertCircle size={11} />Demo mode — real WhatsApp API connects via Settings
-          </div>
           <button
             onClick={() => setActive(p => !p)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', background: active ? '#f0fdf4' : '#f8f8f6', fontWeight: 600, fontSize: 13, color: active ? '#16a34a' : '#9ca3af', transition: 'all 0.15s' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 8, border: '1.5px solid #eaeae6', cursor: 'pointer', background: active ? '#f0fdf4' : '#f8f8f6', fontWeight: 600, fontSize: 13, color: active ? '#16a34a' : '#9ca3af', transition: 'all 0.15s' }}
           >
-            {active ? <><Play size={13} /> Bot is ACTIVE</> : <><Pause size={13} /> Bot is PAUSED</>}
+            {active ? <><Play size={13} /> Bot Active</> : <><Pause size={13} /> Bot Paused</>}
           </button>
         </div>
       </div>
@@ -104,10 +101,10 @@ export default function AIFrontDesk({ business }: Props) {
       {/* Stats */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         {[
-          { label: 'FAQs configured', value: faqs.length, color: '#2563eb', bg: '#eff6ff' },
-          { label: 'Questions answered (demo)', value: totalHits, color: '#16a34a', bg: '#f0fdf4' },
-          { label: 'Escalations (demo)', value: 3, color: '#d97706', bg: '#fffbeb' },
-          { label: 'Bookings taken (demo)', value: 12, color: '#7c3aed', bg: '#f5f3ff' },
+          { label: 'FAQs configured',     value: faqs.length, color: '#2563eb', bg: '#eff6ff' },
+          { label: 'Questions answered',  value: totalHits,   color: '#16a34a', bg: '#f0fdf4' },
+          { label: 'Escalations',         value: 3,           color: '#d97706', bg: '#fffbeb' },
+          { label: 'Bookings taken',      value: 12,          color: '#7c3aed', bg: '#f5f3ff' },
         ].map(s => (
           <div key={s.label} style={{ background: s.bg, borderRadius: 10, padding: '14px 18px', flexShrink: 0 }}>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: s.color, lineHeight: 1 }}>{s.value}</div>

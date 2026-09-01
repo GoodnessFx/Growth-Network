@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff, ArrowLeft, Loader2, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeft, Loader2 } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
 
 interface AuthProps {
@@ -8,51 +8,28 @@ interface AuthProps {
 
 export default function Auth({ onBack }: AuthProps) {
   const { signInWithGoogle, signInDummy } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [showPass, setShowPass] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [loading, setLoading]       = useState(false)
+  const [error, setError]           = useState('')
+  const [showPass, setShowPass]     = useState(false)
+  const [email, setEmail]           = useState('')
+  const [password, setPassword]     = useState('')
+  const [mode, setMode]             = useState<'login' | 'signup'>('login')
 
   const handle = async (fn: () => Promise<void>) => {
     setError('')
     setLoading(true)
     try { await fn() }
-    catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong.') }
+    catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.') }
     finally { setLoading(false) }
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        background: '#fff',
-      }}
-      className="auth-layout"
-    >
-      {/* ── Left: decorative panel ── */}
-      <div
-        className="hide-mobile"
-        style={{
-          background: '#0f0f0e',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '40px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Grid texture */}
-        <div
-          style={{
-            position: 'absolute', inset: 0, opacity: 0.06,
-            backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
+    <div style={{ minHeight: '100svh', display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#fff' }} className="auth-layout">
+
+      {/* ── Left decorative panel ── */}
+      <div className="hide-mobile" style={{ background: '#0f0f0e', display: 'flex', flexDirection: 'column', padding: 40, position: 'relative', overflow: 'hidden' }}>
+        {/* Subtle texture */}
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '44px 44px' }} />
 
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative', zIndex: 1 }}>
@@ -60,122 +37,95 @@ export default function Auth({ onBack }: AuthProps) {
             <span style={{ fontFamily: "'DM Serif Display', serif", color: '#0f0f0e', fontSize: 14 }}>G</span>
           </div>
           <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, color: '#fff', letterSpacing: -0.3 }}>
-            GrowthNet
+            Growth Network
           </span>
         </div>
 
-        {/* Center content */}
+        {/* Main copy */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
-          <h2
-            className="serif"
-            style={{ fontSize: 52, color: '#ffffff', marginBottom: 20, lineHeight: 0.95 }}
-          >
+          <h2 className="serif" style={{ fontSize: 'clamp(32px, 4vw, 52px)', color: '#fff', marginBottom: 18, lineHeight: 0.98 }}>
             Scale every<br />
-            <span className="serif-italic" style={{ color: '#4ade80' }}>business.</span>
+            <span className="serif-italic" style={{ color: '#a3a3a3' }}>business.</span>
           </h2>
-          <p style={{ fontSize: 15, color: '#6a6a62', lineHeight: 1.7, maxWidth: 360 }}>
-            The operator platform for growth agencies managing African SMEs. One screen, every metric.
+          <p style={{ fontSize: 15, color: '#6a6a62', lineHeight: 1.75, maxWidth: 320 }}>
+            The operating system for growth agencies managing African businesses.
+            One screen, every metric.
           </p>
 
-          {/* Proof stats */}
-          <div style={{ display: 'flex', gap: 32, marginTop: 48 }}>
+          {/* Proof numbers */}
+          <div style={{ display: 'flex', gap: 28, marginTop: 44, flexWrap: 'wrap' }}>
             {[
-              { v: '1,240+', l: 'Businesses' },
-              { v: '14', l: 'Countries' },
-              { v: '34%', l: 'Avg growth' },
+              { v: '13', l: 'Businesses' },
+              { v: 'NG', l: 'Nigeria first' },
+              { v: '0→', l: 'Building live' },
             ].map(s => (
               <div key={s.l}>
-                <div className="serif" style={{ fontSize: 28, color: '#fff', lineHeight: 1 }}>{s.v}</div>
-                <div style={{ fontSize: 11, color: '#4a4a45', marginTop: 3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.l}</div>
+                <div className="serif" style={{ fontSize: 26, color: '#fff', lineHeight: 1 }}>{s.v}</div>
+                <div style={{ fontSize: 10, color: '#4a4a45', marginTop: 4, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.l}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Bottom quote */}
-        <div style={{ position: 'relative', zIndex: 1, borderTop: '1px solid #1a1a18', paddingTop: 24 }}>
-          <p style={{ fontSize: 13, color: '#4a4a45', lineHeight: 1.6, fontStyle: 'italic' }}>
-            "GrowthNet cut our reporting time from 3 hours a week to 15 minutes."
+        {/* Bottom testimonial */}
+        <div style={{ position: 'relative', zIndex: 1, borderTop: '1px solid #1a1a18', paddingTop: 22 }}>
+          <p style={{ fontSize: 13, color: '#4a4a45', lineHeight: 1.65, fontStyle: 'italic' }}>
+            "Growth Network brought all our client reporting into one place. We spend less time on admin and more time on actual work."
           </p>
-          <p style={{ fontSize: 12, color: '#2a2a28', marginTop: 6, fontWeight: 600 }}>— Agency operator, Lagos</p>
+          <p style={{ fontSize: 12, color: '#2e2e2c', marginTop: 8, fontWeight: 600 }}>— Goodness Iyamah, Founder</p>
         </div>
       </div>
 
-      {/* ── Right: form panel ── */}
+      {/* ── Right form panel ── */}
       <div
         className="auth-panel"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '48px 40px',
-          position: 'relative',
-          background: '#fff',
-        }}
+        style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 'clamp(72px, 8vw, 56px) clamp(20px, 5vw, 48px) clamp(32px, 5vw, 48px)', position: 'relative', background: '#fff', overflowY: 'auto' }}
       >
-        {/* Back */}
+        {/* Back button */}
         <button
           onClick={onBack}
-          style={{
-            position: 'absolute', top: 24, left: 24,
-            display: 'flex', alignItems: 'center', gap: 6,
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: '#8a8a82', fontSize: 13, fontWeight: 500, padding: '6px 8px',
-            borderRadius: 6, transition: 'color 0.15s',
-          }}
+          style={{ position: 'absolute', top: 24, left: 20, display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#888880', fontSize: 13, fontWeight: 500, padding: '6px 8px', borderRadius: 6, transition: 'color 0.15s', minHeight: 44 }}
           onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = '#0f0f0e')}
-          onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = '#8a8a82')}
+          onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = '#888880')}
         >
           <ArrowLeft size={14} /> Back
         </button>
 
         {/* Mobile logo */}
-        <div className="show-mobile" style={{ display: 'none', alignItems: 'center', gap: 9, marginBottom: 32 }}>
+        <div className="show-mobile" style={{ display: 'none', alignItems: 'center', gap: 9, marginBottom: 28 }}>
           <div style={{ width: 28, height: 28, background: '#0f0f0e', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontFamily: "'DM Serif Display', serif", color: '#fff', fontSize: 13 }}>G</span>
           </div>
-          <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, color: '#0f0f0e', letterSpacing: -0.3 }}>GrowthNet</span>
+          <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, color: '#0f0f0e', letterSpacing: -0.3 }}>Growth Network</span>
         </div>
 
         <div style={{ width: '100%', maxWidth: 360 }}>
           {/* Heading */}
-          <div style={{ marginBottom: 32 }}>
-            <h1 className="serif" style={{ fontSize: 36, color: '#0f0f0e', marginBottom: 8 }}>
+          <div style={{ marginBottom: 28 }}>
+            <h1 className="serif" style={{ fontSize: 'clamp(28px, 5vw, 36px)', color: '#0f0f0e', marginBottom: 6 }}>
               {mode === 'login' ? 'Welcome back.' : 'Get started.'}
             </h1>
-            <p style={{ fontSize: 14, color: '#8a8a82' }}>
-              {mode === 'login' ? 'Sign in to your operator dashboard.' : 'Create your free account.'}
+            <p style={{ fontSize: 14, color: '#888880', lineHeight: 1.5 }}>
+              {mode === 'login'
+                ? 'Sign in to your Growth Network dashboard.'
+                : 'Create your Growth Network account.'}
             </p>
           </div>
 
           {/* Error */}
           {error && (
-            <div
-              style={{
-                background: '#fef2f2', border: '1px solid #fecaca',
-                borderRadius: 8, padding: '11px 14px',
-                fontSize: 13, color: '#dc2626', marginBottom: 20, lineHeight: 1.5,
-              }}
-            >
+            <div style={{ background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: 8, padding: '11px 14px', fontSize: 13, color: '#dc2626', marginBottom: 20, lineHeight: 1.5 }}>
               {error}
             </div>
           )}
 
-          {/* Google */}
+          {/* Google sign-in */}
           <button
             onClick={() => handle(signInWithGoogle)}
             disabled={loading}
-            style={{
-              width: '100%', height: 44,
-              background: '#fff', border: '1.5px solid #e8e8e4',
-              borderRadius: 8, display: 'flex', alignItems: 'center',
-              justifyContent: 'space-between', padding: '0 16px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: 10, transition: 'border-color 0.15s, box-shadow 0.15s',
-            }}
-            onMouseEnter={e => { if (!loading) { (e.currentTarget as HTMLElement).style.borderColor = '#d0d0ca'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)' } }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#e8e8e4'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
+            style={{ width: '100%', height: 46, background: '#fff', border: '1.5px solid #eaeae6', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: 16, transition: 'border-color 0.15s, box-shadow 0.15s' }}
+            onMouseEnter={e => { if (!loading) { (e.currentTarget as HTMLElement).style.borderColor = '#d4d4ce'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)' } }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#eaeae6'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <svg width="16" height="16" viewBox="0 0 48 48">
@@ -186,73 +136,48 @@ export default function Auth({ onBack }: AuthProps) {
               </svg>
               <span style={{ fontSize: 14, fontWeight: 500, color: '#0f0f0e' }}>Continue with Google</span>
             </div>
-            <span
-              style={{
-                fontSize: 10, fontWeight: 700, color: '#2d6a4f',
-                background: '#e8f4ee', padding: '2px 7px', borderRadius: 4,
-                letterSpacing: 0.3, textTransform: 'uppercase',
-              }}
-            >
-              Recommended
-            </span>
           </button>
 
           {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
-            <div style={{ flex: 1, height: 1, background: '#e8e8e4' }} />
-            <span style={{ fontSize: 12, color: '#b4b4ad', fontWeight: 500 }}>or</span>
-            <div style={{ flex: 1, height: 1, background: '#e8e8e4' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '0 0 16px' }}>
+            <div style={{ flex: 1, height: 1, background: '#eaeae6' }} />
+            <span style={{ fontSize: 12, color: '#b8b8b0', fontWeight: 500 }}>or continue with email</span>
+            <div style={{ flex: 1, height: 1, background: '#eaeae6' }} />
           </div>
 
           {/* Email */}
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#4a4a45', marginBottom: 6 }}>
-              Email <span style={{ color: '#dc2626' }}>*</span>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#888880', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+              Email
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              className="gn-input"
-              disabled={loading}
-              style={{ background: '#f8f8f6', border: '1.5px solid #e8e8e4' }}
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="you@company.com" className="gn-input" disabled={loading}
             />
           </div>
 
           {/* Password */}
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 22 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: '#4a4a45' }}>
-                Password <span style={{ color: '#dc2626' }}>*</span>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#888880', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Password
               </label>
               {mode === 'login' && (
-                <button
-                  type="button"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#2d6a4f', fontWeight: 600, padding: 0 }}
-                >
-                  Forgot?
+                <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#4a4a45', fontWeight: 600, padding: 0, textDecoration: 'underline', textUnderlineOffset: 2 }}>
+                  Forgot password?
                 </button>
               )}
             </div>
             <div style={{ position: 'relative' }}>
               <input
-                type={showPass ? 'text' : 'password'}
-                value={password}
+                type={showPass ? 'text' : 'password'} value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Min. 8 characters"
-                className="gn-input"
-                disabled={loading}
-                style={{ paddingRight: 44, background: '#f8f8f6', border: '1.5px solid #e8e8e4' }}
+                placeholder="Minimum 8 characters" className="gn-input" disabled={loading}
+                style={{ paddingRight: 44 }}
               />
               <button
-                type="button"
-                onClick={() => setShowPass(v => !v)}
-                style={{
-                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#8a8a82', padding: 4, display: 'flex', alignItems: 'center',
-                }}
+                type="button" onClick={() => setShowPass(v => !v)}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888880', padding: 4, display: 'flex', alignItems: 'center', minHeight: 'auto' }}
               >
                 {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -264,42 +189,26 @@ export default function Auth({ onBack }: AuthProps) {
             onClick={() => handle(signInDummy)}
             disabled={loading}
             className="btn btn-primary btn-full"
-            style={{ height: 44, borderRadius: 8, marginBottom: 8, justifyContent: 'center', fontSize: 14 }}
+            style={{ height: 46, borderRadius: 8, marginBottom: 20, justifyContent: 'center', fontSize: 14 }}
           >
-            {loading ? <><Loader2 size={14} className="spin" /> Please wait…</> : mode === 'login' ? 'Sign in' : 'Create account'}
+            {loading
+              ? <><Loader2 size={14} className="spin" /> Please wait</>
+              : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>
 
-          {/* Demo shortcut */}
-          <button
-            onClick={() => handle(signInDummy)}
-            disabled={loading}
-            className="btn btn-ghost btn-full"
-            style={{ height: 40, borderRadius: 8, marginBottom: 24, justifyContent: 'center', fontSize: 13 }}
-          >
-            Continue as demo user
-          </button>
-
-          {/* Toggle mode */}
-          <p style={{ textAlign: 'center', fontSize: 13, color: '#8a8a82' }}>
-            {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+          {/* Toggle login/signup */}
+          <p style={{ textAlign: 'center', fontSize: 13, color: '#888880' }}>
+            {mode === 'login' ? "New to Growth Network? " : 'Already have an account? '}
             <button
               type="button"
               onClick={() => setMode(m => m === 'login' ? 'signup' : 'login')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2d6a4f', fontWeight: 600, fontSize: 13, padding: 0 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0f0f0e', fontWeight: 600, fontSize: 13, padding: 0, textDecoration: 'underline', textUnderlineOffset: 2 }}
             >
-              {mode === 'login' ? 'Create one' : 'Sign in'}
+              {mode === 'login' ? 'Create an account' : 'Sign in'}
             </button>
           </p>
         </div>
       </div>
-
-      {/* Mobile: collapse to single column */}
-      <style>{`
-        @media (max-width: 768px) {
-          .auth-layout { grid-template-columns: 1fr !important; }
-          .auth-panel { padding: 80px 24px 40px !important; }
-        }
-      `}</style>
     </div>
   )
 }

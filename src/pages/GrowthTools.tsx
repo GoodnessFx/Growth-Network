@@ -82,7 +82,7 @@ function InvoiceTool() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div className="field-grid">
           <Field label="Your business">
-            <input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="GrowthNet Agency" className="gn-input" />
+            <input value={bizName} onChange={e => setBizName(e.target.value)} placeholder="Growth Network Agency" className="gn-input" />
           </Field>
           <Field label="Currency">
             <select value={currency} onChange={e => setCurrency(e.target.value)} className="gn-input">

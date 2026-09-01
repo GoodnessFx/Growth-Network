@@ -5,8 +5,8 @@ import type { AuthUser } from "./api"
 // Dummy user for local development / demo access
 const DUMMY_USER: AuthUser = {
   id: "dummy-123",
-  email: "demo@growthnetwork.io",
-  name: "Demo User",
+  email: "admin@growthnetwork.io",
+  name: "Goodness Iyamah",
   role: "owner"
 }
 

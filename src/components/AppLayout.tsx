@@ -49,7 +49,7 @@ const OPS_NAV: NavItem[] = [
 const AGENCY_NAV: NavItem[] = [
   { id: 'churn-radar',    label: 'Churn Radar',      icon: TrendingDown,  section: 'agency' },
   { id: 'social-publish', label: 'Social Publisher', icon: Share2,        section: 'agency' },
-  { id: 'ask',            label: 'Ask GrowthNet',    icon: MessageSquare, section: 'agency' },
+  { id: 'ask',            label: 'Ask Growth Network', icon: MessageSquare,  section: 'agency' },
   { id: 'prospecting',    label: 'Prospecting',      icon: Search,        section: 'agency' },
   { id: 'proposals',      label: 'Proposals',        icon: FileSignature, section: 'agency' },
   { id: 'referrals',      label: 'Referral Engine',  icon: Share2,        section: 'agency' },
@@ -219,7 +219,7 @@ export default function AppLayout({ page, operatorTab, setOperatorTab, setPage, 
         <div style={{ width: 26, height: 26, background: '#0f0f0e', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <span style={{ fontFamily: "'DM Serif Display', serif", color: '#fff', fontSize: 12 }}>G</span>
         </div>
-        {!collapsed && <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 14, color: '#0f0f0e', letterSpacing: -0.3, whiteSpace: 'nowrap' }}>GrowthNet</span>}
+        {!collapsed && <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 14, color: '#0f0f0e', letterSpacing: -0.3, whiteSpace: 'nowrap' }}>Growth Network</span>}
       </div>
 
       {/* Nav scroll area */}
@@ -350,9 +350,7 @@ export default function AppLayout({ page, operatorTab, setOperatorTab, setPage, 
         </div>
 
         <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', background: '#f8f8f6', paddingBottom: isMobile ? 64 : 0 }}>
-          <div className="container page-pad" style={{ minHeight: '100%' }}>
-            {children}
-          </div>
+          {children}
         </main>
       </div>
 
