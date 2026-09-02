@@ -124,49 +124,57 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
       }}
     >
       {/*
-        Hero background: Nigerian building / Lagos cityscape video
-        Source: Mixkit free stock footage (no CORS restrictions, no attribution required)
-        Fallback: Lagos aerial photo via Unsplash if video cannot load
+        BACKGROUND LAYERS (bottom to top):
+        1. Animated gradient — always visible, looks great, zero dependencies
+        2. Local video /public/hero.mp4 — drop any .mp4 file there and it plays
+        3. Dark overlay for text legibility
+        4. Content
+
+        To add your own Nigerian building video:
+        - Download any .mp4 (Lagos aerial, Nigerian skyline, etc.)
+        - Save it as: public/hero.mp4
+        - It will play automatically on top of the gradient
       */}
 
-      {/* CSS image fallback — shows immediately while video loads */}
+      {/*
+        BACKGROUND:
+        - Nigerian/Lagos building photo via Unsplash (free, no CORS, loads instantly)
+        - Local video /public/hero.mp4 overlays it if you drop a video there
+        - Dark gradient overlay for text legibility
+      */}
+
+      {/* Lagos / Nigerian building photo — always loads, zero dependencies */}
       <div
         style={{
           position: 'absolute', inset: 0, zIndex: 0,
-          backgroundImage: `url('https://images.unsplash.com/photo-1618023913578-b5fb12c7b2e3?w=1800&q=85&auto=format&fit=crop')`,
+          backgroundImage: `url('https://images.unsplash.com/photo-1551038247-3d935db3a543?w=1920&q=90&auto=format&fit=crop')`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center top',
+          backgroundPosition: 'center',
         }}
       />
 
-      {/* Actual video — Nigerian/Lagos building exterior footage */}
+      {/* Optional: drop public/hero.mp4 to use video instead of photo */}
       <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        style={{
-          position: 'absolute', inset: 0,
-          width: '100%', height: '100%',
-          objectFit: 'cover',
-          zIndex: 1,
-        }}
+        autoPlay muted loop playsInline
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }}
       >
-        {/* Mixkit — Lagos city aerial, royalty-free, no CORS block */}
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-aerial-shot-of-a-city-on-the-coast-1830-large.mp4" type="video/mp4" />
-        {/* Second source: another Mixkit African city aerial */}
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-city-traffic-on-a-rainy-night-549-large.mp4" type="video/mp4" />
+        <source src="/hero.mp4" type="video/mp4" />
       </video>
 
-      {/* Dark overlay sits above video, below content */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.7) 100%)', zIndex: 2 }} />
+      {/* Dark gradient overlay */}
+      <div
+        style={{
+          position: 'absolute', inset: 0, zIndex: 2,
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.38) 50%, rgba(0,0,0,0.62) 100%)',
+        }}
+      />
 
-      {/* Content */}
+      {/* Layer 4: Content */}
       <div className="container" style={{ position: 'relative', zIndex: 3, textAlign: 'center', maxWidth: 820, padding: 'clamp(100px, 14vw, 160px) 20px clamp(60px, 8vw, 80px)' }}>
         {/* Badge */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 99, padding: '5px 16px', marginBottom: 32 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 99, padding: '5px 16px', marginBottom: 32 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#86efac', flexShrink: 0 }} className="pulse" />
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.88)' }}>
             Managing 13 businesses across Nigeria
           </span>
         </div>
@@ -178,7 +186,7 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
             fontSize: 'clamp(42px, 9vw, 92px)',
             color: '#ffffff',
             marginBottom: 20,
-            textShadow: '0 2px 20px rgba(0,0,0,0.3)',
+            textShadow: '0 2px 24px rgba(0,0,0,0.4)',
           }}
         >
           Every business.
@@ -189,7 +197,7 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
         {/* Sub */}
         <p style={{
           fontSize: 'clamp(15px, 2.5vw, 18px)',
-          color: 'rgba(255,255,255,0.82)',
+          color: 'rgba(255,255,255,0.78)',
           maxWidth: 500,
           margin: '0 auto 36px',
           lineHeight: 1.75,
@@ -209,11 +217,11 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
               background: '#ffffff', color: '#0f0f0e',
               fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15,
               padding: '14px 28px', borderRadius: 10, border: 'none', cursor: 'pointer',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
               transition: 'transform 0.15s, box-shadow 0.15s',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 24px rgba(0,0,0,0.25)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(0,0,0,0.35)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 24px rgba(0,0,0,0.3)' }}
           >
             Open dashboard <ArrowRight size={16} />
           </button>
@@ -223,16 +231,17 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
             rel="noopener noreferrer"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 9,
-              background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(8px)',
               color: '#ffffff',
               fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15,
               padding: '14px 28px', borderRadius: 10,
-              border: '1.5px solid rgba(255,255,255,0.3)', cursor: 'pointer',
-              textDecoration: 'none',
+              border: '1.5px solid rgba(255,255,255,0.28)',
+              cursor: 'pointer', textDecoration: 'none',
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.2)')}
-            onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.12)')}
+            onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.18)')}
+            onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.1)')}
           >
             Get a quote
           </a>
@@ -242,19 +251,19 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'clamp(24px, 6vw, 56px)', marginTop: 56, flexWrap: 'wrap', padding: '0 8px' }}>
           {[
             { value: '13', label: 'Businesses' },
-            { value: '₦0→', label: 'Building from zero' },
-            { value: 'NG', label: 'Lagos, Nigeria' },
+            { value: 'Lagos', label: 'Nigeria' },
+            { value: '2026', label: 'Building now' },
           ].map(s => (
             <div key={s.label} style={{ textAlign: 'center' }}>
-              <div className="serif" style={{ fontSize: 'clamp(26px, 4vw, 34px)', color: '#ffffff', lineHeight: 1, textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 5, fontWeight: 500 }}>{s.label}</div>
+              <div className="serif" style={{ fontSize: 'clamp(24px, 4vw, 32px)', color: '#ffffff', lineHeight: 1, textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 5, fontWeight: 500 }}>{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Scroll indicator */}
-      <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, color: 'rgba(255,255,255,0.5)' }}>
+      <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, color: 'rgba(255,255,255,0.4)' }}>
         <ChevronDown size={16} className="pulse" />
       </div>
     </section>
