@@ -123,54 +123,46 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
         overflow: 'hidden',
       }}
     >
-      {/* ── Background: Video with reliable image fallback ── */}
       {/*
-        Video sources (tried in order):
-        1. Pexels Lagos aerial footage (free, no attribution required for commercial)
-        2. Static high-quality Lagos/Nigeria photo as poster fallback
-        The poster image shows instantly while video loads, so the hero
-        always has a visual regardless of network speed.
+        Hero background: Nigerian building / Lagos cityscape video
+        Source: Mixkit free stock footage (no CORS restrictions, no attribution required)
+        Fallback: Lagos aerial photo via Unsplash if video cannot load
       */}
+
+      {/* CSS image fallback — shows immediately while video loads */}
+      <div
+        style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          backgroundImage: `url('https://images.unsplash.com/photo-1618023913578-b5fb12c7b2e3?w=1800&q=85&auto=format&fit=crop')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+        }}
+      />
+
+      {/* Actual video — Nigerian/Lagos building exterior footage */}
       <video
         autoPlay
         muted
         loop
         playsInline
-        crossOrigin="anonymous"
         style={{
           position: 'absolute', inset: 0,
           width: '100%', height: '100%',
           objectFit: 'cover',
-          zIndex: 0,
+          zIndex: 1,
         }}
-        poster="https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=1800&q=85&auto=format&fit=crop"
       >
-        <source
-          src="https://videos.pexels.com/video-files/3265287/3265287-hd_1920_1080_25fps.mp4"
-          type="video/mp4"
-        />
-        <source
-          src="https://videos.pexels.com/video-files/3265287/3265287-uhd_2560_1440_25fps.mp4"
-          type="video/mp4"
-        />
-        {/* If video fails entirely, the poster image remains visible */}
+        {/* Mixkit — Lagos city aerial, royalty-free, no CORS block */}
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-aerial-shot-of-a-city-on-the-coast-1830-large.mp4" type="video/mp4" />
+        {/* Second source: another Mixkit African city aerial */}
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-city-traffic-on-a-rainy-night-549-large.mp4" type="video/mp4" />
       </video>
 
-      {/* Invisible img tag forces the poster to load as a true fallback */}
-      <div
-        style={{
-          position: 'absolute', inset: 0, zIndex: 0,
-          backgroundImage: 'url(https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=1800&q=85&auto=format&fit=crop)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      />
-
-      {/* Dark overlay — clean, not too heavy */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.7) 100%)', zIndex: 1 }} />
+      {/* Dark overlay sits above video, below content */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.7) 100%)', zIndex: 2 }} />
 
       {/* Content */}
-      <div className="container" style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: 820, padding: 'clamp(100px, 14vw, 160px) 20px clamp(60px, 8vw, 80px)' }}>
+      <div className="container" style={{ position: 'relative', zIndex: 3, textAlign: 'center', maxWidth: 820, padding: 'clamp(100px, 14vw, 160px) 20px clamp(60px, 8vw, 80px)' }}>
         {/* Badge */}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 99, padding: '5px 16px', marginBottom: 32 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#86efac', flexShrink: 0 }} className="pulse" />
@@ -205,7 +197,7 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
           padding: '0 8px',
         }}>
           Growth Network is the operating system for agencies managing African businesses.
-          CRM, social, pipeline, analytics — unified.
+          CRM, social, pipeline, analytics and automations. All in one place.
         </p>
 
         {/* CTAs */}
@@ -282,7 +274,7 @@ function OurBusinesses() {
             <span className="serif-italic">growing right now.</span>
           </h2>
           <p style={{ fontSize: 15, color: '#4a4a45', lineHeight: 1.7, maxWidth: 480 }}>
-            Every number starts at zero. These are the real businesses we're building with — from day one.
+            Every number starts at zero. These are the real businesses we're building with, from day one.
           </p>
         </div>
 
@@ -320,7 +312,7 @@ function OurBusinesses() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 13, color: '#888880', marginTop: 32 }}>
-          All metrics start at zero — we build in public. Numbers update as businesses grow.
+          All metrics start at zero. We build in public. Numbers update as businesses grow.
         </p>
       </div>
     </section>
@@ -329,9 +321,9 @@ function OurBusinesses() {
 
 // ── Features ───────────────────────────────────────────────────────────────
 const FEATURES = [
-  { icon: BarChart3, title: 'Portfolio Analytics',    desc: 'Revenue trends, social growth, campaign performance across every business — one view.' },
+  { icon: BarChart3, title: 'Portfolio Analytics',    desc: 'Revenue trends, social growth, campaign performance across every business. One view.' },
   { icon: Users,     title: 'CRM & Pipeline',          desc: 'Contact management and a sales kanban that reflects how African B2B deals actually close.' },
-  { icon: Calendar,  title: 'Content Calendar',         desc: 'Plan and schedule content across Instagram, TikTok, Facebook, X, LinkedIn — AI suggestions per business.' },
+  { icon: Calendar,  title: 'Content Calendar',         desc: 'Plan and schedule content across Instagram, TikTok, Facebook, X and LinkedIn. AI suggestions per business.' },
   { icon: Zap,       title: 'Tools & Automations',      desc: 'Auto-reports, lead routing, follow-up sequences, webhook triggers. Build once, runs forever.' },
   { icon: TrendingUp,title: 'Ad Campaigns',             desc: 'Manage ad spend and track ROAS across all platforms and all clients from one table.' },
   { icon: Shield,    title: 'Role-Based Access',        desc: 'Clients see only their data. You see everything. Clean permissions, zero confusion.' },
@@ -351,7 +343,7 @@ function Features() {
             <span className="serif-italic">portfolio needs.</span>
           </h2>
           <p style={{ fontSize: 15, color: '#4a4a45', lineHeight: 1.7 }}>
-            Built for operators managing multiple businesses — every tool connects to every other.
+            Built for operators managing multiple businesses. Every tool connects to every other.
           </p>
         </div>
 
@@ -445,27 +437,9 @@ function AuthorSection() {
           <div style={{ order: 0 }}>
             <div style={{ width: '100%', maxWidth: 360, borderRadius: 20, overflow: 'hidden', position: 'relative', border: '1.5px solid #eaeae6', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
               <img
-                src="/goodness.jpg"
-                alt="Goodness Iyamah — Founder of Growth Network"
-                style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover', aspectRatio: '4/5' }}
-                onError={e => {
-                  /* Fallback if local image isn't found */
-                  const img = e.currentTarget
-                  img.style.display = 'none'
-                  const parent = img.parentElement
-                  if (parent) {
-                    parent.style.background = 'linear-gradient(135deg, #f2f1ee 0%, #e8ede9 100%)'
-                    parent.style.aspectRatio = '4/5'
-                    parent.style.display = 'flex'
-                    parent.style.alignItems = 'center'
-                    parent.style.justifyContent = 'center'
-                    parent.style.minHeight = '320px'
-                    const div = document.createElement('div')
-                    div.style.cssText = 'text-align:center; padding:24px;'
-                    div.innerHTML = '<div style="width:64px;height:64px;background:#0f0f0e;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-family:serif;color:#fff;font-size:28px;">G</div><p style="font-size:13px;color:#888880;">Goodness Iyamah</p>'
-                    parent.appendChild(div)
-                  }
-                }}
+                src="/ig.png"
+                alt="Goodness Iyamah, Founder of Growth Network"
+                style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover', objectPosition: 'top center', aspectRatio: '4/5' }}
               />
             </div>
           </div>
@@ -479,18 +453,18 @@ function AuthorSection() {
               <span className="serif-italic">runs agencies.</span>
             </h2>
             <p style={{ fontSize: 15, color: '#4a4a45', lineHeight: 1.75, marginBottom: 20 }}>
-              Growth Network was built by Goodness Iyamah — a growth operator managing businesses across procurement, tech, food, fashion, and events in Nigeria.
+              Growth Network was built by Goodness Iyamah, a growth operator managing businesses across procurement, tech, food, fashion, and events in Nigeria.
               Every feature came from a real problem managing real clients.
             </p>
             <p style={{ fontSize: 15, color: '#4a4a45', lineHeight: 1.75, marginBottom: 28 }}>
-              Not built by engineers guessing what agencies need. Built by the person doing the work — for people doing the same.
+              Not built by engineers guessing what agencies need. Built by the person doing the work, for people doing the same.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
               {[
                 '13 businesses actively managed on the platform',
-                'Procurement, tech, food, fashion, events & more',
-                'Based in Lagos — built for Africa',
+                'Procurement, tech, food, fashion, events and more',
+                'Based in Lagos. Built for Africa.',
               ].map(t => (
                 <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
@@ -635,11 +609,11 @@ const INDUSTRIES = [
 
 // ── FAQ ────────────────────────────────────────────────────────────────────
 const FAQS = [
-  { q: 'How is pricing determined?', a: 'Pricing is based on the scope of work — number of businesses, services needed, and level of support. We scope each engagement individually so you only pay for what your businesses actually need. No arbitrary seat fees.' },
-  { q: 'Can my clients see their own data without seeing other clients?', a: "Yes. Each business has its own limited-access login. They see their dashboard, pipeline, and social data only — never your full portfolio or other clients' data." },
+  { q: 'How is pricing determined?', a: 'Pricing is based on the scope of work, number of businesses, services needed, and level of support. We scope each engagement individually so you only pay for what your businesses actually need. No arbitrary seat fees.' },
+  { q: 'Can my clients see their own data without seeing other clients?', a: "Yes. Each business has its own limited-access login. They see their dashboard, pipeline, and social data only. Never your full portfolio or other clients data." },
   { q: 'What businesses is this built for?', a: "Any business with clients, revenue, and growth to track. We currently manage procurement companies, trading businesses, food, fashion, tech, and events. If it has a CRM and a social presence, Growth Network handles it." },
   { q: 'Does it work for businesses operating only in Nigeria?', a: "100%. NGN is the primary currency, Nigerian phone numbers and WhatsApp patterns are built in. Everything works locally first." },
-  { q: 'How do I get started?', a: "Click 'Get a quote' or 'Open dashboard' above. We scope your businesses together, set everything up, and you have a live dashboard within a week." },
+  { q: 'How do I get started?', a: "Click Get a quote or Open dashboard above. We scope your businesses together, set everything up, and you have a live dashboard within a week." },
 ]
 
 function FAQ() {
