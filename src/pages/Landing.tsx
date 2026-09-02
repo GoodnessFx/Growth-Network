@@ -143,7 +143,7 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
         - Dark gradient overlay for text legibility
       */}
 
-      {/* Lagos / Nigerian building photo — always loads, zero dependencies */}
+      {/* Nigerian/Lagos building photo — instant fallback if video hasn't loaded */}
       <div
         style={{
           position: 'absolute', inset: 0, zIndex: 0,
@@ -153,12 +153,12 @@ function Hero({ onDashboard, onLogin }: { onDashboard: () => void; onLogin: () =
         }}
       />
 
-      {/* Optional: drop public/hero.mp4 to use video instead of photo */}
+      {/* Hero background video — herobackg.mp4 in public/ */}
       <video
         autoPlay muted loop playsInline
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }}
       >
-        <source src="/hero.mp4" type="video/mp4" />
+        <source src="/herobackg.mp4" type="video/mp4" />
       </video>
 
       {/* Dark gradient overlay */}
