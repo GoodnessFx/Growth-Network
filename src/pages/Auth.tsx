@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff, ArrowLeft, Loader2 } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
+import { isSupabaseConfigured } from '../lib/supabase'
 
 interface AuthProps {
   onBack: () => void
@@ -21,6 +22,38 @@ export default function Auth({ onBack }: AuthProps) {
     try { await fn() }
     catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.') }
     finally { setLoading(false) }
+  }
+
+  // When Supabase is not configured (no env vars), show a clean pass-through
+  // so anyone can enter the dashboard without a login form.
+  if (!isSupabaseConfigured) {
+    return (
+      <div style={{ minHeight: '100svh', background: '#0f0f0e', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div style={{ textAlign: 'center', maxWidth: 360 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 32 }}>
+            <div style={{ width: 32, height: 32, background: '#fff', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: "'DM Serif Display', serif", color: '#0f0f0e', fontSize: 15 }}>G</span>
+            </div>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 16, color: '#fff', letterSpacing: -0.3 }}>Growth Network</span>
+          </div>
+          <h1 className="serif" style={{ fontSize: 32, color: '#fff', marginBottom: 12, lineHeight: 1.1 }}>Welcome back.</h1>
+          <p style={{ fontSize: 14, color: '#6a6a62', marginBottom: 32, lineHeight: 1.65 }}>
+            Click below to enter the dashboard.
+          </p>
+          <button
+            onClick={() => handle(signInDummy)}
+            disabled={loading}
+            className="btn btn-lg"
+            style={{ background: '#fff', color: '#0f0f0e', width: '100%', justifyContent: 'center', borderRadius: 10, fontWeight: 700 }}
+          >
+            {loading ? <><Loader2 size={15} className="spin" /> Please wait</> : 'Enter Dashboard'}
+          </button>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6a6a62', fontSize: 13, marginTop: 16, padding: 8 }}>
+            ← Back
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -42,7 +42,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // If Supabase is not configured (no env vars set on this host),
+    // auto sign-in as the dummy operator so the app is immediately usable.
     if (!isSupabaseConfigured) {
+      setUser(DUMMY_USER)
       setLoading(false)
       return
     }
