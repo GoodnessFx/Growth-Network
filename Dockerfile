@@ -1,28 +1,24 @@
-# Growth Network API — long-running Node process (option b).
-# Works on Railway (Dockerfile) and Render (render.yaml), with SQLite on a
-# persistent disk volume mounted at /data.
+# Growth Network — Hono API server (Supabase backend, no SQLite).
+# better-sqlite3 and whatsapp-web.js have been removed from package.json.
+# This Dockerfile builds the backend only; the frontend is served separately.
 
 FROM node:22-slim
 
 WORKDIR /app
 
-# pnpm is the project's package manager (see .mise.toml / package.json).
-RUN corepack enable
+# Enable pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
-# Install production dependencies first for better layer caching.
+# Install dependencies — no native compilation required (Supabase-only stack)
 COPY package.json pnpm-lock.yaml ./
-RUN corepack prepare pnpm@10.33.0 --activate \
-  && pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Copy source. server/ contains the Hono API; src/ is only needed for the
-# Vite frontend, which is NOT built here (Vercel builds the frontend).
+# Copy server source
 COPY server ./server
 COPY tsconfig.json ./
 
 ENV NODE_ENV=production
 ENV PORT=3001
-# Persistent volume path — override per-host (Railway mount, Render disk).
-ENV DB_PATH=/data/growth-network.db
 
 EXPOSE 3001
 
