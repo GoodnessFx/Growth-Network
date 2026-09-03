@@ -125,7 +125,7 @@ function AppInner() {
           <div style={{ width: 32, height: 32, background: '#0f0f0e', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{ fontFamily: "'DM Serif Display', serif", color: '#fff', fontSize: 15 }}>G</span>
           </div>
-          <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f0f0e', letterSpacing: -0.3 }}>GrowthNet</span>
+          <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f0f0e', letterSpacing: -0.3 }}>Growth Network</span>
         </div>
         <div style={{ width: 22, height: 22, border: '2px solid #e8e8e4', borderTopColor: '#16a34a', borderRadius: '50%' }} className="spin" />
         <p style={{ fontSize: 13, color: '#9ca3af', fontFamily: "'Inter', sans-serif" }}>Loading your dashboard…</p>

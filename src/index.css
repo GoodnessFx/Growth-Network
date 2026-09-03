@@ -345,3 +345,129 @@ img, video { max-width: 100%; height: auto; display: block; }
   .btn-xl { padding: 13px 22px !important; font-size: 14px !important; }
   .btn-lg { padding: 11px 18px !important; font-size: 14px !important; }
 }
+
+/* ── Auth page layout ──────────────────────────────────────────────────── */
+.auth-root {
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #fff;
+}
+
+.auth-left {
+  background: #0f0f0e;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(28px, 5vw, 48px);
+  position: relative;
+  overflow: hidden;
+  min-height: 100svh;
+}
+
+.auth-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 80px clamp(24px, 6vw, 64px) 48px;
+  position: relative;
+  background: #fff;
+  overflow-y: auto;
+}
+
+.auth-mobile-logo {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.auth-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 7px;
+  letter-spacing: 0.01em;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-social-btn {
+  width: 100%;
+  height: 48px;
+  background: #fff;
+  border: 1.5px solid #e8e8e4;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f0f0e;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.auth-social-btn:hover:not(:disabled) {
+  border-color: #d4d4ce;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+.auth-social-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 768px) {
+  .auth-root {
+    grid-template-columns: 1fr !important;
+  }
+  .auth-left {
+    display: none !important;
+  }
+  .auth-right {
+    min-height: 100svh;
+    padding: 72px 24px 40px;
+    justify-content: flex-start;
+  }
+  .auth-mobile-logo {
+    display: flex !important;
+  }
+}
+
+/* ── Dashboard page containers - consistent padding & max-width ───────── */
+.dash-page {
+  padding: clamp(18px, 3vw, 32px);
+  max-width: 1140px;
+}
+
+@media (max-width: 640px) {
+  .dash-page {
+    padding: 16px;
+  }
+}
+
+/* ── Responsive grid utilities ─────────────────────────────────────────── */
+.grid-auto-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+
+.grid-auto-md {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+}
+
+/* ── Social publisher mobile fix ───────────────────────────────────────── */
+@media (max-width: 860px) {
+  .social-pub-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Table responsive ──────────────────────────────────────────────────── */
+.table-wrapper {
+  background: #fff;
+  border: 1.5px solid #e8e8e4;
+  border-radius: 12px;
+  overflow: hidden;
+}

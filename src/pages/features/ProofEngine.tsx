@@ -137,7 +137,7 @@ export default function ProofEngine({ business }: Props) {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 24, alignItems: 'start' }}>
         {/* Preview */}
         <CaseStudyPreview business={business} visible={sharing} />
 

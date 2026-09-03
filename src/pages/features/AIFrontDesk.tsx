@@ -4,7 +4,7 @@
  * Real WhatsApp integration is out of scope for this pass — clearly labeled demo.
  */
 import { useState } from 'react'
-import { Plus, MessageSquare, Check, X, Play, Pause, ArrowRight, Bot } from 'lucide-react'
+import { Plus, MessageSquare, Check, X, Play, Pause, ArrowRight, Bot, AlertCircle } from 'lucide-react'
 
 interface Props {
   business: { id: string; name: string; type?: string | null }
@@ -176,7 +176,7 @@ export default function AIFrontDesk({ business }: Props) {
 
       {/* Conversations tab */}
       {tab === 'conversations' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 16 }}>
           <div style={{ background: '#fff', border: '1.5px solid #e8e8e4', borderRadius: 12, overflow: 'hidden' }}>
             {DEMO_CONVERSATIONS.map(conv => (
               <div

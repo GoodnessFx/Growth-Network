@@ -195,7 +195,7 @@ export default function SocialPublisher({ businesses }: { businesses: ApiBusines
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20 }} className="social-pub-grid">
 
         {/* ── Left: composer ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

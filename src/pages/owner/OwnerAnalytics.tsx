@@ -76,7 +76,7 @@ export default function OwnerAnalytics({ business }: Props) {
         <MiniStat label="Conversion Rate"                      value="42%"         delta={3}            icon={Activity}    accent="#0891b2" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16, marginBottom: 16 }}>
         {/* Revenue bar chart */}
         <div style={{ background: '#fff', border: '1.5px solid #e8e8e4', borderRadius: 12, padding: 22 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
