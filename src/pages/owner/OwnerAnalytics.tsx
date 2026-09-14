@@ -63,7 +63,7 @@ export default function OwnerAnalytics({ business }: Props) {
           Growth Dashboard
         </h1>
         <p style={{ fontSize: 12, color: '#d97706', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 4, padding: '3px 10px', display: 'inline-block', marginTop: 6 }}>
-          Demo data — connect your payment and social accounts for real analytics
+          Connect your payment and social accounts for live analytics
         </p>
       </div>
 

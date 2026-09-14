@@ -142,7 +142,7 @@ export default function GrowthTwin() {
           Every projection shows its assumptions so you can decide how much to trust it.
         </p>
         <div style={{ marginTop: 8, display: 'inline-block', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 4, padding: '4px 10px', fontSize: 11, color: '#d97706', fontWeight: 600 }}>
-          Demo data — connect your accounts for projections based on real numbers
+          Connect your accounts for projections based on real numbers
         </div>
       </div>
 
@@ -195,7 +195,7 @@ export default function GrowthTwin() {
 
           {/* Current baseline */}
           <div style={{ background: '#f8f8f6', border: '1.5px solid #e8e8e4', borderRadius: 12, padding: 20 }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Last 6 months (demo)</h3>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Last 6 months preview</h3>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 60 }}>
               {MONTHLY_HISTORY.map((m, i) => {
                 const max = Math.max(...MONTHLY_HISTORY.map(x => x.revenue))

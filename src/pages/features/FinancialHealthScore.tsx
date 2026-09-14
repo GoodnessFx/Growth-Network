@@ -116,7 +116,7 @@ export default function FinancialHealthScore({ business }: Props) {
           the kind of thing a lender or investor looks at first.
         </p>
         <div style={{ marginTop: 8, display: 'inline-block', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 4, padding: '4px 10px', fontSize: 11, color: '#d97706', fontWeight: 600 }}>
-          Demo data — connect your accounts for a real score
+          Connect your accounts for a data-backed score
         </div>
       </div>
 

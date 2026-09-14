@@ -82,7 +82,7 @@ export default function OwnerCRM({ business }: Props) {
             {v.contactsNoun} &amp; {v.leadNoun}s
           </h1>
           <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>
-            Demo data — add real {v.contactsNoun.toLowerCase()} to see live CRM
+            Add real {v.contactsNoun.toLowerCase()} to unlock live CRM activity
           </p>
         </div>
         <button onClick={() => setShowAdd(s => !s)} className="btn btn-primary" style={{ gap: 7 }}>

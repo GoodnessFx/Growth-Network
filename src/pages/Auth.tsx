@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext'
 import { isSupabaseConfigured } from '../lib/supabase'
 
@@ -11,10 +11,6 @@ export default function Auth({ onBack }: AuthProps) {
   const { signInWithGoogle, signInDummy } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
-  const [showPass, setShowPass] = useState(false)
-  const [email, setEmail]     = useState('')
-  const [password, setPassword] = useState('')
-  const [mode, setMode]       = useState<'login' | 'signup'>('login')
 
   const handle = async (fn: () => Promise<void>) => {
     setError('')
@@ -179,12 +175,10 @@ export default function Auth({ onBack }: AuthProps) {
           {/* Heading */}
           <div style={{ marginBottom: 32 }}>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(28px, 4vw, 38px)', color: '#0f0f0e', marginBottom: 8, lineHeight: 1.05 }}>
-              {mode === 'login' ? 'Welcome back.' : 'Get started.'}
+              Welcome back.
             </h1>
             <p style={{ fontSize: 14, color: '#888880', lineHeight: 1.5 }}>
-              {mode === 'login'
-                ? 'Sign in to your Growth Network dashboard.'
-                : 'Create your Growth Network account.'}
+              Sign in with Google to access your Growth Network dashboard.
             </p>
           </div>
 
@@ -209,105 +203,12 @@ export default function Auth({ onBack }: AuthProps) {
             </svg>
             <span>Continue with Google</span>
           </button>
-
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
-            <div style={{ flex: 1, height: 1, background: '#eaeae6' }} />
-            <span style={{ fontSize: 11, color: '#c0c0b8', fontWeight: 600, letterSpacing: '0.04em' }}>OR</span>
-            <div style={{ flex: 1, height: 1, background: '#eaeae6' }} />
+          <div style={{ marginTop: 18, padding: '14px 16px', borderRadius: 10, background: '#f8f8f6', border: '1px solid #e8e8e4' }}>
+            <p style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.65, margin: 0 }}>
+              Google sign-in is the only live authentication flow in this app. Approve the account in Supabase,
+              then use the button above to enter the dashboard.
+            </p>
           </div>
-
-          {/* Email */}
-          <div style={{ marginBottom: 14 }}>
-            <label className="auth-label">Email address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              className="gn-input"
-              disabled={loading}
-              autoComplete="email"
-            />
-          </div>
-
-          {/* Password */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <label className="auth-label" style={{ marginBottom: 0 }}>Password</label>
-              {mode === 'login' && (
-                <button
-                  type="button"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#888880', fontWeight: 500, padding: 0, fontFamily: "'Inter', sans-serif" }}
-                >
-                  Forgot password?
-                </button>
-              )}
-            </div>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPass ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Min. 8 characters"
-                className="gn-input"
-                disabled={loading}
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                style={{ paddingRight: 48 }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPass(v => !v)}
-                style={{
-                  position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#b0b0a8', padding: 4, display: 'flex', alignItems: 'center',
-                }}
-              >
-                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit */}
-          <button
-            onClick={() => handle(signInDummy)}
-            disabled={loading}
-            style={{
-              width: '100%', height: 50,
-              background: '#0f0f0e', color: '#fff',
-              border: 'none', borderRadius: 9,
-              fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              marginBottom: 20,
-              opacity: loading ? 0.7 : 1,
-              transition: 'background 0.15s, transform 0.1s',
-            }}
-            onMouseEnter={e => { if (!loading) { (e.currentTarget as HTMLElement).style.background = '#2a2a28' } }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#0f0f0e' }}
-          >
-            {loading
-              ? <><Loader2 size={15} className="spin" /> Please wait…</>
-              : mode === 'login' ? 'Sign in' : 'Create account'}
-          </button>
-
-          {/* Toggle */}
-          <p style={{ textAlign: 'center', fontSize: 13, color: '#888880', lineHeight: 1.5 }}>
-            {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-            <button
-              type="button"
-              onClick={() => setMode(m => m === 'login' ? 'signup' : 'login')}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: '#0f0f0e', fontWeight: 700, fontSize: 13, padding: 0,
-                fontFamily: "'Inter', sans-serif",
-                textDecoration: 'underline', textUnderlineOffset: 3,
-              }}
-            >
-              {mode === 'login' ? 'Sign up' : 'Sign in'}
-            </button>
-          </p>
         </div>
       </div>
     </div>

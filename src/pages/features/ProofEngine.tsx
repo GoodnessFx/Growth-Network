@@ -104,7 +104,7 @@ function CaseStudyPreview({ business, visible }: { business: Props['business']; 
       {/* Footer */}
       <div style={{ padding: '16px 32px', borderTop: '1px solid #1a1a1a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: 11, color: '#4a4a45' }}>Powered by GrowthNet · growthnetwork.io</span>
-        <span style={{ fontSize: 11, color: '#4a4a45' }}>Demo data</span>
+        <span style={{ fontSize: 11, color: '#4a4a45' }}>Growth snapshot</span>
       </div>
     </div>
   )

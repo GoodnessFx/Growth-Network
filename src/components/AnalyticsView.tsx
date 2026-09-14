@@ -143,7 +143,7 @@ function AdPlatformBlock({ platform, compact }: { platform: AdPlatformOverview |
             textTransform: 'uppercase',
           }}
         >
-          {platform.demo ? 'demo' : 'live'}
+          {platform.demo ? 'preview' : 'live'}
         </span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -662,7 +662,7 @@ export default function AnalyticsView() {
                     </div>
                     {seo.demo && (
                       <div style={{ fontSize: 11, color: 'var(--warning)', fontFamily: 'JetBrains Mono', marginBottom: 10 }}>
-                        Demo data — connect Google Search Console for live numbers.
+                        Preview numbers only. Connect Google Search Console for live data.
                       </div>
                     )}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }} className="stack-mobile">

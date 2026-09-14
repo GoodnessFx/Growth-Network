@@ -210,7 +210,7 @@ export default function ChurnRadar() {
       </div>
 
       <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 20, textAlign: 'center' }}>
-        Demo data — connect client accounts to see real engagement signals
+        Connect client accounts to see real engagement signals
       </p>
     </div>
   )

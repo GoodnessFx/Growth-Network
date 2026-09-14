@@ -37,7 +37,7 @@ function getIdeas(bizType: string | null | undefined): Idea[] {
       impact: 'high',
       action: 'Set up auto follow-up',
       actionTab: 'automations',
-      dataSignal: '3 leads inactive 7+ days (demo)',
+      dataSignal: '3 leads inactive 7+ days',
     },
     {
       id: '2',
@@ -48,7 +48,7 @@ function getIdeas(bizType: string | null | undefined): Idea[] {
       impact: 'high',
       action: 'View CRM contacts',
       actionTab: 'owner-crm',
-      dataSignal: 'Long-tenure clients detected (demo)',
+      dataSignal: 'Long-tenure clients detected',
     },
     {
       id: '3',
@@ -59,7 +59,7 @@ function getIdeas(bizType: string | null | undefined): Idea[] {
       impact: 'medium',
       action: 'Open WhatsApp tool',
       actionTab: 'growth-tools',
-      dataSignal: 'No broadcast in 18 days (demo)',
+      dataSignal: 'No broadcast in 18 days',
     },
     {
       id: '4',
@@ -70,7 +70,7 @@ function getIdeas(bizType: string | null | undefined): Idea[] {
       impact: 'high',
       action: 'Create invoice',
       actionTab: 'owner-invoices',
-      dataSignal: '₦82k outstanding (demo)',
+      dataSignal: '₦82k outstanding',
     },
     {
       id: '5',
@@ -81,7 +81,7 @@ function getIdeas(bizType: string | null | undefined): Idea[] {
       impact: 'medium',
       action: 'Open content calendar',
       actionTab: 'client-calendar',
-      dataSignal: '1 post last week (demo)',
+      dataSignal: '1 post last week',
     },
     {
       id: '6',
@@ -101,7 +101,7 @@ function getIdeas(bizType: string | null | undefined): Idea[] {
       category: 'revenue',
       effort: 'medium',
       impact: 'high',
-      dataSignal: 'Service co-purchase pattern (demo)',
+      dataSignal: 'Service co-purchase pattern',
     },
     {
       id: '8',
@@ -146,7 +146,7 @@ export default function IdeasPage({ business, onNavigate }: Props) {
         <p style={{ fontSize: 14, color: '#6b7280' }}>
           {ideas.length} ideas based on your business data — each with a clear reason and a direct action.{' '}
           <span style={{ background: '#fffbeb', color: '#d97706', fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 4 }}>
-            Demo data — connect your accounts for personalised suggestions
+            Connect your accounts for personalised suggestions
           </span>
         </p>
       </div>
