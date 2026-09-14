@@ -2,7 +2,7 @@
 # better-sqlite3 and whatsapp-web.js have been removed from package.json.
 # This Dockerfile builds the backend only; the frontend is served separately.
 
-FROM node:22-slim
+FROM node:22.22.0-slim
 
 WORKDIR /app
 
